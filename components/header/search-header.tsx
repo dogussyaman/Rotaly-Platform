@@ -2,12 +2,18 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Search, ChevronLeft, ChevronRight, Users, Minus, Plus, X } from 'lucide-react';
+import { MapPin, Search, ChevronLeft, ChevronRight, Minus, Plus, X, Globe, Check } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useLocale } from '@/lib/i18n/locale-context';
+import { LOCALES, type Locale } from '@/lib/i18n/translations';
 
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const DAYS = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+// ─── Calendar ──────────────────────────────────────────────────────────────
+
+interface DateRange {
+  start: Date | null;
+  end: Date | null;
+}
 
 function getDaysInMonth(year: number, month: number) {
   return new Date(year, month + 1, 0).getDate();
@@ -16,13 +22,8 @@ function getFirstDayOfMonth(year: number, month: number) {
   return new Date(year, month, 1).getDay();
 }
 
-interface DateRange {
-  start: Date | null;
-  end: Date | null;
-}
-
 function MiniCalendar({
-  year, month, onPrev, onNext, dateRange, onDateClick, hoverDate, onHover,
+  year, month, onPrev, onNext, dateRange, onDateClick, hoverDate, onHover, days, months,
 }: {
   year: number; month: number;
   onPrev: () => void; onNext: () => void;
@@ -30,10 +31,12 @@ function MiniCalendar({
   onDateClick: (d: Date) => void;
   hoverDate: Date | null;
   onHover: (d: Date | null) => void;
+  days: string[];
+  months: string[];
 }) {
   const daysInMonth = getDaysInMonth(year, month);
   const firstDay = getFirstDayOfMonth(year, month);
-  const today = new Date(); today.setHours(0,0,0,0);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
 
   const isInRange = (d: Date) => {
     const start = dateRange.start;
@@ -51,24 +54,24 @@ function MiniCalendar({
   );
 
   return (
-    <div className="w-72">
+    <div className="w-64">
       <div className="flex items-center justify-between mb-4">
         <button onClick={onPrev} className="p-1.5 rounded-full hover:bg-muted transition-colors">
           <ChevronLeft className="w-4 h-4 text-foreground" />
         </button>
-        <span className="font-semibold text-sm text-foreground">{MONTHS[month]} {year}</span>
+        <span className="font-semibold text-sm text-foreground">{months[month]} {year}</span>
         <button onClick={onNext} className="p-1.5 rounded-full hover:bg-muted transition-colors">
           <ChevronRight className="w-4 h-4 text-foreground" />
         </button>
       </div>
       <div className="grid grid-cols-7 mb-2">
-        {DAYS.map(d => (
+        {days.map(d => (
           <div key={d} className="text-center text-xs text-muted-foreground font-medium py-1">{d}</div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-y-1">
+      <div className="grid grid-cols-7 gap-y-0.5">
         {cells.map((d, i) => {
-          if (!d) return <div key={`empty-${i}`} />;
+          if (!d) return <div key={`e-${i}`} />;
           const past = isPast(d);
           const start = isStart(d);
           const end = isEnd(d);
@@ -80,15 +83,16 @@ function MiniCalendar({
               onMouseEnter={() => !past && onHover(d)}
               onMouseLeave={() => onHover(null)}
               onClick={() => !past && onDateClick(d)}
-              className={`
-                relative h-9 w-9 mx-auto flex items-center justify-center text-sm font-medium rounded-full transition-all
-                ${past ? 'text-muted-foreground/30 cursor-not-allowed' : 'cursor-pointer hover:bg-muted'}
-                ${(start || end) ? 'bg-foreground text-card z-10' : ''}
-                ${inRange ? 'bg-muted rounded-none' : ''}
-                ${start && dateRange.end ? 'rounded-l-full rounded-r-none' : ''}
-                ${end ? 'rounded-r-full rounded-l-none' : ''}
-                ${start && !dateRange.end ? 'rounded-full' : ''}
-              `}
+              className={[
+                'relative h-8 w-8 mx-auto flex items-center justify-center text-xs font-medium transition-all select-none',
+                past ? 'text-muted-foreground/30 cursor-not-allowed' : 'cursor-pointer',
+                (start || end) ? 'bg-foreground text-card rounded-full z-10' : '',
+                inRange ? 'bg-muted rounded-none' : '',
+                !start && !end && !inRange && !past ? 'hover:bg-muted rounded-full' : '',
+                start && dateRange.end ? 'rounded-l-full rounded-r-none' : '',
+                end && dateRange.start ? 'rounded-r-full rounded-l-none' : '',
+                start && !dateRange.end ? 'rounded-full' : '',
+              ].join(' ')}
             >
               {d.getDate()}
             </button>
@@ -99,12 +103,71 @@ function MiniCalendar({
   );
 }
 
+// ─── Language Switcher ──────────────────────────────────────────────────────
+
+function LanguageSwitcher() {
+  const { locale, setLocale } = useLocale();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border hover:bg-muted transition-colors text-sm font-medium text-foreground"
+      >
+        <Globe className="w-3.5 h-3.5" />
+        <span>{LOCALES.find(l => l.code === locale)?.flag}</span>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 top-full mt-2 w-44 bg-card rounded-2xl shadow-xl border border-border overflow-hidden z-50"
+          >
+            {LOCALES.map(l => (
+              <button
+                key={l.code}
+                onClick={() => { setLocale(l.code as Locale); setOpen(false); }}
+                className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-muted ${
+                  locale === l.code ? 'text-foreground font-medium' : 'text-muted-foreground'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-muted-foreground w-6">{l.flag}</span>
+                  {l.label}
+                </span>
+                {locale === l.code && <Check className="w-3.5 h-3.5 text-foreground" />}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── Main Header ────────────────────────────────────────────────────────────
+
 type ActivePanel = 'location' | 'checkin' | 'checkout' | 'guests' | null;
 
 export function SearchHeader() {
   const router = useRouter();
+  const { t } = useLocale();
   const [isScrolled, setIsScrolled] = useState(false);
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
+  const [activeTab, setActiveTab] = useState(0);
   const [location, setLocation] = useState('');
   const [dateRange, setDateRange] = useState<DateRange>({ start: null, end: null });
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
@@ -114,19 +177,19 @@ export function SearchHeader() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 80);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setIsScrolled(window.scrollY > 60);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
+    const handler = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setActivePanel(null);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, []);
 
   const handleDateClick = (d: Date) => {
@@ -170,11 +233,17 @@ export function SearchHeader() {
   const nextCalMonth = calMonth === 11 ? 0 : calMonth + 1;
   const nextCalYear = calMonth === 11 ? calYear + 1 : calYear;
 
+  const months = t.months as string[];
+  const days = t.days as string[];
+  const destinations = t.destinations as string[];
+  const tabs = [t.stays, t.experiences, t.hotels] as string[];
+
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      isScrolled ? 'bg-card/95 backdrop-blur-lg shadow-sm border-b border-border' : 'bg-transparent'
+      isScrolled ? 'bg-card/95 backdrop-blur-xl shadow-sm border-b border-border' : 'bg-transparent'
     }`}>
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-6">
+      {/* ── Top bar ── */}
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
           <div className="w-8 h-8 bg-foreground rounded-xl flex items-center justify-center">
@@ -186,13 +255,14 @@ export function SearchHeader() {
           <span className="font-bold text-lg text-foreground tracking-tight">StayHub</span>
         </Link>
 
-        {/* Nav Tabs — hidden when not scrolled on mobile */}
-        <nav className="hidden md:flex items-center gap-1 bg-muted rounded-full p-1">
-          {['Stays', 'Experiences', 'Hotels'].map((tab) => (
+        {/* Segment nav — center */}
+        <nav className="hidden md:flex items-center gap-0.5 bg-muted/80 rounded-full p-1">
+          {tabs.map((tab, i) => (
             <button
               key={tab}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                tab === 'Stays'
+              onClick={() => setActiveTab(i)}
+              className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all ${
+                activeTab === i
                   ? 'bg-secondary text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
@@ -202,104 +272,112 @@ export function SearchHeader() {
           ))}
         </nav>
 
-        {/* Auth */}
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <Link href="/auth/login" className="text-sm font-medium text-foreground hover:text-muted-foreground transition-colors hidden sm:block">
-            Log in
+        {/* Auth + Lang */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <LanguageSwitcher />
+          <Link
+            href="/auth/login"
+            className="text-sm font-medium text-foreground hover:text-muted-foreground transition-colors hidden sm:block px-3 py-1.5"
+          >
+            {t.login as string}
           </Link>
           <Link
             href="/auth/signup"
-            className="bg-foreground text-card text-sm font-medium px-4 py-2 rounded-full hover:bg-foreground/90 transition-colors"
+            className="bg-foreground text-card text-sm font-semibold px-4 py-2 rounded-full hover:bg-foreground/85 transition-colors"
           >
-            Sign up
+            {t.signup as string}
           </Link>
         </div>
       </div>
 
-      {/* Expanded Search Bar — shown on hero, collapses on scroll */}
+      {/* ── Expanded Search Bar (hero state) ── */}
       <AnimatePresence>
         {!isScrolled && (
           <motion.div
-            initial={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="pb-5 px-6"
+            className="pb-6 px-6"
           >
-            <div className="max-w-3xl mx-auto" ref={containerRef}>
-              <div className="bg-card rounded-2xl shadow-lg border border-border flex items-stretch overflow-visible relative">
+            <div className="max-w-4xl mx-auto" ref={containerRef}>
+              <div className="bg-card rounded-2xl shadow-xl border border-border/60 flex items-stretch relative">
 
-                {/* Location */}
+                {/* Location field */}
                 <button
                   onClick={() => setActivePanel(activePanel === 'location' ? null : 'location')}
-                  className={`flex-1 px-5 py-4 text-left border-r border-border transition-colors hover:bg-muted/40 ${
-                    activePanel === 'location' ? 'bg-muted/60' : ''
-                  } rounded-l-2xl`}
+                  className={`flex-[2] px-6 py-4 text-left border-r border-border transition-colors rounded-l-2xl ${
+                    activePanel === 'location' ? 'bg-muted/50' : 'hover:bg-muted/30'
+                  }`}
                 >
-                  <div className="text-xs font-semibold text-foreground mb-1">Location</div>
-                  <div className="text-sm text-muted-foreground">
-                    {location || 'Enter your destination'}
+                  <div className="text-xs font-bold text-foreground mb-0.5 tracking-wide uppercase">{t.location as string}</div>
+                  <div className={`text-sm ${location ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                    {location || (t.locationPlaceholder as string)}
                   </div>
                 </button>
 
                 {/* Check in */}
                 <button
                   onClick={() => setActivePanel(activePanel === 'checkin' ? null : 'checkin')}
-                  className={`flex-1 px-5 py-4 text-left border-r border-border transition-colors hover:bg-muted/40 ${
-                    activePanel === 'checkin' || activePanel === 'checkout' ? 'bg-muted/60' : ''
+                  className={`flex-1 px-6 py-4 text-left border-r border-border transition-colors ${
+                    activePanel === 'checkin' || activePanel === 'checkout' ? 'bg-muted/50' : 'hover:bg-muted/30'
                   }`}
                 >
-                  <div className="text-xs font-semibold text-foreground mb-1">Check in</div>
-                  <div className="text-sm text-muted-foreground">
-                    {formatDate(dateRange.start) || 'Set date'}
+                  <div className="text-xs font-bold text-foreground mb-0.5 tracking-wide uppercase">{t.checkin as string}</div>
+                  <div className={`text-sm ${dateRange.start ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                    {formatDate(dateRange.start) || (t.setDate as string)}
                   </div>
                 </button>
 
                 {/* Check out */}
                 <button
                   onClick={() => setActivePanel(activePanel === 'checkout' ? null : 'checkout')}
-                  className={`flex-1 px-5 py-4 text-left border-r border-border transition-colors hover:bg-muted/40 ${
-                    activePanel === 'checkout' ? 'bg-muted/60' : ''
+                  className={`flex-1 px-6 py-4 text-left border-r border-border transition-colors ${
+                    activePanel === 'checkout' ? 'bg-muted/50' : 'hover:bg-muted/30'
                   }`}
                 >
-                  <div className="text-xs font-semibold text-foreground mb-1">Check out</div>
-                  <div className="text-sm text-muted-foreground">
-                    {formatDate(dateRange.end) || 'Set date'}
+                  <div className="text-xs font-bold text-foreground mb-0.5 tracking-wide uppercase">{t.checkout as string}</div>
+                  <div className={`text-sm ${dateRange.end ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                    {formatDate(dateRange.end) || (t.setDate as string)}
                   </div>
                 </button>
 
                 {/* Guests */}
                 <button
                   onClick={() => setActivePanel(activePanel === 'guests' ? null : 'guests')}
-                  className={`flex-1 px-5 py-4 text-left transition-colors hover:bg-muted/40 ${
-                    activePanel === 'guests' ? 'bg-muted/60' : ''
+                  className={`flex-1 px-6 py-4 text-left transition-colors ${
+                    activePanel === 'guests' ? 'bg-muted/50' : 'hover:bg-muted/30'
                   }`}
                 >
-                  <div className="text-xs font-semibold text-foreground mb-1">Guests</div>
-                  <div className="text-sm text-muted-foreground">
-                    {totalGuests > 0 ? `${totalGuests} guest${totalGuests > 1 ? 's' : ''}` : 'Add guests'}
-                    {guests.infants > 0 ? `, ${guests.infants} infant${guests.infants > 1 ? 's' : ''}` : ''}
+                  <div className="text-xs font-bold text-foreground mb-0.5 tracking-wide uppercase">{t.guests as string}</div>
+                  <div className={`text-sm ${totalGuests > 1 || guests.infants > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                    {totalGuests > 0
+                      ? `${totalGuests} ${t.guests as string}${guests.infants > 0 ? `, ${guests.infants} ${t.infants as string}` : ''}`
+                      : (t.addGuests as string)}
                   </div>
                 </button>
 
                 {/* Search Button */}
-                <div className="flex items-center px-3">
+                <div className="flex items-center px-4">
                   <button
                     onClick={handleSearch}
-                    className="w-12 h-12 bg-foreground rounded-xl flex items-center justify-center hover:bg-foreground/90 transition-colors flex-shrink-0"
+                    className="w-12 h-12 bg-foreground rounded-xl flex items-center justify-center hover:bg-foreground/85 transition-all active:scale-95 shadow-sm"
+                    aria-label={t.search as string}
                   >
                     <Search className="w-5 h-5 text-card" />
                   </button>
                 </div>
 
-                {/* Panels */}
+                {/* ── Dropdown Panels ── */}
                 <AnimatePresence>
+                  {/* Location Panel */}
                   {activePanel === 'location' && (
                     <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 8 }}
+                      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.98 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute top-full left-0 mt-2 w-80 bg-card rounded-2xl shadow-xl border border-border p-4 z-50"
+                      className="absolute top-[calc(100%+8px)] left-0 w-88 bg-card rounded-2xl shadow-2xl border border-border p-4 z-50"
                     >
                       <div className="relative mb-3">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -307,39 +385,43 @@ export function SearchHeader() {
                           autoFocus
                           value={location}
                           onChange={e => setLocation(e.target.value)}
-                          placeholder="Search destinations..."
-                          className="w-full pl-9 pr-3 py-2.5 bg-muted rounded-xl text-sm outline-none focus:ring-2 focus:ring-ring transition-all"
+                          placeholder={t.searchPlaceholder as string}
+                          className="w-full pl-9 pr-8 py-2.5 bg-muted rounded-xl text-sm outline-none focus:ring-2 focus:ring-ring transition-all placeholder:text-muted-foreground"
                         />
                         {location && (
                           <button onClick={() => setLocation('')} className="absolute right-3 top-1/2 -translate-y-1/2">
-                            <X className="w-3.5 h-3.5 text-muted-foreground" />
+                            <X className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
                           </button>
                         )}
                       </div>
-                      <div className="space-y-1">
-                        {['Istanbul, Turkey', 'Bodrum, Turkey', 'Antalya, Turkey', 'Cappadocia, Turkey', 'Izmir, Turkey'].map(s => (
+                      <div className="space-y-0.5">
+                        {destinations.map(dest => (
                           <button
-                            key={s}
-                            onClick={() => { setLocation(s); setActivePanel('checkin'); }}
+                            key={dest}
+                            onClick={() => { setLocation(dest); setActivePanel('checkin'); }}
                             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted transition-colors text-left"
                           >
-                            <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
+                            <div className="w-9 h-9 bg-muted rounded-xl flex items-center justify-center flex-shrink-0">
                               <MapPin className="w-4 h-4 text-muted-foreground" />
                             </div>
-                            <span className="text-sm text-foreground">{s}</span>
+                            <div>
+                              <span className="text-sm font-medium text-foreground">{dest.split(',')[0]}</span>
+                              <span className="text-xs text-muted-foreground ml-1">{dest.split(',')[1]}</span>
+                            </div>
                           </button>
                         ))}
                       </div>
                     </motion.div>
                   )}
 
+                  {/* Calendar Panel */}
                   {(activePanel === 'checkin' || activePanel === 'checkout') && (
                     <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 8 }}
+                      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.98 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-card rounded-2xl shadow-xl border border-border p-5 z-50"
+                      className="absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 bg-card rounded-2xl shadow-2xl border border-border p-5 z-50"
                     >
                       <div className="flex gap-8">
                         <MiniCalendar
@@ -349,7 +431,10 @@ export function SearchHeader() {
                           onDateClick={handleDateClick}
                           hoverDate={hoverDate}
                           onHover={setHoverDate}
+                          months={months}
+                          days={days}
                         />
+                        <div className="w-px bg-border" />
                         <MiniCalendar
                           year={nextCalYear} month={nextCalMonth}
                           onPrev={prevMonth} onNext={nextMonth}
@@ -357,59 +442,60 @@ export function SearchHeader() {
                           onDateClick={handleDateClick}
                           hoverDate={hoverDate}
                           onHover={setHoverDate}
+                          months={months}
+                          days={days}
                         />
                       </div>
-                      {(dateRange.start || dateRange.end) && (
-                        <div className="flex justify-between items-center mt-4 pt-4 border-t border-border">
-                          <button
-                            onClick={() => setDateRange({ start: null, end: null })}
-                            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                          >
-                            Clear dates
-                          </button>
-                          <button
-                            onClick={() => setActivePanel('guests')}
-                            className="text-sm font-medium bg-foreground text-card px-4 py-2 rounded-full hover:bg-foreground/90 transition-colors"
-                          >
-                            Next: Guests
-                          </button>
-                        </div>
-                      )}
+                      <div className="flex justify-between items-center mt-4 pt-4 border-t border-border">
+                        <button
+                          onClick={() => setDateRange({ start: null, end: null })}
+                          className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+                        >
+                          {t.clearDates as string}
+                        </button>
+                        <button
+                          onClick={() => setActivePanel('guests')}
+                          className="text-sm font-semibold bg-foreground text-card px-5 py-2 rounded-full hover:bg-foreground/85 transition-colors"
+                        >
+                          {t.nextGuests as string}
+                        </button>
+                      </div>
                     </motion.div>
                   )}
 
+                  {/* Guests Panel */}
                   {activePanel === 'guests' && (
                     <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 8 }}
+                      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.98 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute top-full right-0 mt-2 w-80 bg-card rounded-2xl shadow-xl border border-border p-5 z-50"
+                      className="absolute top-[calc(100%+8px)] right-16 w-80 bg-card rounded-2xl shadow-2xl border border-border p-5 z-50"
                     >
                       {[
-                        { key: 'adults', label: 'Adults', desc: 'Ages 13 or above' },
-                        { key: 'children', label: 'Children', desc: 'Ages 2–12' },
-                        { key: 'infants', label: 'Infants', desc: 'Under 2' },
-                      ].map(({ key, label, desc }) => (
+                        { key: 'adults', label: t.adults as string, desc: t.adultsDesc as string, min: 1 },
+                        { key: 'children', label: t.children as string, desc: t.childrenDesc as string, min: 0 },
+                        { key: 'infants', label: t.infants as string, desc: t.infantsDesc as string, min: 0 },
+                      ].map(({ key, label, desc, min }) => (
                         <div key={key} className="flex items-center justify-between py-4 border-b border-border last:border-0">
                           <div>
-                            <div className="text-sm font-medium text-foreground">{label}</div>
-                            <div className="text-xs text-muted-foreground">{desc}</div>
+                            <div className="text-sm font-semibold text-foreground">{label}</div>
+                            <div className="text-xs text-muted-foreground mt-0.5">{desc}</div>
                           </div>
                           <div className="flex items-center gap-3">
                             <button
-                              onClick={() => setGuests(g => ({ ...g, [key]: Math.max(key === 'adults' ? 1 : 0, (g as any)[key] - 1) }))}
-                              disabled={(guests as any)[key] <= (key === 'adults' ? 1 : 0)}
-                              className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-foreground hover:border-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                              onClick={() => setGuests(g => ({ ...g, [key]: Math.max(min, (g as any)[key] - 1) }))}
+                              disabled={(guests as any)[key] <= min}
+                              className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors disabled:opacity-25 disabled:cursor-not-allowed"
                             >
-                              <Minus className="w-3.5 h-3.5" />
+                              <Minus className="w-3.5 h-3.5 text-foreground" />
                             </button>
-                            <span className="w-5 text-center text-sm font-medium text-foreground">{(guests as any)[key]}</span>
+                            <span className="w-5 text-center text-sm font-semibold text-foreground">{(guests as any)[key]}</span>
                             <button
                               onClick={() => setGuests(g => ({ ...g, [key]: (g as any)[key] + 1 }))}
-                              className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-foreground hover:border-foreground transition-colors"
+                              className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors"
                             >
-                              <Plus className="w-3.5 h-3.5" />
+                              <Plus className="w-3.5 h-3.5 text-foreground" />
                             </button>
                           </div>
                         </div>
@@ -423,7 +509,7 @@ export function SearchHeader() {
         )}
       </AnimatePresence>
 
-      {/* Compact Search — shows on scroll */}
+      {/* ── Compact search pill (scrolled) ── */}
       <AnimatePresence>
         {isScrolled && (
           <motion.div
@@ -431,22 +517,22 @@ export function SearchHeader() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.2 }}
-            className="pb-3 px-6"
+            className="absolute top-3 left-1/2 -translate-x-1/2"
           >
-            <div className="max-w-lg mx-auto">
-              <button
-                onClick={() => { setIsScrolled(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                className="w-full flex items-center gap-3 bg-card border border-border rounded-full px-4 py-2.5 shadow-sm hover:shadow-md transition-shadow"
-              >
-                <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground flex-1 text-left">
-                  {location || 'Anywhere'} · {formatDate(dateRange.start) ? `${formatDate(dateRange.start)} – ${formatDate(dateRange.end) || '?'}` : 'Any week'} · {totalGuests} guest{totalGuests !== 1 ? 's' : ''}
-                </span>
-                <div className="w-7 h-7 bg-foreground rounded-full flex items-center justify-center flex-shrink-0">
-                  <Search className="w-3 h-3 text-card" />
-                </div>
-              </button>
-            </div>
+            <button
+              onClick={() => { setIsScrolled(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+              className="flex items-center gap-2 bg-card border border-border rounded-full px-4 py-2.5 shadow-md hover:shadow-lg transition-all text-sm font-medium text-foreground"
+            >
+              <Search className="w-4 h-4 text-muted-foreground" />
+              <span>{location || (t.locationPlaceholder as string)}</span>
+              <span className="h-4 w-px bg-border mx-1" />
+              <span className="text-muted-foreground">
+                {dateRange.start ? formatDate(dateRange.start) : t.checkin as string}
+                {dateRange.end ? ` – ${formatDate(dateRange.end)}` : ''}
+              </span>
+              <span className="h-4 w-px bg-border mx-1" />
+              <span className="text-muted-foreground">{totalGuests} {t.guests as string}</span>
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
