@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { SearchHeader } from '@/components/header/search-header';
+import { HeroSearchBar } from '@/components/search/hero-search-bar';
 import { ListingCard } from '@/components/listings/listing-card';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
@@ -226,14 +227,15 @@ export default function Home() {
 
   return (
     <div className="min-h-screen font-sans" style={{ background: 'var(--background)' }}>
-      {/* ── HERO (full-screen, behind sticky header) ─────────────────── */}
+      {/* ── HERO ─────────────────────────────────────────────────────── */}
       <section
-        className="relative min-h-[88vh] flex flex-col"
+        className="relative flex flex-col"
         style={{
-          background: 'linear-gradient(175deg, #c8dff0 0%, #deeaf5 35%, #eef4f9 65%, oklch(0.98 0.002 95) 100%)',
+          background: 'linear-gradient(175deg, #b8d4e8 0%, #cfe2f0 40%, #deeaf5 70%, #eef4f9 100%)',
+          minHeight: '520px',
         }}
       >
-        {/* Background building photo — blurred, behind text */}
+        {/* Background building photo */}
         <div
           className="absolute inset-0 pointer-events-none select-none"
           aria-hidden="true"
@@ -241,29 +243,25 @@ export default function Home() {
             backgroundImage: `url(https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1800&h=900&fit=crop)`,
             backgroundSize: 'cover',
             backgroundPosition: 'center 30%',
-            opacity: 0.18,
+            opacity: 0.15,
           }}
         />
-        {/* Gradient fade to white at bottom */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-40 pointer-events-none"
-          style={{ background: 'linear-gradient(to bottom, transparent, var(--background))' }}
-        />
 
-        {/* SearchHeader sits at top (fixed), hero content below it */}
+        {/* Nav (fixed, transparent over hero) */}
         <SearchHeader />
 
-        {/* Hero text — pushed down to sit behind/under search bar */}
-        <div className="flex-1 flex flex-col items-center justify-center text-center px-6 pt-52 pb-32 relative z-10">
+        {/* Hero text — centered in hero */}
+        <div className="flex-1 flex flex-col items-center justify-center text-center px-6 pt-24 pb-20 relative z-10">
+
           {/* Floating location card */}
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
+            initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
-            className="absolute left-12 top-48 hidden xl:flex items-center gap-3 bg-card/90 backdrop-blur-md rounded-2xl px-4 py-3 shadow-lg border border-border/60"
+            className="absolute left-16 top-32 hidden xl:flex items-center gap-3 bg-white/90 backdrop-blur-md rounded-2xl px-4 py-3 shadow-lg border border-white/80"
           >
             <div
-              className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 bg-muted"
+              className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100"
               style={{
                 backgroundImage: 'url(https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=80&h=80&fit=crop)',
                 backgroundSize: 'cover',
@@ -271,7 +269,7 @@ export default function Home() {
             />
             <div className="text-left">
               <div className="text-xs font-bold text-foreground">Istanbul, Turkey</div>
-              <div className="text-xs text-muted-foreground">595 km away</div>
+              <div className="text-xs text-gray-400">595 km uzakta</div>
             </div>
           </motion.div>
 
@@ -279,7 +277,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="text-7xl sm:text-8xl lg:text-9xl font-bold text-foreground tracking-tighter leading-none text-balance mb-5"
+            className="text-7xl sm:text-8xl lg:text-[6.5rem] font-bold text-foreground tracking-tighter leading-none text-balance mb-4"
           >
             {t.heroTitle as string}
           </motion.h1>
@@ -288,7 +286,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-lg text-muted-foreground text-balance max-w-md"
+            className="text-base text-foreground/60 text-balance max-w-sm mb-6"
           >
             {t.heroSubtitle as string}
           </motion.p>
@@ -298,7 +296,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            className="flex items-center justify-center gap-2.5 mt-5"
+            className="flex items-center justify-center gap-2.5"
           >
             <div className="flex -space-x-2">
               {[
@@ -307,20 +305,33 @@ export default function Home() {
                 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=48&h=48&fit=crop&crop=face',
                 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=48&h=48&fit=crop&crop=face',
               ].map((src, i) => (
-                <div key={i} className="w-8 h-8 rounded-full border-2 border-card overflow-hidden">
+                <div key={i} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
                   <img src={src} alt="" className="w-full h-full object-cover" />
                 </div>
               ))}
             </div>
-            <span className="text-sm font-medium text-muted-foreground">
+            <span className="text-sm font-medium text-foreground/60">
               500k+ {t.lovedBy as string}
             </span>
           </motion.div>
         </div>
+
+        {/* ── Search bar — overlaps bottom of hero into content below ── */}
+        <div className="relative z-20 px-6 pb-0">
+          <div className="max-w-5xl mx-auto translate-y-1/2">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+            >
+              <HeroSearchBar />
+            </motion.div>
+          </div>
+        </div>
       </section>
 
-      {/* ── CATEGORIES ──────────────────────────────────────────────────── */}
-      <section className="bg-background pt-10 pb-8">
+      {/* ── CATEGORIES — pt-24 to clear the overlapping search bar ─────── */}
+      <section className="bg-background pt-24 pb-8">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex items-end justify-between mb-6">
             <div>

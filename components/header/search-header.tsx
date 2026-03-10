@@ -1,131 +1,38 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Search, ChevronLeft, ChevronRight, Minus, Plus, X, Globe, Check } from 'lucide-react';
+import { Search, Globe, Check } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useLocale } from '@/lib/i18n/locale-context';
 import { LOCALES, type Locale } from '@/lib/i18n/translations';
-
-// ─── Calendar ──────────────────────────────────────────────────────────────
-
-interface DateRange {
-  start: Date | null;
-  end: Date | null;
-}
-
-function getDaysInMonth(year: number, month: number) {
-  return new Date(year, month + 1, 0).getDate();
-}
-function getFirstDayOfMonth(year: number, month: number) {
-  return new Date(year, month, 1).getDay();
-}
-
-function MiniCalendar({
-  year, month, onPrev, onNext, dateRange, onDateClick, hoverDate, onHover, days, months,
-}: {
-  year: number; month: number;
-  onPrev: () => void; onNext: () => void;
-  dateRange: DateRange;
-  onDateClick: (d: Date) => void;
-  hoverDate: Date | null;
-  onHover: (d: Date | null) => void;
-  days: string[];
-  months: string[];
-}) {
-  const daysInMonth = getDaysInMonth(year, month);
-  const firstDay = getFirstDayOfMonth(year, month);
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-
-  const isInRange = (d: Date) => {
-    const start = dateRange.start;
-    const end = dateRange.end || hoverDate;
-    if (!start || !end) return false;
-    const [lo, hi] = start <= end ? [start, end] : [end, start];
-    return d > lo && d < hi;
-  };
-  const isStart = (d: Date) => dateRange.start?.toDateString() === d.toDateString();
-  const isEnd = (d: Date) => dateRange.end?.toDateString() === d.toDateString();
-  const isPast = (d: Date) => d < today;
-
-  const cells = Array(firstDay).fill(null).concat(
-    Array.from({ length: daysInMonth }, (_, i) => new Date(year, month, i + 1))
-  );
-
-  return (
-    <div className="w-64">
-      <div className="flex items-center justify-between mb-4">
-        <button onClick={onPrev} className="p-1.5 rounded-full hover:bg-muted transition-colors">
-          <ChevronLeft className="w-4 h-4 text-foreground" />
-        </button>
-        <span className="font-semibold text-sm text-foreground">{months[month]} {year}</span>
-        <button onClick={onNext} className="p-1.5 rounded-full hover:bg-muted transition-colors">
-          <ChevronRight className="w-4 h-4 text-foreground" />
-        </button>
-      </div>
-      <div className="grid grid-cols-7 mb-2">
-        {days.map(d => (
-          <div key={d} className="text-center text-xs text-muted-foreground font-medium py-1">{d}</div>
-        ))}
-      </div>
-      <div className="grid grid-cols-7 gap-y-0.5">
-        {cells.map((d, i) => {
-          if (!d) return <div key={`e-${i}`} />;
-          const past = isPast(d);
-          const start = isStart(d);
-          const end = isEnd(d);
-          const inRange = isInRange(d);
-          return (
-            <button
-              key={d.toDateString()}
-              disabled={past}
-              onMouseEnter={() => !past && onHover(d)}
-              onMouseLeave={() => onHover(null)}
-              onClick={() => !past && onDateClick(d)}
-              className={[
-                'relative h-8 w-8 mx-auto flex items-center justify-center text-xs font-medium transition-all select-none',
-                past ? 'text-muted-foreground/30 cursor-not-allowed' : 'cursor-pointer',
-                (start || end) ? 'bg-foreground text-card rounded-full z-10' : '',
-                inRange ? 'bg-muted rounded-none' : '',
-                !start && !end && !inRange && !past ? 'hover:bg-muted rounded-full' : '',
-                start && dateRange.end ? 'rounded-l-full rounded-r-none' : '',
-                end && dateRange.start ? 'rounded-r-full rounded-l-none' : '',
-                start && !dateRange.end ? 'rounded-full' : '',
-              ].join(' ')}
-            >
-              {d.getDate()}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 // ─── Language Switcher ──────────────────────────────────────────────────────
 
 function LanguageSwitcher() {
   const { locale, setLocale } = useLocale();
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const el = document.getElementById('lang-switcher');
+      if (el && !el.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, []);
+  }, [open]);
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative" id="lang-switcher">
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border hover:bg-muted transition-colors text-sm font-medium text-foreground"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border/60 hover:bg-white/20 transition-colors text-sm font-medium text-foreground backdrop-blur-sm"
+        aria-label="Dil seçin"
       >
         <Globe className="w-3.5 h-3.5" />
-        <span>{LOCALES.find(l => l.code === locale)?.flag}</span>
+        <span className="text-xs">{LOCALES.find(l => l.code === locale)?.flag}</span>
+        <span className="text-xs font-semibold uppercase">{locale}</span>
       </button>
       <AnimatePresence>
         {open && (
@@ -134,19 +41,19 @@ function LanguageSwitcher() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-44 bg-card rounded-2xl shadow-xl border border-border overflow-hidden z-50"
+            className="absolute right-0 top-full mt-2 w-48 bg-card rounded-2xl shadow-2xl border border-border overflow-hidden z-[60]"
           >
             {LOCALES.map(l => (
               <button
                 key={l.code}
                 onClick={() => { setLocale(l.code as Locale); setOpen(false); }}
                 className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-muted ${
-                  locale === l.code ? 'text-foreground font-medium' : 'text-muted-foreground'
+                  locale === l.code ? 'text-foreground font-semibold bg-muted/50' : 'text-muted-foreground'
                 }`}
               >
-                <span className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-muted-foreground w-6">{l.flag}</span>
-                  {l.label}
+                <span className="flex items-center gap-2.5">
+                  <span className="text-base">{l.flag}</span>
+                  <span>{l.label}</span>
                 </span>
                 {locale === l.code && <Check className="w-3.5 h-3.5 text-foreground" />}
               </button>
@@ -158,95 +65,34 @@ function LanguageSwitcher() {
   );
 }
 
-// ─── Main Header ────────────────────────────────────────────────────────────
-
-type ActivePanel = 'location' | 'checkin' | 'checkout' | 'guests' | null;
+// ─── Main Header (Nav only) ──────────────────────────────────────────────────
 
 export function SearchHeader() {
-  const router = useRouter();
   const { t } = useLocale();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [activePanel, setActivePanel] = useState<ActivePanel>(null);
   const [activeTab, setActiveTab] = useState(0);
-  const [location, setLocation] = useState('');
-  const [dateRange, setDateRange] = useState<DateRange>({ start: null, end: null });
-  const [hoverDate, setHoverDate] = useState<Date | null>(null);
-  const [guests, setGuests] = useState({ adults: 1, children: 0, infants: 0 });
-  const [calYear, setCalYear] = useState(new Date().getFullYear());
-  const [calMonth, setCalMonth] = useState(new Date().getMonth());
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 60);
-    window.addEventListener('scroll', onScroll);
+    const onScroll = () => setIsScrolled(window.scrollY > 80);
+    window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setActivePanel(null);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const handleDateClick = (d: Date) => {
-    if (!dateRange.start || (dateRange.start && dateRange.end)) {
-      setDateRange({ start: d, end: null });
-      setActivePanel('checkout');
-    } else {
-      if (d < dateRange.start) {
-        setDateRange({ start: d, end: dateRange.start });
-      } else {
-        setDateRange({ start: dateRange.start, end: d });
-      }
-      setActivePanel('guests');
-    }
-  };
-
-  const formatDate = (d: Date | null) =>
-    d ? d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }) : null;
-
-  const totalGuests = guests.adults + guests.children;
-
-  const handleSearch = () => {
-    const params = new URLSearchParams();
-    if (location) params.set('location', location);
-    if (dateRange.start) params.set('checkin', dateRange.start.toISOString());
-    if (dateRange.end) params.set('checkout', dateRange.end.toISOString());
-    params.set('guests', String(totalGuests));
-    router.push(`/search?${params.toString()}`);
-    setActivePanel(null);
-  };
-
-  const prevMonth = () => {
-    if (calMonth === 0) { setCalYear(y => y - 1); setCalMonth(11); }
-    else setCalMonth(m => m - 1);
-  };
-  const nextMonth = () => {
-    if (calMonth === 11) { setCalYear(y => y + 1); setCalMonth(0); }
-    else setCalMonth(m => m + 1);
-  };
-
-  const nextCalMonth = calMonth === 11 ? 0 : calMonth + 1;
-  const nextCalYear = calMonth === 11 ? calYear + 1 : calYear;
-
-  const months = t.months as string[];
-  const days = t.days as string[];
-  const destinations = t.destinations as string[];
   const tabs = [t.stays, t.experiences, t.hotels] as string[];
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      isScrolled ? 'bg-card/95 backdrop-blur-xl shadow-sm border-b border-border' : 'bg-transparent'
-    }`}>
-      {/* ── Top bar ── */}
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled
+          ? 'bg-card/95 backdrop-blur-xl shadow-sm border-b border-border'
+          : 'bg-transparent'
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
+
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-          <div className="w-8 h-8 bg-foreground rounded-xl flex items-center justify-center">
+          <div className="w-8 h-8 bg-foreground rounded-xl flex items-center justify-center shadow-sm">
             <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4" stroke="white" strokeWidth="2.5">
               <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
@@ -255,8 +101,8 @@ export function SearchHeader() {
           <span className="font-bold text-lg text-foreground tracking-tight">StayHub</span>
         </Link>
 
-        {/* Segment nav — center */}
-        <nav className="hidden md:flex items-center gap-0.5 bg-muted/80 rounded-full p-1">
+        {/* Segment tabs — center */}
+        <nav className="hidden md:flex items-center gap-0.5 bg-black/8 backdrop-blur-sm rounded-full p-1" aria-label="Ana navigasyon">
           {tabs.map((tab, i) => (
             <button
               key={tab}
@@ -264,7 +110,7 @@ export function SearchHeader() {
               className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all ${
                 activeTab === i
                   ? 'bg-secondary text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
+                  : 'text-foreground/70 hover:text-foreground hover:bg-white/30'
               }`}
             >
               {tab}
@@ -272,266 +118,44 @@ export function SearchHeader() {
           ))}
         </nav>
 
-        {/* Auth + Lang */}
+        {/* Auth + Lang — right */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <LanguageSwitcher />
           <Link
             href="/auth/login"
-            className="text-sm font-medium text-foreground hover:text-muted-foreground transition-colors hidden sm:block px-3 py-1.5"
+            className="hidden sm:block text-sm font-medium text-foreground hover:text-foreground/70 transition-colors px-3 py-1.5"
           >
             {t.login as string}
           </Link>
           <Link
             href="/auth/signup"
-            className="bg-foreground text-card text-sm font-semibold px-4 py-2 rounded-full hover:bg-foreground/85 transition-colors"
+            className="bg-foreground text-card text-sm font-semibold px-4 py-2 rounded-full hover:bg-foreground/85 transition-colors shadow-sm"
           >
             {t.signup as string}
           </Link>
         </div>
       </div>
 
-      {/* ── Expanded Search Bar (hero state) ── */}
-      <AnimatePresence>
-        {!isScrolled && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-            className="pb-6 px-6"
-          >
-            <div className="max-w-4xl mx-auto" ref={containerRef}>
-              <div className="bg-card rounded-2xl shadow-xl border border-border/60 flex items-stretch relative">
-
-                {/* Location field */}
-                <button
-                  onClick={() => setActivePanel(activePanel === 'location' ? null : 'location')}
-                  className={`flex-[2] px-6 py-4 text-left border-r border-border transition-colors rounded-l-2xl ${
-                    activePanel === 'location' ? 'bg-muted/50' : 'hover:bg-muted/30'
-                  }`}
-                >
-                  <div className="text-xs font-bold text-foreground mb-0.5 tracking-wide uppercase">{t.location as string}</div>
-                  <div className={`text-sm ${location ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-                    {location || (t.locationPlaceholder as string)}
-                  </div>
-                </button>
-
-                {/* Check in */}
-                <button
-                  onClick={() => setActivePanel(activePanel === 'checkin' ? null : 'checkin')}
-                  className={`flex-1 px-6 py-4 text-left border-r border-border transition-colors ${
-                    activePanel === 'checkin' || activePanel === 'checkout' ? 'bg-muted/50' : 'hover:bg-muted/30'
-                  }`}
-                >
-                  <div className="text-xs font-bold text-foreground mb-0.5 tracking-wide uppercase">{t.checkin as string}</div>
-                  <div className={`text-sm ${dateRange.start ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-                    {formatDate(dateRange.start) || (t.setDate as string)}
-                  </div>
-                </button>
-
-                {/* Check out */}
-                <button
-                  onClick={() => setActivePanel(activePanel === 'checkout' ? null : 'checkout')}
-                  className={`flex-1 px-6 py-4 text-left border-r border-border transition-colors ${
-                    activePanel === 'checkout' ? 'bg-muted/50' : 'hover:bg-muted/30'
-                  }`}
-                >
-                  <div className="text-xs font-bold text-foreground mb-0.5 tracking-wide uppercase">{t.checkout as string}</div>
-                  <div className={`text-sm ${dateRange.end ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-                    {formatDate(dateRange.end) || (t.setDate as string)}
-                  </div>
-                </button>
-
-                {/* Guests */}
-                <button
-                  onClick={() => setActivePanel(activePanel === 'guests' ? null : 'guests')}
-                  className={`flex-1 px-6 py-4 text-left transition-colors ${
-                    activePanel === 'guests' ? 'bg-muted/50' : 'hover:bg-muted/30'
-                  }`}
-                >
-                  <div className="text-xs font-bold text-foreground mb-0.5 tracking-wide uppercase">{t.guests as string}</div>
-                  <div className={`text-sm ${totalGuests > 1 || guests.infants > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-                    {totalGuests > 0
-                      ? `${totalGuests} ${t.guests as string}${guests.infants > 0 ? `, ${guests.infants} ${t.infants as string}` : ''}`
-                      : (t.addGuests as string)}
-                  </div>
-                </button>
-
-                {/* Search Button */}
-                <div className="flex items-center px-4">
-                  <button
-                    onClick={handleSearch}
-                    className="w-12 h-12 bg-foreground rounded-xl flex items-center justify-center hover:bg-foreground/85 transition-all active:scale-95 shadow-sm"
-                    aria-label={t.search as string}
-                  >
-                    <Search className="w-5 h-5 text-card" />
-                  </button>
-                </div>
-
-                {/* ── Dropdown Panels ── */}
-                <AnimatePresence>
-                  {/* Location Panel */}
-                  {activePanel === 'location' && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute top-[calc(100%+8px)] left-0 w-88 bg-card rounded-2xl shadow-2xl border border-border p-4 z-50"
-                    >
-                      <div className="relative mb-3">
-                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <input
-                          autoFocus
-                          value={location}
-                          onChange={e => setLocation(e.target.value)}
-                          placeholder={t.searchPlaceholder as string}
-                          className="w-full pl-9 pr-8 py-2.5 bg-muted rounded-xl text-sm outline-none focus:ring-2 focus:ring-ring transition-all placeholder:text-muted-foreground"
-                        />
-                        {location && (
-                          <button onClick={() => setLocation('')} className="absolute right-3 top-1/2 -translate-y-1/2">
-                            <X className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
-                          </button>
-                        )}
-                      </div>
-                      <div className="space-y-0.5">
-                        {destinations.map(dest => (
-                          <button
-                            key={dest}
-                            onClick={() => { setLocation(dest); setActivePanel('checkin'); }}
-                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted transition-colors text-left"
-                          >
-                            <div className="w-9 h-9 bg-muted rounded-xl flex items-center justify-center flex-shrink-0">
-                              <MapPin className="w-4 h-4 text-muted-foreground" />
-                            </div>
-                            <div>
-                              <span className="text-sm font-medium text-foreground">{dest.split(',')[0]}</span>
-                              <span className="text-xs text-muted-foreground ml-1">{dest.split(',')[1]}</span>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Calendar Panel */}
-                  {(activePanel === 'checkin' || activePanel === 'checkout') && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 bg-card rounded-2xl shadow-2xl border border-border p-5 z-50"
-                    >
-                      <div className="flex gap-8">
-                        <MiniCalendar
-                          year={calYear} month={calMonth}
-                          onPrev={prevMonth} onNext={nextMonth}
-                          dateRange={dateRange}
-                          onDateClick={handleDateClick}
-                          hoverDate={hoverDate}
-                          onHover={setHoverDate}
-                          months={months}
-                          days={days}
-                        />
-                        <div className="w-px bg-border" />
-                        <MiniCalendar
-                          year={nextCalYear} month={nextCalMonth}
-                          onPrev={prevMonth} onNext={nextMonth}
-                          dateRange={dateRange}
-                          onDateClick={handleDateClick}
-                          hoverDate={hoverDate}
-                          onHover={setHoverDate}
-                          months={months}
-                          days={days}
-                        />
-                      </div>
-                      <div className="flex justify-between items-center mt-4 pt-4 border-t border-border">
-                        <button
-                          onClick={() => setDateRange({ start: null, end: null })}
-                          className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
-                        >
-                          {t.clearDates as string}
-                        </button>
-                        <button
-                          onClick={() => setActivePanel('guests')}
-                          className="text-sm font-semibold bg-foreground text-card px-5 py-2 rounded-full hover:bg-foreground/85 transition-colors"
-                        >
-                          {t.nextGuests as string}
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {/* Guests Panel */}
-                  {activePanel === 'guests' && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute top-[calc(100%+8px)] right-16 w-80 bg-card rounded-2xl shadow-2xl border border-border p-5 z-50"
-                    >
-                      {[
-                        { key: 'adults', label: t.adults as string, desc: t.adultsDesc as string, min: 1 },
-                        { key: 'children', label: t.children as string, desc: t.childrenDesc as string, min: 0 },
-                        { key: 'infants', label: t.infants as string, desc: t.infantsDesc as string, min: 0 },
-                      ].map(({ key, label, desc, min }) => (
-                        <div key={key} className="flex items-center justify-between py-4 border-b border-border last:border-0">
-                          <div>
-                            <div className="text-sm font-semibold text-foreground">{label}</div>
-                            <div className="text-xs text-muted-foreground mt-0.5">{desc}</div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <button
-                              onClick={() => setGuests(g => ({ ...g, [key]: Math.max(min, (g as any)[key] - 1) }))}
-                              disabled={(guests as any)[key] <= min}
-                              className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors disabled:opacity-25 disabled:cursor-not-allowed"
-                            >
-                              <Minus className="w-3.5 h-3.5 text-foreground" />
-                            </button>
-                            <span className="w-5 text-center text-sm font-semibold text-foreground">{(guests as any)[key]}</span>
-                            <button
-                              onClick={() => setGuests(g => ({ ...g, [key]: (g as any)[key] + 1 }))}
-                              className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:border-foreground transition-colors"
-                            >
-                              <Plus className="w-3.5 h-3.5 text-foreground" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── Compact search pill (scrolled) ── */}
+      {/* Compact pill — visible only when scrolled */}
       <AnimatePresence>
         {isScrolled && (
           <motion.div
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.2 }}
-            className="absolute top-3 left-1/2 -translate-x-1/2"
+            transition={{ duration: 0.18 }}
+            className="absolute top-2 left-1/2 -translate-x-1/2"
           >
             <button
-              onClick={() => { setIsScrolled(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-              className="flex items-center gap-2 bg-card border border-border rounded-full px-4 py-2.5 shadow-md hover:shadow-lg transition-all text-sm font-medium text-foreground"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="flex items-center gap-2.5 bg-card border border-border rounded-full px-5 py-2.5 shadow-lg hover:shadow-xl transition-all text-sm font-medium text-foreground"
             >
               <Search className="w-4 h-4 text-muted-foreground" />
-              <span>{location || (t.locationPlaceholder as string)}</span>
-              <span className="h-4 w-px bg-border mx-1" />
-              <span className="text-muted-foreground">
-                {dateRange.start ? formatDate(dateRange.start) : t.checkin as string}
-                {dateRange.end ? ` – ${formatDate(dateRange.end)}` : ''}
-              </span>
-              <span className="h-4 w-px bg-border mx-1" />
-              <span className="text-muted-foreground">{totalGuests} {t.guests as string}</span>
+              <span>{t.locationPlaceholder as string}</span>
+              <span className="h-4 w-px bg-border mx-0.5" />
+              <span className="text-muted-foreground text-xs">{t.checkin as string} – {t.checkout as string}</span>
+              <span className="h-4 w-px bg-border mx-0.5" />
+              <span className="text-muted-foreground text-xs">{t.addGuests as string}</span>
             </button>
           </motion.div>
         )}
