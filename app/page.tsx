@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale } from '@/lib/i18n/locale-context';
+import { MainFooter } from '@/components/footer/main-footer';
 
 // ─── Category icons ──────────────────────────────────────────────────────────
 
@@ -16,51 +17,51 @@ const CategoryIcon = ({ id }: { id: string }) => {
   const icons: Record<string, JSX.Element> = {
     beachfront: (
       <svg viewBox="0 0 48 48" fill="none" className="w-7 h-7" stroke="currentColor" strokeWidth="1.5">
-        <path d="M8 36c0-8.837 7.163-16 16-16s16 7.163 16 16" strokeLinecap="round"/>
-        <path d="M24 20V10M20 14l4-4 4 4" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M4 36h40" strokeLinecap="round"/>
+        <path d="M8 36c0-8.837 7.163-16 16-16s16 7.163 16 16" strokeLinecap="round" />
+        <path d="M24 20V10M20 14l4-4 4 4" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M4 36h40" strokeLinecap="round" />
       </svg>
     ),
     lakefront: (
       <svg viewBox="0 0 48 48" fill="none" className="w-7 h-7" stroke="currentColor" strokeWidth="1.5">
-        <path d="M6 36c4-4 8-4 12 0s8 4 12 0 8-4 12 0" strokeLinecap="round"/>
-        <path d="M6 28c4-4 8-4 12 0s8 4 12 0 8-4 12 0" strokeLinecap="round"/>
-        <circle cx="24" cy="16" r="6"/>
+        <path d="M6 36c4-4 8-4 12 0s8 4 12 0 8-4 12 0" strokeLinecap="round" />
+        <path d="M6 28c4-4 8-4 12 0s8 4 12 0 8-4 12 0" strokeLinecap="round" />
+        <circle cx="24" cy="16" r="6" />
       </svg>
     ),
     tropical: (
       <svg viewBox="0 0 48 48" fill="none" className="w-7 h-7" stroke="currentColor" strokeWidth="1.5">
-        <path d="M24 40V20" strokeLinecap="round"/>
-        <path d="M24 24c-4-8-12-10-16-6 4 2 10 4 16 6z" strokeLinejoin="round"/>
-        <path d="M24 28c4-8 12-10 16-6-4 2-10 4-16 6z" strokeLinejoin="round"/>
-        <path d="M24 20c0-8-6-14-10-12 2 4 6 8 10 12z" strokeLinejoin="round"/>
+        <path d="M24 40V20" strokeLinecap="round" />
+        <path d="M24 24c-4-8-12-10-16-6 4 2 10 4 16 6z" strokeLinejoin="round" />
+        <path d="M24 28c4-8 12-10 16-6-4 2-10 4-16 6z" strokeLinejoin="round" />
+        <path d="M24 20c0-8-6-14-10-12 2 4 6 8 10 12z" strokeLinejoin="round" />
       </svg>
     ),
     castles: (
       <svg viewBox="0 0 48 48" fill="none" className="w-7 h-7" stroke="currentColor" strokeWidth="1.5">
-        <rect x="8" y="20" width="32" height="20" rx="1"/>
-        <path d="M8 20v-6h6v6M22 20v-6h4v6M34 20v-6h6v6" strokeLinejoin="round"/>
-        <rect x="18" y="30" width="12" height="10"/>
+        <rect x="8" y="20" width="32" height="20" rx="1" />
+        <path d="M8 20v-6h6v6M22 20v-6h4v6M34 20v-6h6v6" strokeLinejoin="round" />
+        <rect x="18" y="30" width="12" height="10" />
       </svg>
     ),
     farmhouse: (
       <svg viewBox="0 0 48 48" fill="none" className="w-7 h-7" stroke="currentColor" strokeWidth="1.5">
-        <path d="M6 24l18-14 18 14" strokeLinejoin="round"/>
-        <rect x="10" y="24" width="28" height="16" rx="1"/>
-        <rect x="20" y="30" width="8" height="10"/>
+        <path d="M6 24l18-14 18 14" strokeLinejoin="round" />
+        <rect x="10" y="24" width="28" height="16" rx="1" />
+        <rect x="20" y="30" width="8" height="10" />
       </svg>
     ),
     city: (
       <svg viewBox="0 0 48 48" fill="none" className="w-7 h-7" stroke="currentColor" strokeWidth="1.5">
-        <rect x="16" y="10" width="16" height="30"/>
-        <rect x="6" y="20" width="10" height="20"/>
-        <rect x="32" y="16" width="10" height="24"/>
-        <path d="M4 40h40" strokeLinecap="round"/>
+        <rect x="16" y="10" width="16" height="30" />
+        <rect x="6" y="20" width="10" height="20" />
+        <rect x="32" y="16" width="10" height="24" />
+        <path d="M4 40h40" strokeLinecap="round" />
       </svg>
     ),
     mountain: (
       <svg viewBox="0 0 48 48" fill="none" className="w-7 h-7" stroke="currentColor" strokeWidth="1.5">
-        <path d="M4 40l16-28 8 14 4-6 12 20H4z" strokeLinejoin="round"/>
+        <path d="M4 40l16-28 8 14 4-6 12 20H4z" strokeLinejoin="round" />
       </svg>
     ),
   };
@@ -381,11 +382,10 @@ function CategoriesSection({
                 whileHover={{ y: -2 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setActiveCategory(id)}
-                className={`flex-shrink-0 w-44 p-4 rounded-2xl border text-left transition-all duration-200 ${
-                  isActive
+                className={`flex-shrink-0 w-44 p-4 rounded-2xl border text-left transition-all duration-200 ${isActive
                     ? 'border-foreground bg-card shadow-md'
                     : 'border-border bg-card hover:border-foreground/40 hover:shadow-sm'
-                }`}
+                  }`}
               >
                 {/* Badge */}
                 <div className="flex items-start justify-between mb-3">
@@ -483,43 +483,6 @@ function HostCtaSection({ t }: { t: any }) {
   );
 }
 
-function HomeFooter({ t }: { t: any }) {
-  return (
-    <footer className="border-t border-border bg-card">
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-          {[
-            { title: t.support as string, links: ['Yardım Merkezi', 'AirCover', 'Güvenlik Bilgisi', 'Engelli Desteği'] },
-            { title: t.community as string, links: ['StayHub.org', 'Ayrımcılıkla Mücadele', 'Arkadaşını Davet Et'] },
-            { title: t.hosting as string, links: ['Evinizi Listeleyin', 'Ev Sahipleri için Destek', 'Kaynaklara Göz At'] },
-            { title: t.company as string, links: ['Haberler', 'Yeni Özellikler', 'Kariyer', 'Yatırımcılar'] },
-          ].map(col => (
-            <div key={col.title}>
-              <h4 className="text-sm font-bold text-foreground mb-4">{col.title}</h4>
-              <ul className="space-y-2.5">
-                {col.links.map(l => (
-                  <li key={l}>
-                    <Link href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                      {l}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-        <div className="border-t border-border pt-6 flex flex-col sm:flex-row justify-between items-center gap-3">
-          <p className="text-sm text-muted-foreground">{t.privacyTerms as string}</p>
-          <div className="flex items-center gap-4">
-            {['Twitter', 'Facebook', 'Instagram'].map(s => (
-              <Link key={s} href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{s}</Link>
-            ))}
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-}
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
@@ -539,7 +502,7 @@ export default function Home() {
       />
       <ListingsSection t={t} />
       <HostCtaSection t={t} />
-      <HomeFooter t={t} />
+      <MainFooter />
     </div>
   );
 }

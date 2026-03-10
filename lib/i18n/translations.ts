@@ -62,10 +62,10 @@ export const translations = {
     topRated: 'En Yüksek Puan',
     trending: 'Trend',
     // Months
-    months: ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'],
-    days: ['Pz','Pt','Sa','Çr','Pe','Cu','Ct'],
+    months: ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'],
+    days: ['Pz', 'Pt', 'Sa', 'Çr', 'Pe', 'Cu', 'Ct'],
     // Destinations
-    destinations: ['İstanbul, Türkiye','Bodrum, Türkiye','Antalya, Türkiye','Kapadokya, Türkiye','İzmir, Türkiye'],
+    destinations: ['İstanbul, Türkiye', 'Bodrum, Türkiye', 'Antalya, Türkiye', 'Kapadokya, Türkiye', 'İzmir, Türkiye'],
     // Search page
     searchAllStays: 'Tüm konaklamalar',
     searchResultsSuffix: 'müsait mülk',
@@ -215,6 +215,14 @@ export const translations = {
     hosting: 'Ev Sahipliği',
     company: 'StayHub',
     privacyTerms: '© 2026 StayHub, Inc. · Gizlilik · Kullanım Koşulları',
+    // New pages
+    cancellationTitle: 'İptal ve İade Politikası',
+    privacyTitle: 'Gizlilik Politikası',
+    termsTitle: 'Kullanım Koşulları',
+    aboutTitle: 'Hakkımızda',
+    contactTitle: 'İletişim',
+    faqTitle: 'Sıkça Sorulan Sorular',
+    helpCenter: 'Yardım Merkezi',
   },
   en: {
     stays: 'Stays',
@@ -261,9 +269,9 @@ export const translations = {
     mountain: 'Mountain',
     topRated: 'Top rated',
     trending: 'Trending',
-    months: ['January','February','March','April','May','June','July','August','September','October','November','December'],
-    days: ['Su','Mo','Tu','We','Th','Fr','Sa'],
-    destinations: ['Istanbul, Turkey','Bodrum, Turkey','Antalya, Turkey','Cappadocia, Turkey','Izmir, Turkey'],
+    months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    days: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+    destinations: ['Istanbul, Turkey', 'Bodrum, Turkey', 'Antalya, Turkey', 'Cappadocia, Turkey', 'Izmir, Turkey'],
     // Search page
     searchAllStays: 'All stays',
     searchResultsSuffix: 'properties available',
@@ -413,6 +421,14 @@ export const translations = {
     hosting: 'Hosting',
     company: 'StayHub',
     privacyTerms: '© 2026 StayHub, Inc. · Privacy · Terms',
+    // New pages
+    cancellationTitle: 'Cancellation and Refund Policy',
+    privacyTitle: 'Privacy Policy',
+    termsTitle: 'Terms of Service',
+    aboutTitle: 'About Us',
+    contactTitle: 'Contact Us',
+    faqTitle: 'Frequently Asked Questions',
+    helpCenter: 'Help Center',
   },
   de: {
     stays: 'Unterkünfte',
@@ -459,9 +475,9 @@ export const translations = {
     mountain: 'Berg',
     topRated: 'Top bewertet',
     trending: 'Trend',
-    months: ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
-    days: ['So','Mo','Di','Mi','Do','Fr','Sa'],
-    destinations: ['Istanbul, Türkei','Bodrum, Türkei','Antalya, Türkei','Kappadokien, Türkei','Izmir, Türkei'],
+    months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+    days: ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+    destinations: ['Istanbul, Türkei', 'Bodrum, Türkei', 'Antalya, Türkei', 'Kappadokien, Türkei', 'Izmir, Türkei'],
     // Search page
     searchAllStays: 'Alle Unterkünfte',
     searchResultsSuffix: 'Unterkünfte verfügbar',
@@ -657,9 +673,9 @@ export const translations = {
     mountain: 'Montagne',
     topRated: 'Mieux noté',
     trending: 'Tendance',
-    months: ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'],
-    days: ['Di','Lu','Ma','Me','Je','Ve','Sa'],
-    destinations: ['Istanbul, Turquie','Bodrum, Turquie','Antalya, Turquie','Cappadoce, Turquie','Izmir, Turquie'],
+    months: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+    days: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
+    destinations: ['Istanbul, Turquie', 'Bodrum, Turquie', 'Antalya, Turquie', 'Cappadoce, Turquie', 'Izmir, Turquie'],
     // Search page
     searchAllStays: 'Tous les séjours',
     searchResultsSuffix: 'logements disponibles',

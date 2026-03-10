@@ -47,9 +47,8 @@ function LanguageSwitcher() {
               <button
                 key={l.code}
                 onClick={() => { setLocale(l.code as Locale); setOpen(false); }}
-                className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-muted ${
-                  locale === l.code ? 'text-foreground font-semibold bg-muted/50' : 'text-muted-foreground'
-                }`}
+                className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-muted ${locale === l.code ? 'text-foreground font-semibold bg-muted/50' : 'text-muted-foreground'
+                  }`}
               >
                 <span className="flex items-center gap-2.5">
                   <span className="text-base">{l.flag}</span>
@@ -97,16 +96,16 @@ export function SearchHeader() {
   const tabs = [
     { label: t.stays as string, href: '/' },
     { label: t.experiences as string, href: '/search' },
-    { label: t.hotels as string, href: '/search' },
+    { label: t.faqTitle as string, href: '/faq' },
+    { label: t.aboutTitle as string, href: '/about' },
   ];
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
           ? 'bg-card/95 backdrop-blur-xl shadow-sm border-b border-border'
           : 'bg-transparent'
-      }`}
+        }`}
     >
       <div className="max-w-7xl mx-auto px-6 py-2 flex flex-col gap-2">
         <div className="h-16 flex items-center justify-between gap-4">
@@ -127,11 +126,10 @@ export function SearchHeader() {
               <Link
                 key={tab.label}
                 href={tab.href}
-                className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all ${
-                  activeTab === i
+                className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all ${activeTab === i
                     ? 'bg-secondary text-foreground shadow-sm'
                     : 'text-foreground/70 hover:text-foreground hover:bg-white/30'
-                }`}
+                  }`}
                 onClick={() => setActiveTab(i)}
               >
                 {tab.label}
@@ -157,34 +155,34 @@ export function SearchHeader() {
           </div>
         </div>
 
-      {/* Compact pill — visible only after hero search bar scrolls out of view */}
-      <AnimatePresence>
-        {isScrolled && !heroSearchVisible && (
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.28, ease: 'easeInOut' }}
-            className="flex justify-center"
-          >
-            <button
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="flex items-center gap-2.5 bg-card border border-border rounded-full px-5 py-2.5 shadow-lg hover:shadow-xl transition-all text-sm font-medium text-foreground max-w-xl w-full justify-center"
+        {/* Compact pill — visible only after hero search bar scrolls out of view */}
+        <AnimatePresence>
+          {isScrolled && !heroSearchVisible && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.28, ease: 'easeInOut' }}
+              className="flex justify-center"
             >
-              <Search className="w-4 h-4 text-muted-foreground" />
-              <span>{t.locationPlaceholder as string}</span>
-              <span className="h-4 w-px bg-border mx-0.5" />
-              <span className="text-muted-foreground text-xs">
-                {t.checkin as string} – {t.checkout as string}
-              </span>
-              <span className="h-4 w-px bg-border mx-0.5" />
-              <span className="text-muted-foreground text-xs">
-                {t.addGuests as string}
-              </span>
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <button
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="flex items-center gap-2.5 bg-card border border-border rounded-full px-5 py-2.5 shadow-lg hover:shadow-xl transition-all text-sm font-medium text-foreground max-w-xl w-full justify-center"
+              >
+                <Search className="w-4 h-4 text-muted-foreground" />
+                <span>{t.locationPlaceholder as string}</span>
+                <span className="h-4 w-px bg-border mx-0.5" />
+                <span className="text-muted-foreground text-xs">
+                  {t.checkin as string} – {t.checkout as string}
+                </span>
+                <span className="h-4 w-px bg-border mx-0.5" />
+                <span className="text-muted-foreground text-xs">
+                  {t.addGuests as string}
+                </span>
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </header>
   );
