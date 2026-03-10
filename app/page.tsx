@@ -317,7 +317,7 @@ export default function Home() {
         </div>
 
         {/* ── Search bar — overlaps bottom of hero into content below ── */}
-        <div className="relative z-20 px-6 pb-0">
+        <div id="hero-search-bar" className="relative z-20 px-6 pb-0">
           <div className="max-w-5xl mx-auto translate-y-1/2">
             <motion.div
               initial={{ opacity: 0, y: 20 }}

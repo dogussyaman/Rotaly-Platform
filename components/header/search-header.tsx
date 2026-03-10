@@ -70,10 +70,26 @@ function LanguageSwitcher() {
 export function SearchHeader() {
   const { t } = useLocale();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [heroSearchVisible, setHeroSearchVisible] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
 
+  // Show compact pill only when hero search bar has scrolled out of view
   useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 80);
+    const target = document.getElementById('hero-search-bar');
+    if (!target) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setHeroSearchVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
+
+  // Track scroll for navbar background only
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 60);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -136,9 +152,9 @@ export function SearchHeader() {
         </div>
       </div>
 
-      {/* Compact pill — visible only when scrolled */}
+      {/* Compact pill — visible only after hero search bar scrolls out of view */}
       <AnimatePresence>
-        {isScrolled && (
+        {isScrolled && !heroSearchVisible && (
           <motion.div
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
