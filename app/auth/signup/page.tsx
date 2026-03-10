@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Mail, Lock, User } from 'lucide-react';
+import { useLocale } from '@/lib/i18n/locale-context';
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -19,6 +20,7 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const { t } = useLocale();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
@@ -32,12 +34,12 @@ export default function SignUpPage() {
     setError('');
 
     if (!agreeTerms) {
-      setError('Please agree to the terms and conditions');
+      setError(t.signupErrorTerms as string);
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError(t.signupErrorPasswordMismatch as string);
       return;
     }
 
@@ -48,7 +50,7 @@ export default function SignUpPage() {
       console.log('[v0] Sign up with:', formData);
       await new Promise((resolve) => setTimeout(resolve, 1000));
     } catch (err) {
-      setError('Sign up failed. Please try again.');
+      setError(t.signupErrorGeneric as string);
     } finally {
       setLoading(false);
     }
@@ -73,7 +75,7 @@ export default function SignUpPage() {
             StayHub
           </div>
           <p className="text-muted-foreground">
-            Join our community of travelers and hosts
+            {t.signupPageSubtitle as string}
           </p>
         </motion.div>
 
@@ -85,9 +87,11 @@ export default function SignUpPage() {
           className="border border-border rounded-2xl bg-card/50 backdrop-blur-sm p-8 space-y-6"
         >
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-foreground">Create account</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              {t.signupPageTitle as string}
+            </h1>
             <p className="text-muted-foreground text-sm">
-              Join thousands of travelers and hosts worldwide
+              {t.signupPageSubtitle as string}
             </p>
           </div>
 
@@ -106,7 +110,7 @@ export default function SignUpPage() {
             {/* Full Name */}
             <div className="space-y-2">
               <Label htmlFor="fullName" className="text-foreground">
-                Full Name
+                {t.signupFullName as string}
               </Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
@@ -126,7 +130,7 @@ export default function SignUpPage() {
             {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-foreground">
-                Email Address
+                {t.loginEmailLabel as string}
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
@@ -146,7 +150,7 @@ export default function SignUpPage() {
             {/* Password */}
             <div className="space-y-2">
               <Label htmlFor="password" className="text-foreground">
-                Password
+                {t.signupPasswordLabel as string}
               </Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
@@ -162,14 +166,14 @@ export default function SignUpPage() {
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                At least 8 characters, including letters, numbers, and symbols
+                {t.signupPasswordHint as string}
               </p>
             </div>
 
             {/* Confirm Password */}
             <div className="space-y-2">
               <Label htmlFor="confirmPassword" className="text-foreground">
-                Confirm Password
+                {t.signupConfirmPasswordLabel as string}
               </Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
@@ -195,13 +199,13 @@ export default function SignUpPage() {
                 className="mt-1"
               />
               <Label htmlFor="terms" className="text-xs text-muted-foreground cursor-pointer font-normal">
-                I agree to the{' '}
+                {t.signupTermsText as string}{' '}
                 <Link href="#" className="text-primary hover:underline">
-                  Terms of Service
+                  {t.loginTerms as string}
                 </Link>{' '}
-                and{' '}
+                {t.loginAnd as string}{' '}
                 <Link href="#" className="text-primary hover:underline">
-                  Privacy Policy
+                  {t.loginPrivacy as string}
                 </Link>
               </Label>
             </motion.div>
@@ -216,7 +220,7 @@ export default function SignUpPage() {
                 disabled={loading || !agreeTerms}
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 mt-4"
               >
-                {loading ? 'Creating account...' : 'Create Account'}
+                {loading ? (t.signupLoading as string) : (t.signupPrimaryButton as string)}
               </Button>
             </motion.div>
           </form>
@@ -246,17 +250,17 @@ export default function SignUpPage() {
               <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
               <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
             </svg>
-            Sign up with Google
+            {t.signupWithGoogle as string}
           </Button>
 
           {/* Login Link */}
           <p className="text-center text-sm text-muted-foreground">
-            Already have an account?{' '}
+            {t.signupHaveAccount as string}{' '}
             <Link
               href="/auth/login"
               className="text-primary hover:text-primary/80 font-medium transition"
             >
-              Sign in
+              {t.signupSignIn as string}
             </Link>
           </p>
         </motion.div>

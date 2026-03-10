@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Paperclip, MoreVertical } from 'lucide-react';
 import Image from 'next/image';
+import { useLocale } from '@/lib/i18n/locale-context';
 
 interface Message {
   id: string;
@@ -34,6 +35,7 @@ export function ChatWindow({
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { t } = useLocale();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -71,7 +73,9 @@ export function ChatWindow({
             />
             <div>
               <h2 className="font-semibold text-foreground">{otherUserName}</h2>
-              <p className="text-xs text-muted-foreground">Active now</p>
+              <p className="text-xs text-muted-foreground">
+                {t.chatActiveNow as string}
+              </p>
             </div>
           </div>
           <Button variant="ghost" size="icon">
@@ -187,7 +191,7 @@ export function ChatWindow({
               setNewMessage(e.target.value);
               setIsTyping(e.target.value.length > 0);
             }}
-            placeholder="Type a message..."
+            placeholder={t.messagesInputPlaceholder as string}
             className="bg-background border-border flex-1"
           />
 

@@ -7,12 +7,14 @@ import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Mail, Lock } from 'lucide-react';
+import { useLocale } from '@/lib/i18n/locale-context';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const { t } = useLocale();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +27,7 @@ export default function LoginPage() {
       // Simulated delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
     } catch (err) {
-      setError('Login failed. Please try again.');
+      setError(t.loginErrorGeneric as string);
     } finally {
       setLoading(false);
     }
@@ -50,7 +52,7 @@ export default function LoginPage() {
             StayHub
           </div>
           <p className="text-muted-foreground">
-            Find your perfect stay, anywhere in the world
+            {t.heroSubtitle as string}
           </p>
         </motion.div>
 
@@ -62,9 +64,11 @@ export default function LoginPage() {
           className="border border-border rounded-2xl bg-card/50 backdrop-blur-sm p-8 space-y-6"
         >
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              {t.loginPageTitle as string}
+            </h1>
             <p className="text-muted-foreground text-sm">
-              Sign in to your account to continue
+              {t.loginPageSubtitle as string}
             </p>
           </div>
 
@@ -83,7 +87,7 @@ export default function LoginPage() {
             {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-foreground">
-                Email Address
+                {t.loginEmailLabel as string}
               </Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
@@ -103,13 +107,13 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="text-foreground">
-                  Password
+                  {t.loginPasswordLabel as string}
                 </Label>
                 <Link
                   href="/auth/forgot-password"
                   className="text-xs text-primary hover:text-primary/80 transition"
                 >
-                  Forgot?
+                  {t.loginForgot as string}
                 </Link>
               </div>
               <div className="relative">
@@ -136,7 +140,7 @@ export default function LoginPage() {
                 disabled={loading}
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 mt-2"
               >
-                {loading ? 'Signing in...' : 'Sign In'}
+                {loading ? (t.loginLoading as string) : (t.loginPrimaryButton as string)}
               </Button>
             </motion.div>
           </form>
@@ -167,18 +171,18 @@ export default function LoginPage() {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
               </svg>
-              Continue with Google
+              {t.loginWithGoogle as string}
             </Button>
           </div>
 
           {/* Sign Up Link */}
           <p className="text-center text-sm text-muted-foreground">
-            Don't have an account?{' '}
+            {t.loginNoAccount as string}{' '}
             <Link
               href="/auth/signup"
               className="text-primary hover:text-primary/80 font-medium transition"
             >
-              Create one
+              {t.loginCreateOne as string}
             </Link>
           </p>
         </motion.div>
@@ -190,13 +194,13 @@ export default function LoginPage() {
           transition={{ duration: 0.5, delay: 0.4 }}
           className="text-center text-xs text-muted-foreground"
         >
-          By signing in, you agree to our{' '}
+          {t.loginAgreeText as string}{' '}
           <Link href="#" className="text-primary hover:underline">
-            Terms of Service
+            {t.loginTerms as string}
           </Link>{' '}
-          and{' '}
+          {t.loginAnd as string}{' '}
           <Link href="#" className="text-primary hover:underline">
-            Privacy Policy
+            {t.loginPrivacy as string}
           </Link>
         </motion.p>
       </motion.div>

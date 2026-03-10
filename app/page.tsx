@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import type { JSX } from 'react';
 import { SearchHeader } from '@/components/header/search-header';
 import { HeroSearchBar } from '@/components/search/hero-search-bar';
 import { ListingCard } from '@/components/listings/listing-card';
@@ -199,13 +200,124 @@ const LISTINGS = [
   },
 ];
 
-// ─── Page ────────────────────────────────────────────────────────────────────
+// ─── Sections as components ───────────────────────────────────────────────────
 
-export default function Home() {
-  const { t } = useLocale();
-  const [activeCategory, setActiveCategory] = useState('beachfront');
-  const catScrollRef = useRef<HTMLDivElement>(null);
+function HeroSection({ t }: { t: any }) {
+  return (
+    <section
+      className="relative flex flex-col"
+      style={{
+        background: 'linear-gradient(175deg, #b8d4e8 0%, #cfe2f0 40%, #deeaf5 70%, #eef4f9 100%)',
+        minHeight: '520px',
+      }}
+    >
+      {/* Background building photo */}
+      <div
+        className="absolute inset-0 pointer-events-none select-none"
+        aria-hidden="true"
+        style={{
+          backgroundImage: `url(https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1800&h=900&fit=crop)`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 30%',
+          opacity: 0.15,
+        }}
+      />
 
+      {/* Nav (fixed, transparent over hero) */}
+      <SearchHeader />
+
+      {/* Hero text — centered in hero */}
+      <div className="flex-1 flex flex-col items-center justify-center text-center px-6 pt-24 pb-20 relative z-10">
+        {/* Floating location card */}
+        <motion.div
+          initial={{ opacity: 0, x: -40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+          className="absolute left-16 top-32 hidden xl:flex items-center gap-3 bg-white/90 backdrop-blur-md rounded-2xl px-4 py-3 shadow-lg border border-white/80"
+        >
+          <div
+            className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100"
+            style={{
+              backgroundImage: 'url(https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=80&h=80&fit=crop)',
+              backgroundSize: 'cover',
+            }}
+          />
+          <div className="text-left">
+            <div className="text-xs font-bold text-foreground">Istanbul, Turkey</div>
+            <div className="text-xs text-gray-400">595 km uzakta</div>
+          </div>
+        </motion.div>
+
+        <motion.h1
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-7xl sm:text-8xl lg:text-[6.5rem] font-bold text-foreground tracking-tighter leading-none text-balance mb-4"
+        >
+          {t.heroTitle as string}
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="text-base text-foreground/60 text-balance max-w-sm mb-6"
+        >
+          {t.heroSubtitle as string}
+        </motion.p>
+
+        {/* Social proof */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          className="flex items-center justify-center gap-2.5"
+        >
+          <div className="flex -space-x-2">
+            {[
+              'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=48&h=48&fit=crop&crop=face',
+              'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=48&h=48&fit=crop&crop=face',
+              'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=48&h=48&fit=crop&crop=face',
+              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=48&h=48&fit=crop&crop=face',
+            ].map((src, i) => (
+              <div key={i} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
+                <img src={src} alt="" className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+          <span className="text-sm font-medium text-foreground/60">
+            500k+ {t.lovedBy as string}
+          </span>
+        </motion.div>
+      </div>
+
+      {/* ── Search bar — overlaps bottom of hero into content below ── */}
+      <div id="hero-search-bar" className="relative z-20 px-6 pb-0">
+        <div className="max-w-7xl mx-auto translate-y-1/3">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            <HeroSearchBar />
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CategoriesSection({
+  t,
+  activeCategory,
+  setActiveCategory,
+  catScrollRef,
+}: {
+  t: any;
+  activeCategory: string;
+  setActiveCategory: (id: string) => void;
+  catScrollRef: React.RefObject<HTMLDivElement | null>;
+}) {
   const scrollCats = (dir: 'left' | 'right') => {
     catScrollRef.current?.scrollBy({ left: dir === 'left' ? -320 : 320, behavior: 'smooth' });
   };
@@ -226,282 +338,208 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen font-sans" style={{ background: 'var(--background)' }}>
-      {/* ── HERO ─────────────────────────────────────────────────────── */}
-      <section
-        className="relative flex flex-col"
-        style={{
-          background: 'linear-gradient(175deg, #b8d4e8 0%, #cfe2f0 40%, #deeaf5 70%, #eef4f9 100%)',
-          minHeight: '520px',
-        }}
-      >
-        {/* Background building photo */}
+    <section className="bg-background pt-24 pb-8">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex items-end justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">{t.selectCategory as string}</h2>
+            <p className="text-sm text-muted-foreground mt-1">{t.categorySubtitle as string}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="flex items-center gap-2 px-4 py-2 border border-border rounded-full text-sm font-medium text-foreground hover:bg-muted transition-colors">
+              <SlidersHorizontal className="w-4 h-4" />
+              {t.filters as string}
+            </button>
+            <button
+              onClick={() => scrollCats('left')}
+              className="w-9 h-9 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
+              aria-label="Geri"
+            >
+              <ChevronLeft className="w-4 h-4 text-foreground" />
+            </button>
+            <button
+              onClick={() => scrollCats('right')}
+              className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
+              aria-label="İleri"
+            >
+              <ChevronRight className="w-4 h-4 text-foreground" />
+            </button>
+          </div>
+        </div>
+
         <div
-          className="absolute inset-0 pointer-events-none select-none"
-          aria-hidden="true"
-          style={{
-            backgroundImage: `url(https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1800&h=900&fit=crop)`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center 30%',
-            opacity: 0.15,
-          }}
-        />
-
-        {/* Nav (fixed, transparent over hero) */}
-        <SearchHeader />
-
-        {/* Hero text — centered in hero */}
-        <div className="flex-1 flex flex-col items-center justify-center text-center px-6 pt-24 pb-20 relative z-10">
-
-          {/* Floating location card */}
-          <motion.div
-            initial={{ opacity: 0, x: -40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
-            className="absolute left-16 top-32 hidden xl:flex items-center gap-3 bg-white/90 backdrop-blur-md rounded-2xl px-4 py-3 shadow-lg border border-white/80"
-          >
-            <div
-              className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100"
-              style={{
-                backgroundImage: 'url(https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=80&h=80&fit=crop)',
-                backgroundSize: 'cover',
-              }}
-            />
-            <div className="text-left">
-              <div className="text-xs font-bold text-foreground">Istanbul, Turkey</div>
-              <div className="text-xs text-gray-400">595 km uzakta</div>
-            </div>
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-7xl sm:text-8xl lg:text-[6.5rem] font-bold text-foreground tracking-tighter leading-none text-balance mb-4"
-          >
-            {t.heroTitle as string}
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-base text-foreground/60 text-balance max-w-sm mb-6"
-          >
-            {t.heroSubtitle as string}
-          </motion.p>
-
-          {/* Social proof */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-            className="flex items-center justify-center gap-2.5"
-          >
-            <div className="flex -space-x-2">
-              {[
-                'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=48&h=48&fit=crop&crop=face',
-                'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=48&h=48&fit=crop&crop=face',
-                'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=48&h=48&fit=crop&crop=face',
-                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=48&h=48&fit=crop&crop=face',
-              ].map((src, i) => (
-                <div key={i} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
-                  <img src={src} alt="" className="w-full h-full object-cover" />
+          ref={catScrollRef}
+          className="flex gap-4 overflow-x-auto pb-2"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {CATEGORY_IDS.map(id => {
+            const badge = CATEGORY_BADGES[id];
+            const isActive = activeCategory === id;
+            return (
+              <motion.button
+                key={id}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setActiveCategory(id)}
+                className={`flex-shrink-0 w-44 p-4 rounded-2xl border text-left transition-all duration-200 ${
+                  isActive
+                    ? 'border-foreground bg-card shadow-md'
+                    : 'border-border bg-card hover:border-foreground/40 hover:shadow-sm'
+                }`}
+              >
+                {/* Badge */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className={`text-foreground transition-opacity ${isActive ? 'opacity-100' : 'opacity-55'}`}>
+                    <CategoryIcon id={id} />
+                  </div>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${badge.color}`}>
+                    {badgeLabels[badge.key]}
+                  </span>
                 </div>
-              ))}
-            </div>
-            <span className="text-sm font-medium text-foreground/60">
-              500k+ {t.lovedBy as string}
-            </span>
-          </motion.div>
+                <div className="font-bold text-sm text-foreground">{categoryLabels[id]}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  {CATEGORY_COUNTS[id]} {(t.listingsTitle as string).includes('Property') ? 'Properties' : 'Mülk'}
+                </div>
+              </motion.button>
+            );
+          })}
         </div>
+      </div>
+    </section>
+  );
+}
 
-        {/* ── Search bar — overlaps bottom of hero into content below ── */}
-        <div id="hero-search-bar" className="relative z-20 px-6 pb-0">
-          <div className="max-w-5xl mx-auto translate-y-1/2">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-            >
-              <HeroSearchBar />
-            </motion.div>
+function ListingsSection({ t }: { t: any }) {
+  return (
+    <section className="bg-background py-8 pb-20">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">{t.listingsTitle as string}</h2>
+            <p className="text-sm text-muted-foreground mt-1">{t.listingsSubtitle as string}</p>
           </div>
-        </div>
-      </section>
-
-      {/* ── CATEGORIES — pt-24 to clear the overlapping search bar ─────── */}
-      <section className="bg-background pt-24 pb-8">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-end justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-foreground">{t.selectCategory as string}</h2>
-              <p className="text-sm text-muted-foreground mt-1">{t.categorySubtitle as string}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button className="flex items-center gap-2 px-4 py-2 border border-border rounded-full text-sm font-medium text-foreground hover:bg-muted transition-colors">
-                <SlidersHorizontal className="w-4 h-4" />
-                {t.filters as string}
-              </button>
-              <button
-                onClick={() => scrollCats('left')}
-                className="w-9 h-9 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
-                aria-label="Geri"
-              >
-                <ChevronLeft className="w-4 h-4 text-foreground" />
-              </button>
-              <button
-                onClick={() => scrollCats('right')}
-                className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
-                aria-label="İleri"
-              >
-                <ChevronRight className="w-4 h-4 text-foreground" />
-              </button>
-            </div>
-          </div>
-
-          <div
-            ref={catScrollRef}
-            className="flex gap-4 overflow-x-auto pb-2"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          <Link
+            href="/search"
+            className="text-sm font-semibold text-foreground underline underline-offset-2 hover:text-muted-foreground transition-colors"
           >
-            {CATEGORY_IDS.map(id => {
-              const badge = CATEGORY_BADGES[id];
-              const isActive = activeCategory === id;
-              return (
-                <motion.button
-                  key={id}
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setActiveCategory(id)}
-                  className={`flex-shrink-0 w-44 p-4 rounded-2xl border text-left transition-all duration-200 ${
-                    isActive
-                      ? 'border-foreground bg-card shadow-md'
-                      : 'border-border bg-card hover:border-foreground/40 hover:shadow-sm'
-                  }`}
-                >
-                  {/* Badge */}
-                  <div className="flex items-start justify-between mb-3">
-                    <div className={`text-foreground transition-opacity ${isActive ? 'opacity-100' : 'opacity-55'}`}>
-                      <CategoryIcon id={id} />
-                    </div>
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${badge.color}`}>
-                      {badgeLabels[badge.key]}
-                    </span>
-                  </div>
-                  <div className="font-bold text-sm text-foreground">{categoryLabels[id]}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">
-                    {CATEGORY_COUNTS[id]} {(t.listingsTitle as string).includes('Property') ? 'Properties' : 'Mülk'}
-                  </div>
-                </motion.button>
-              );
-            })}
-          </div>
+            {t.viewAll as string}
+          </Link>
         </div>
-      </section>
 
-      {/* ── LISTINGS ────────────────────────────────────────────────────── */}
-      <section className="bg-background py-8 pb-20">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-foreground">{t.listingsTitle as string}</h2>
-              <p className="text-sm text-muted-foreground mt-1">{t.listingsSubtitle as string}</p>
-            </div>
-            <Link
-              href="/search"
-              className="text-sm font-semibold text-foreground underline underline-offset-2 hover:text-muted-foreground transition-colors"
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-5 gap-y-8">
+          {LISTINGS.map((listing, i) => (
+            <motion.div
+              key={listing.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.04, duration: 0.35 }}
             >
-              {t.viewAll as string}
-            </Link>
-          </div>
+              <Link href={`/listing/${listing.id}`}>
+                <ListingCard
+                  id={listing.id}
+                  title={listing.title}
+                  location={listing.location}
+                  pricePerNight={listing.pricePerNight}
+                  rating={listing.rating}
+                  totalReviews={listing.totalReviews}
+                  images={listing.images}
+                  checkIn={listing.checkIn}
+                  checkOut={listing.checkOut}
+                  nights={listing.nights}
+                  isFavorite={(listing as any).isFavorite}
+                  guestFavoriteLabel={t.guestFavorite as string}
+                />
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-5 gap-y-8">
-            {LISTINGS.map((listing, i) => (
-              <motion.div
-                key={listing.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04, duration: 0.35 }}
-              >
-                <Link href={`/listing/${listing.id}`}>
-                  <ListingCard
-                    id={listing.id}
-                    title={listing.title}
-                    location={listing.location}
-                    pricePerNight={listing.pricePerNight}
-                    rating={listing.rating}
-                    totalReviews={listing.totalReviews}
-                    images={listing.images}
-                    checkIn={listing.checkIn}
-                    checkOut={listing.checkOut}
-                    nights={listing.nights}
-                    isFavorite={(listing as any).isFavorite}
-                    guestFavoriteLabel={t.guestFavorite as string}
-                  />
-                </Link>
-              </motion.div>
+function HostCtaSection({ t }: { t: any }) {
+  return (
+    <section className="bg-background px-6 pb-20">
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-foreground rounded-3xl px-10 py-14 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div>
+            <h2 className="text-3xl font-bold text-card mb-3 text-balance">
+              {t.hostTitle as string}
+            </h2>
+            <p className="text-card/60 max-w-md text-balance leading-relaxed">
+              {t.hostSubtitle as string}
+            </p>
+          </div>
+          <Link
+            href="/become-host"
+            className="flex-shrink-0 bg-secondary text-foreground font-bold px-8 py-4 rounded-full hover:bg-secondary/85 transition-colors text-sm whitespace-nowrap"
+          >
+            {t.getStarted as string}
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HomeFooter({ t }: { t: any }) {
+  return (
+    <footer className="border-t border-border bg-card">
+      <div className="max-w-7xl mx-auto px-6 py-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+          {[
+            { title: t.support as string, links: ['Yardım Merkezi', 'AirCover', 'Güvenlik Bilgisi', 'Engelli Desteği'] },
+            { title: t.community as string, links: ['StayHub.org', 'Ayrımcılıkla Mücadele', 'Arkadaşını Davet Et'] },
+            { title: t.hosting as string, links: ['Evinizi Listeleyin', 'Ev Sahipleri için Destek', 'Kaynaklara Göz At'] },
+            { title: t.company as string, links: ['Haberler', 'Yeni Özellikler', 'Kariyer', 'Yatırımcılar'] },
+          ].map(col => (
+            <div key={col.title}>
+              <h4 className="text-sm font-bold text-foreground mb-4">{col.title}</h4>
+              <ul className="space-y-2.5">
+                {col.links.map(l => (
+                  <li key={l}>
+                    <Link href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                      {l}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-border pt-6 flex flex-col sm:flex-row justify-between items-center gap-3">
+          <p className="text-sm text-muted-foreground">{t.privacyTerms as string}</p>
+          <div className="flex items-center gap-4">
+            {['Twitter', 'Facebook', 'Instagram'].map(s => (
+              <Link key={s} href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{s}</Link>
             ))}
           </div>
         </div>
-      </section>
+      </div>
+    </footer>
+  );
+}
 
-      {/* ── HOST CTA ─────────────────────────────────────────────────────── */}
-      <section className="bg-background px-6 pb-20">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-foreground rounded-3xl px-10 py-14 flex flex-col md:flex-row items-center justify-between gap-8">
-            <div>
-              <h2 className="text-3xl font-bold text-card mb-3 text-balance">
-                {t.hostTitle as string}
-              </h2>
-              <p className="text-card/60 max-w-md text-balance leading-relaxed">
-                {t.hostSubtitle as string}
-              </p>
-            </div>
-            <Link
-              href="/become-host"
-              className="flex-shrink-0 bg-secondary text-foreground font-bold px-8 py-4 rounded-full hover:bg-secondary/85 transition-colors text-sm whitespace-nowrap"
-            >
-              {t.getStarted as string}
-            </Link>
-          </div>
-        </div>
-      </section>
+// ─── Page ────────────────────────────────────────────────────────────────────
 
-      {/* ── FOOTER ───────────────────────────────────────────────────────── */}
-      <footer className="border-t border-border bg-card">
-        <div className="max-w-7xl mx-auto px-6 py-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-            {[
-              { title: t.support as string, links: ['Yardım Merkezi', 'AirCover', 'Güvenlik Bilgisi', 'Engelli Desteği'] },
-              { title: t.community as string, links: ['StayHub.org', 'Ayrımcılıkla Mücadele', 'Arkadaşını Davet Et'] },
-              { title: t.hosting as string, links: ['Evinizi Listeleyin', 'Ev Sahipleri için Destek', 'Kaynaklara Göz At'] },
-              { title: t.company as string, links: ['Haberler', 'Yeni Özellikler', 'Kariyer', 'Yatırımcılar'] },
-            ].map(col => (
-              <div key={col.title}>
-                <h4 className="text-sm font-bold text-foreground mb-4">{col.title}</h4>
-                <ul className="space-y-2.5">
-                  {col.links.map(l => (
-                    <li key={l}>
-                      <Link href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                        {l}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <div className="border-t border-border pt-6 flex flex-col sm:flex-row justify-between items-center gap-3">
-            <p className="text-sm text-muted-foreground">{t.privacyTerms as string}</p>
-            <div className="flex items-center gap-4">
-              {['Twitter', 'Facebook', 'Instagram'].map(s => (
-                <Link key={s} href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">{s}</Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      </footer>
+export default function Home() {
+  const { t } = useLocale();
+  const [activeCategory, setActiveCategory] = useState('beachfront');
+  const catScrollRef = useRef<HTMLDivElement | null>(null);
+
+  return (
+    <div className="min-h-screen font-sans" style={{ background: 'var(--background)' }}>
+      <HeroSection t={t} />
+      <CategoriesSection
+        t={t}
+        activeCategory={activeCategory}
+        setActiveCategory={setActiveCategory}
+        catScrollRef={catScrollRef}
+      />
+      <ListingsSection t={t} />
+      <HostCtaSection t={t} />
+      <HomeFooter t={t} />
     </div>
   );
 }

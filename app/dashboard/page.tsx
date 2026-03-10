@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useLocale } from '@/lib/i18n/locale-context';
 
 const SAVED_LISTINGS = [
   {
@@ -78,6 +79,7 @@ export default function DashboardPage() {
     bio: 'Passionate traveler and explorer',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
   });
+  const { t } = useLocale();
 
   const handleProfileChange = (field: string, value: string) => {
     setProfileData((prev) => ({
@@ -112,11 +114,11 @@ export default function DashboardPage() {
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" className="gap-2">
               <Settings className="w-4 h-4" />
-              Settings
+              {t.dashboardSettings as string}
             </Button>
             <Button variant="ghost" size="sm" className="gap-2 text-destructive hover:text-destructive">
               <LogOut className="w-4 h-4" />
-              Logout
+              {t.dashboardLogout as string}
             </Button>
           </div>
         </div>
@@ -151,12 +153,16 @@ export default function DashboardPage() {
               <p className="text-muted-foreground mb-4">{profileData.bio}</p>
               <div className="flex items-center gap-4">
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Member since</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t.dashboardMemberSince as string}
+                  </p>
                   <p className="font-semibold text-foreground">January 2022</p>
                 </div>
                 <div className="h-8 w-px bg-border" />
                 <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Reviews</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t.dashboardReviewsLabel as string}
+                  </p>
                   <div className="flex items-center gap-1">
                     <Star className="w-4 h-4 fill-accent text-accent" />
                     <p className="font-semibold text-foreground">4.95 (48)</p>
@@ -169,7 +175,7 @@ export default function DashboardPage() {
               onClick={() => setIsEditing(!isEditing)}
               className="bg-primary hover:bg-primary/90"
             >
-              {isEditing ? 'Save' : 'Edit Profile'}
+              {isEditing ? (t.dashboardSaveProfile as string) : (t.dashboardEditProfile as string)}
             </Button>
           </div>
 
@@ -184,7 +190,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="fullName" className="text-foreground">
-                    Full Name
+                    {t.signupFullName as string}
                   </Label>
                   <Input
                     id="fullName"
@@ -195,7 +201,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-foreground">
-                    Email
+                    {t.loginEmailLabel as string}
                   </Label>
                   <Input
                     id="email"
@@ -240,10 +246,10 @@ export default function DashboardPage() {
           className="flex gap-4 mb-8 border-b border-border"
         >
           {[
-            { id: 'overview', label: 'Overview', icon: Home },
-            { id: 'trips', label: 'My Trips', icon: Calendar },
-            { id: 'saved', label: 'Saved', icon: Heart },
-            { id: 'messages', label: 'Messages', icon: MessageSquare },
+            { id: 'overview', label: t.dashboardOverview as string, icon: Home },
+            { id: 'trips', label: t.dashboardTrips as string, icon: Calendar },
+            { id: 'saved', label: t.dashboardSaved as string, icon: Heart },
+            { id: 'messages', label: t.dashboardMessages as string, icon: MessageSquare },
           ].map((tab) => {
             const Icon = tab.icon;
             return (
@@ -277,10 +283,10 @@ export default function DashboardPage() {
               className="grid grid-cols-1 md:grid-cols-4 gap-4"
             >
               {[
-                { label: 'Total Bookings', value: '12', icon: Calendar },
-                { label: 'Saved Places', value: '23', icon: Heart },
-                { label: 'Messages', value: '5', icon: MessageSquare },
-                { label: 'Wishlists', value: '3', icon: User },
+                { label: t.dashboardTotalBookings as string, value: '12', icon: Calendar },
+                { label: t.dashboardSavedPlaces as string, value: '23', icon: Heart },
+                { label: t.dashboardMessagesStat as string, value: '5', icon: MessageSquare },
+                { label: t.dashboardWishlists as string, value: '3', icon: User },
               ].map((stat) => {
                 const Icon = stat.icon;
                 return (
@@ -304,7 +310,7 @@ export default function DashboardPage() {
             {/* Recent Activity */}
             <motion.div variants={item}>
               <h2 className="text-2xl font-bold text-foreground mb-4">
-                Upcoming Trips
+                {t.dashboardUpcomingTripsTitle as string}
               </h2>
               <div className="space-y-4">
                 {UPCOMING_TRIPS.map((trip) => (
@@ -330,7 +336,7 @@ export default function DashboardPage() {
                         ${trip.totalPrice}
                       </p>
                       <Button variant="outline" size="sm" className="mt-2">
-                        View Details
+                        {t.dashboardViewDetails as string}
                       </Button>
                     </div>
                   </motion.div>
@@ -362,7 +368,7 @@ export default function DashboardPage() {
                       {trip.checkIn} - {trip.checkOut}
                     </p>
                   </div>
-                  <Button>View Trip</Button>
+                  <Button>{t.dashboardViewTrip as string}</Button>
                 </div>
               </motion.div>
             ))}
@@ -433,10 +439,10 @@ export default function DashboardPage() {
           >
             <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">
-              No messages yet
+              {t.dashboardNoMessagesTitle as string}
             </h3>
             <p className="text-muted-foreground">
-              Start a conversation with a host or guest
+              {t.dashboardNoMessagesSubtitle as string}
             </p>
           </motion.div>
         )}

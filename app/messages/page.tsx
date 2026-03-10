@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { Search, MessageSquare, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useLocale } from '@/lib/i18n/locale-context';
 
 interface Conversation {
   id: string;
@@ -108,6 +109,7 @@ export default function MessagesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [messages, setMessages] = useState<Message[]>(MESSAGES);
   const [isMobile, setIsMobile] = useState(false);
+  const { t } = useLocale();
 
   const filteredConversations = CONVERSATIONS.filter((conv) =>
     conv.otherUserName
@@ -150,7 +152,9 @@ export default function MessagesPage() {
           <Link href="/" className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             StayHub
           </Link>
-          <h1 className="text-2xl font-bold text-foreground">Messages</h1>
+          <h1 className="text-2xl font-bold text-foreground">
+            {t.messagesTitle as string}
+          </h1>
           <div className="w-24" />
         </div>
       </div>
@@ -170,7 +174,7 @@ export default function MessagesPage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
               <Input
-                placeholder="Search conversations..."
+                placeholder={t.messagesSearchPlaceholder as string}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 bg-background border-border"
@@ -231,7 +235,9 @@ export default function MessagesPage() {
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                 <MessageSquare className="w-8 h-8 mb-2" />
-                <p className="text-sm">No conversations found</p>
+                <p className="text-sm">
+                  {t.messagesNoConversations as string}
+                </p>
               </div>
             )}
           </div>
@@ -274,10 +280,10 @@ export default function MessagesPage() {
             <div className="text-center space-y-4">
               <MessageSquare className="w-12 h-12 mx-auto opacity-50" />
               <h2 className="text-lg font-semibold text-foreground">
-                Select a conversation
+                {t.messagesSelectConversation as string}
               </h2>
               <p className="text-sm">
-                Choose a conversation from the list to start messaging
+                {t.messagesSelectConversationSubtitle as string}
               </p>
             </div>
           </motion.div>

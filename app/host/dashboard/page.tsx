@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useLocale } from '@/lib/i18n/locale-context';
 
 const HOST_STATS = {
   totalEarnings: 15840,
@@ -96,6 +97,7 @@ const UPCOMING_BOOKINGS = [
 
 export default function HostDashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
+  const { t } = useLocale();
 
   const container = {
     hidden: { opacity: 0 },
@@ -118,20 +120,20 @@ export default function HostDashboardPage() {
       <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            StayHub for Hosts
+            StayHub
           </Link>
           <div className="flex items-center gap-4">
             <Button className="gap-2 bg-primary hover:bg-primary/90">
               <Plus className="w-4 h-4" />
-              New Listing
+              {t.hostDashboardNewListing as string}
             </Button>
             <Button variant="ghost" size="sm" className="gap-2">
               <Settings className="w-4 h-4" />
-              Settings
+              {t.dashboardSettings as string}
             </Button>
             <Button variant="ghost" size="sm" className="gap-2 text-destructive hover:text-destructive">
               <LogOut className="w-4 h-4" />
-              Logout
+              {t.dashboardLogout as string}
             </Button>
           </div>
         </div>
@@ -147,31 +149,31 @@ export default function HostDashboardPage() {
         >
           {[
             {
-              label: 'Total Earnings',
+              label: t.hostDashboardTotalEarnings as string,
               value: `$${HOST_STATS.totalEarnings.toLocaleString()}`,
               icon: DollarSign,
               color: 'text-green-500',
             },
             {
-              label: 'This Month',
+              label: t.hostDashboardThisMonth as string,
               value: `$${HOST_STATS.thisMonthEarnings}`,
               icon: TrendingUp,
               color: 'text-blue-500',
             },
             {
-              label: 'Bookings',
+              label: t.hostDashboardBookings as string,
               value: HOST_STATS.bookings,
               icon: Calendar,
               color: 'text-purple-500',
             },
             {
-              label: 'Rating',
+              label: t.hostDashboardRating as string,
               value: `${HOST_STATS.reviews}★`,
               icon: Star,
               color: 'text-yellow-500',
             },
             {
-              label: 'Response Rate',
+              label: t.hostDashboardResponseRate as string,
               value: `${HOST_STATS.responseRate}%`,
               icon: MessageSquare,
               color: 'text-pink-500',
@@ -205,10 +207,10 @@ export default function HostDashboardPage() {
           className="flex gap-4 mb-8 border-b border-border"
         >
           {[
-            { id: 'overview', label: 'Overview' },
-            { id: 'listings', label: 'My Listings' },
-            { id: 'bookings', label: 'Bookings' },
-            { id: 'analytics', label: 'Analytics' },
+            { id: 'overview', label: t.hostDashboardTabOverview as string },
+            { id: 'listings', label: t.hostDashboardTabListings as string },
+            { id: 'bookings', label: t.hostDashboardTabBookings as string },
+            { id: 'analytics', label: t.hostDashboardTabAnalytics as string },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -235,7 +237,7 @@ export default function HostDashboardPage() {
             {/* Upcoming Bookings */}
             <motion.div variants={item}>
               <h2 className="text-2xl font-bold text-foreground mb-4">
-                Upcoming Bookings
+                {t.hostDashboardUpcomingBookings as string}
               </h2>
               <div className="space-y-3">
                 {UPCOMING_BOOKINGS.map((booking) => (
@@ -253,7 +255,7 @@ export default function HostDashboardPage() {
                           {booking.listingTitle} • {booking.nights} nights
                         </p>
                         <p className="text-sm text-muted-foreground mt-1">
-                          {booking.checkIn} to {booking.checkOut}
+                          {booking.checkIn} - {booking.checkOut}
                         </p>
                       </div>
                       <div className="flex items-center gap-4">
@@ -269,12 +271,12 @@ export default function HostDashboardPage() {
                             }`}
                           >
                             {booking.status === 'confirmed'
-                              ? 'Confirmed'
-                              : 'Pending'}
+                              ? (t.hostDashboardStatusConfirmed as string)
+                              : (t.hostDashboardStatusPending as string)}
                           </span>
                         </div>
                         <Button variant="outline" size="sm">
-                          View Details
+                          {t.dashboardViewDetails as string}
                         </Button>
                       </div>
                     </div>
@@ -287,17 +289,17 @@ export default function HostDashboardPage() {
             <motion.div variants={item} className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
                 {
-                  label: 'Active Listings',
+                  label: t.hostDashboardActiveListings as string,
                   value: '3',
                   desc: 'All performing well',
                 },
                 {
-                  label: 'Avg Response Time',
+                  label: t.hostDashboardAvgResponseTime as string,
                   value: '2h',
                   desc: 'Keep it up!',
                 },
                 {
-                  label: 'Occupancy Rate',
+                  label: t.hostDashboardOccupancyRate as string,
                   value: '78%',
                   desc: 'Above average',
                 },
@@ -362,29 +364,35 @@ export default function HostDashboardPage() {
                       <p className="text-2xl font-bold text-foreground">
                         {listing.bookings}
                       </p>
-                      <p className="text-xs text-muted-foreground">Bookings</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t.hostDashboardBookingsLabel as string}
+                    </p>
                     </div>
                     <div className="text-center">
                       <p className="text-2xl font-bold text-foreground">
                         {listing.rating}
                       </p>
-                      <p className="text-xs text-muted-foreground">Rating</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t.hostDashboardRatingLabel as string}
+                    </p>
                     </div>
                     <div className="text-center">
                       <p className="text-2xl font-bold text-foreground">
                         ${listing.earnings / 100}k
                       </p>
-                      <p className="text-xs text-muted-foreground">Earned</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t.hostDashboardEarnedLabel as string}
+                    </p>
                     </div>
                   </div>
 
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" className="flex-1 gap-2">
                       <Eye className="w-4 h-4" />
-                      View
+                      {t.hostDashboardView as string}
                     </Button>
                     <Button variant="outline" size="sm" className="flex-1">
-                      Edit
+                      {t.hostDashboardEdit as string}
                     </Button>
                   </div>
                 </div>
@@ -421,7 +429,7 @@ export default function HostDashboardPage() {
                       ${booking.totalPrice}
                     </p>
                     <Button className="mt-2" variant="outline">
-                      Message Guest
+                      {t.hostDashboardMessageGuest as string}
                     </Button>
                   </div>
                 </div>
@@ -441,22 +449,22 @@ export default function HostDashboardPage() {
             <div className="border border-border rounded-xl bg-card/50 p-6 space-y-4">
               <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-primary" />
-                Earnings Trend
+                {t.hostDashboardEarningsTrend as string}
               </h3>
               <div className="h-64 flex items-center justify-center text-muted-foreground">
                 {/* Chart placeholder */}
-                <p>Chart visualization coming soon</p>
+                <p>{t.hostDashboardChartComingSoon as string}</p>
               </div>
             </div>
 
             <div className="border border-border rounded-xl bg-card/50 p-6 space-y-4">
               <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-accent" />
-                Booking Rate
+                {t.hostDashboardBookingRate as string}
               </h3>
               <div className="h-64 flex items-center justify-center text-muted-foreground">
                 {/* Chart placeholder */}
-                <p>Chart visualization coming soon</p>
+                <p>{t.hostDashboardChartComingSoon as string}</p>
               </div>
             </div>
           </motion.div>

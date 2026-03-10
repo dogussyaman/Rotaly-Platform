@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
+import { useLocale } from '@/lib/i18n/locale-context';
 
 const PROPERTY_TYPES = [
   'Apartment',
@@ -18,7 +19,7 @@ const PROPERTY_TYPES = [
   'Hotel',
   'Boat',
   'Castle',
-];
+] as const;
 
 const AMENITIES = [
   'WiFi',
@@ -31,7 +32,7 @@ const AMENITIES = [
   'TV',
   'Hot Tub',
   'Garden',
-];
+] as const;
 
 export function FilterSidebar() {
   const {
@@ -40,6 +41,7 @@ export function FilterSidebar() {
     setPropertyType,
     setAmenities,
   } = useSearchStore();
+  const { t } = useLocale();
 
   const [expandedSections, setExpandedSections] = useState({
     price: true,
@@ -81,7 +83,7 @@ export function FilterSidebar() {
           onClick={() => toggleSection('price')}
           className="flex items-center justify-between w-full font-semibold text-foreground hover:text-primary transition"
         >
-          <span>Price Range</span>
+          <span>{t.filterPriceRange as string}</span>
           <motion.div
             animate={{ rotate: expandedSections.price ? 180 : 0 }}
             transition={{ duration: 0.3 }}
@@ -99,7 +101,9 @@ export function FilterSidebar() {
             className="space-y-4"
           >
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Min Price</Label>
+              <Label className="text-xs text-muted-foreground">
+                {t.filterMinPrice as string}
+              </Label>
               <Input
                 type="number"
                 value={filters.priceMin}
@@ -111,7 +115,9 @@ export function FilterSidebar() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Max Price</Label>
+              <Label className="text-xs text-muted-foreground">
+                {t.filterMaxPrice as string}
+              </Label>
               <Input
                 type="number"
                 value={filters.priceMax}
@@ -123,7 +129,8 @@ export function FilterSidebar() {
               />
             </div>
             <div className="text-sm text-muted-foreground">
-              ${filters.priceMin} - ${filters.priceMax} per night
+              ${filters.priceMin} - ${filters.priceMax}{' '}
+              {t.filterPerNightSuffix as string}
             </div>
           </motion.div>
         )}
@@ -135,7 +142,7 @@ export function FilterSidebar() {
           onClick={() => toggleSection('propertyType')}
           className="flex items-center justify-between w-full font-semibold text-foreground hover:text-primary transition"
         >
-          <span>Property Type</span>
+          <span>{t.filterPropertyType as string}</span>
           <motion.div
             animate={{ rotate: expandedSections.propertyType ? 180 : 0 }}
             transition={{ duration: 0.3 }}
@@ -164,7 +171,7 @@ export function FilterSidebar() {
                   htmlFor={`type-${type}`}
                   className="text-sm font-normal cursor-pointer text-foreground hover:text-primary transition"
                 >
-                  {type}
+                  {t[`filterType${type}` as keyof typeof t] as string || type}
                 </Label>
               </motion.div>
             ))}
@@ -178,7 +185,7 @@ export function FilterSidebar() {
           onClick={() => toggleSection('amenities')}
           className="flex items-center justify-between w-full font-semibold text-foreground hover:text-primary transition"
         >
-          <span>Amenities</span>
+          <span>{t.filterAmenities as string}</span>
           <motion.div
             animate={{ rotate: expandedSections.amenities ? 180 : 0 }}
             transition={{ duration: 0.3 }}
@@ -207,7 +214,8 @@ export function FilterSidebar() {
                   htmlFor={`amenity-${amenity}`}
                   className="text-sm font-normal cursor-pointer text-foreground hover:text-primary transition"
                 >
-                  {amenity}
+                  {t[`amenity${amenity.replace('/', '')}` as keyof typeof t] as string ||
+                    amenity}
                 </Label>
               </motion.div>
             ))}
@@ -225,7 +233,7 @@ export function FilterSidebar() {
           setAmenities([]);
         }}
       >
-        Clear All Filters
+        {t.filterClearAll as string}
       </Button>
     </motion.div>
   );

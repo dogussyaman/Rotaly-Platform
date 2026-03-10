@@ -18,6 +18,7 @@ interface ListingCardProps {
   nights?: number;
   isFavorite?: boolean;
   guestFavoriteLabel?: string;
+  layout?: 'grid' | 'list';
 }
 
 export function ListingCard({
@@ -32,6 +33,7 @@ export function ListingCard({
   nights,
   isFavorite = false,
   guestFavoriteLabel = 'Misafirlerin Favorisi',
+  layout = 'grid',
 }: ListingCardProps) {
   const [wishlisted, setWishlisted] = useState(isFavorite);
   const [imgIndex, setImgIndex] = useState(0);
@@ -53,14 +55,20 @@ export function ListingCard({
   const totalPrice = totalNights ? pricePerNight * totalNights : null;
   const dateRange = checkIn && checkOut ? `${fmt(checkIn)} – ${fmt(checkOut)}` : null;
 
+  const isList = layout === 'list';
+
   return (
     <div
-      className="group cursor-pointer"
+      className={`group cursor-pointer ${isList ? 'flex flex-col md:flex-row gap-4' : ''}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       {/* ── Image Carousel ── */}
-      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden bg-muted mb-3">
+      <div
+        className={`relative rounded-2xl overflow-hidden bg-muted ${
+          isList ? 'w-full md:w-64 h-56 md:h-44 flex-shrink-0 mb-3 md:mb-0' : 'aspect-[4/3] mb-3'
+        }`}
+      >
         {images.map((src, i) => (
           <motion.div
             key={src}
@@ -138,7 +146,7 @@ export function ListingCard({
       </div>
 
       {/* ── Info ── */}
-      <div>
+      <div className={isList ? 'flex-1 min-w-0' : ''}>
         <div className="flex items-start justify-between gap-2 mb-0.5">
           <h3 className="font-semibold text-sm text-foreground leading-snug flex-1 line-clamp-1">
             {location}

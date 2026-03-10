@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useLocale } from '@/lib/i18n/locale-context';
 
 interface ListingDetailsProps {
   params: {
@@ -71,6 +72,7 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showAllAmenities, setShowAllAmenities] = useState(false);
+  const { t } = useLocale();
 
   const handlePrevImage = () => {
     setSelectedImageIndex((prev) =>

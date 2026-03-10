@@ -4,11 +4,12 @@ import { useState, useMemo } from 'react';
 import { SearchHeader } from '@/components/header/search-header';
 import { ListingCard } from '@/components/listings/listing-card';
 import { FilterSidebar } from '@/components/search/filter-sidebar';
+import { HeroSearchBar } from '@/components/search/hero-search-bar';
 import { useSearchStore } from '@/lib/store/search-store';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { LayoutGrid, LayoutList, Sliders } from 'lucide-react';
-import { Metadata } from 'next';
+import { useLocale } from '@/lib/i18n/locale-context';
 
 // Mock data - In real app, this would come from Supabase
 const ALL_LISTINGS = [
@@ -19,7 +20,7 @@ const ALL_LISTINGS = [
     pricePerNight: 450,
     rating: 4.95,
     totalReviews: 128,
-    imageUrl: 'https://images.unsplash.com/photo-1570129477492-45a003537e1f?w=600&h=400&fit=crop',
+    images: ['https://images.unsplash.com/photo-1570129477492-45a003537e1f?w=600&h=400&fit=crop'],
     propertyType: 'Villa',
     maxGuests: 8,
     bedrooms: 4,
@@ -31,7 +32,7 @@ const ALL_LISTINGS = [
     pricePerNight: 320,
     rating: 4.88,
     totalReviews: 95,
-    imageUrl: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&h=400&fit=crop',
+    images: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&h=400&fit=crop'],
     propertyType: 'Apartment',
     maxGuests: 4,
     bedrooms: 2,
@@ -43,7 +44,7 @@ const ALL_LISTINGS = [
     pricePerNight: 280,
     rating: 4.92,
     totalReviews: 156,
-    imageUrl: 'https://images.unsplash.com/photo-1537671608828-cc564c51e25d?w=600&h=400&fit=crop',
+    images: ['https://images.unsplash.com/photo-1537671608828-cc564c51e25d?w=600&h=400&fit=crop'],
     propertyType: 'Cabin',
     maxGuests: 6,
     bedrooms: 3,
@@ -55,7 +56,7 @@ const ALL_LISTINGS = [
     pricePerNight: 380,
     rating: 4.9,
     totalReviews: 203,
-    imageUrl: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&h=400&fit=crop',
+    images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&h=400&fit=crop'],
     propertyType: 'Apartment',
     maxGuests: 3,
     bedrooms: 1,
@@ -67,7 +68,7 @@ const ALL_LISTINGS = [
     pricePerNight: 520,
     rating: 4.97,
     totalReviews: 87,
-    imageUrl: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&h=400&fit=crop',
+    images: ['https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&h=400&fit=crop'],
     propertyType: 'Bungalow',
     maxGuests: 2,
     bedrooms: 1,
@@ -79,7 +80,7 @@ const ALL_LISTINGS = [
     pricePerNight: 420,
     rating: 4.86,
     totalReviews: 142,
-    imageUrl: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&h=400&fit=crop',
+    images: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&h=400&fit=crop'],
     propertyType: 'Villa',
     maxGuests: 10,
     bedrooms: 5,
@@ -91,7 +92,7 @@ const ALL_LISTINGS = [
     pricePerNight: 290,
     rating: 4.91,
     totalReviews: 167,
-    imageUrl: 'https://images.unsplash.com/photo-1449844908441-8829872d2607?w=600&h=400&fit=crop',
+    images: ['https://images.unsplash.com/photo-1449844908441-8829872d2607?w=600&h=400&fit=crop'],
     propertyType: 'Apartment',
     maxGuests: 2,
     bedrooms: 1,
@@ -103,7 +104,7 @@ const ALL_LISTINGS = [
     pricePerNight: 350,
     rating: 4.94,
     totalReviews: 234,
-    imageUrl: 'https://images.unsplash.com/photo-1512207736139-e04b6ff91629?w=600&h=400&fit=crop',
+    images: ['https://images.unsplash.com/photo-1512207736139-e04b6ff91629?w=600&h=400&fit=crop'],
     propertyType: 'Cottage',
     maxGuests: 4,
     bedrooms: 2,
@@ -115,7 +116,7 @@ const ALL_LISTINGS = [
     pricePerNight: 220,
     rating: 4.87,
     totalReviews: 189,
-    imageUrl: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=400&fit=crop',
+    images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=400&fit=crop'],
     propertyType: 'Apartment',
     maxGuests: 2,
     bedrooms: 1,
@@ -126,7 +127,8 @@ export default function SearchPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('relevant');
   const [showFilters, setShowFilters] = useState(false);
-  
+  const [showMap, setShowMap] = useState(false);
+  const { t } = useLocale();
   const { filters } = useSearchStore();
 
   // Filter listings based on search criteria
@@ -187,7 +189,18 @@ export default function SearchPage() {
       <SearchHeader />
 
       <div className="pt-24 pb-16 px-4">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Search form (navbar altında, home'daki hero search'e benzer) */}
+          <motion.div
+            id="hero-search-bar"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="max-w-5xl mx-auto">
+              <HeroSearchBar />
+            </div>
+          </motion.div>
           {/* Results Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -196,10 +209,11 @@ export default function SearchPage() {
             className="mb-8"
           >
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              {filters.location || 'All Stays'}
+              {filters.location || (t.searchAllStays as string)}
             </h1>
             <p className="text-muted-foreground">
-              {sortedListings.length} properties available
+              {sortedListings.length}{' '}
+              {(t.searchResultsSuffix as string) || ''}
             </p>
           </motion.div>
 
@@ -211,117 +225,141 @@ export default function SearchPage() {
             className="mb-8 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between"
           >
             <Button
-              variant="outline"
+              variant={showFilters ? 'secondary' : 'outline'}
               size="sm"
-              className="md:hidden gap-2 border-border"
+              className="gap-2 border-border"
               onClick={() => setShowFilters(!showFilters)}
             >
               <Sliders className="w-4 h-4" />
-              Filters
+              {t.filters as string}
             </Button>
 
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Sort:</span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="text-sm bg-card border border-border rounded-lg px-3 py-2 text-foreground"
-              >
-                <option value="relevant">Most Relevant</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="rating">Highest Rated</option>
-              </select>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {t.searchSortLabel as string}:
+                </span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="text-sm bg-card border border-border rounded-lg px-3 py-2 text-foreground"
+                >
+                  <option value="relevant">{t.searchSortRelevant as string}</option>
+                  <option value="price-asc">{t.searchSortPriceAsc as string}</option>
+                  <option value="price-desc">{t.searchSortPriceDesc as string}</option>
+                  <option value="rating">{t.searchSortRating as string}</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2 border border-border rounded-lg p-1">
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                  className="w-10 h-10 p-0"
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className="w-10 h-10 p-0"
+                >
+                  <LayoutList className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 border border-border rounded-lg p-1">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className="w-10 h-10 p-0"
-              >
-                <LayoutGrid className="w-4 h-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className="w-10 h-10 p-0"
-              >
-                <LayoutList className="w-4 h-4" />
-              </Button>
-            </div>
+            <Button
+              variant={showMap ? 'secondary' : 'outline'}
+              size="sm"
+              className="gap-2 border-border"
+              onClick={() => setShowMap((v) => !v)}
+            >
+              {showMap ? (t.searchShowList as string) : (t.searchShowMap as string)}
+            </Button>
           </motion.div>
 
           {/* Main Content */}
           <div className="flex gap-6">
-            {/* Sidebar Filters - Desktop */}
-            {showFilters && (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3 }}
-                className="w-full md:w-64 flex-shrink-0"
-              >
-                <FilterSidebar />
-              </motion.div>
-            )}
-
-            {!showFilters && (
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3 }}
-                className="hidden md:block w-64 flex-shrink-0"
-              >
-                <FilterSidebar />
-              </motion.div>
-            )}
-
-            {/* Listings Grid/List */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4 }}
-              className="flex-1 min-w-0"
-            >
-              {sortedListings.length > 0 ? (
+            <div className="flex-1 flex gap-6">
+              {/* Sidebar Filters - Desktop */}
+              {showFilters && (
                 <motion.div
-                  layout
-                  className={
-                    viewMode === 'grid'
-                      ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
-                      : 'space-y-4'
-                  }
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="w-full md:w-64 flex-shrink-0"
                 >
-                  {sortedListings.map((listing, index) => (
-                    <motion.div
-                      key={listing.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                    >
-                      <ListingCard {...listing} />
-                    </motion.div>
-                  ))}
-                </motion.div>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.4 }}
-                  className="text-center py-16"
-                >
-                  <p className="text-lg font-semibold text-foreground mb-2">
-                    No properties found
-                  </p>
-                  <p className="text-muted-foreground">
-                    Try adjusting your filters to see more results
-                  </p>
+                  <FilterSidebar />
                 </motion.div>
               )}
-            </motion.div>
+
+              {!showFilters && (
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="hidden md:block w-64 flex-shrink-0"
+                >
+                  <FilterSidebar />
+                </motion.div>
+              )}
+
+              {/* Listings Grid/List */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4 }}
+                className="flex-1 min-w-0"
+              >
+                {sortedListings.length > 0 ? (
+                  <motion.div
+                    layout
+                    className={
+                      viewMode === 'grid'
+                        ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
+                        : 'space-y-4'
+                    }
+                  >
+                    {sortedListings.map((listing, index) => (
+                      <motion.div
+                        key={listing.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                      >
+                        <ListingCard {...listing} layout={viewMode} />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.4 }}
+                    className="text-center py-16"
+                  >
+                    <p className="text-lg font-semibold text-foreground mb-2">
+                      {t.searchNoResultsTitle as string}
+                    </p>
+                    <p className="text-muted-foreground">
+                      {t.searchNoResultsSubtitle as string}
+                    </p>
+                  </motion.div>
+                )}
+              </motion.div>
+            </div>
+
+            {showMap && (
+              <div className="hidden lg:block w-[420px] h-[calc(100vh-220px)] sticky top-28 rounded-3xl bg-muted border border-border overflow-hidden">
+                <div className="w-full h-full flex items-center justify-center text-sm text-muted-foreground px-6 text-center">
+                  {/* Placeholder for future interactive map */}
+                  <span>Harita görünümü yakında eklenecek. Şimdilik listeden devam edebilirsiniz.</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
