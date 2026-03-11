@@ -68,7 +68,7 @@ export default function SignUpPage() {
       }
 
       if (data.user) {
-        router.push('/');
+        router.push('/dashboard');
         router.refresh();
       }
     } catch {
@@ -85,7 +85,7 @@ export default function SignUpPage() {
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${siteUrl}/auth/callback`,
+        redirectTo: `${siteUrl}/auth/callback?next=/dashboard`,
       },
     });
     if (oauthError) {

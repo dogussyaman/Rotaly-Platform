@@ -103,7 +103,7 @@ function UserMenu() {
         className="flex items-center gap-2 px-2 py-1.5 rounded-2xl hover:bg-white/20 transition-all border border-border/60 backdrop-blur-md shadow-sm"
       >
         {/* Avatar */}
-        <div className="w-8 h-8 rounded-full overflow-hidden bg-foreground flex items-center justify-center flex-shrink-0">
+        <div className="w-6 h-6 rounded-full overflow-hidden bg-foreground flex items-center justify-center flex-shrink-0">
           {profile.avatarUrl ? (
             <img src={profile.avatarUrl} alt={profile.fullName ?? ''} className="w-full h-full object-cover" />
           ) : (
@@ -173,7 +173,7 @@ function UserMenu() {
               {/* Ev sahibi için */}
               {profile.isHost && (
                 <Link
-                  href="/host/dashboard"
+                  href="/dashboard"
                   onClick={() => setOpen(false)}
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
                 >

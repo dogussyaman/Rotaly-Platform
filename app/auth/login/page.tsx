@@ -37,7 +37,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.push('/');
+      router.push('/dashboard');
       router.refresh();
     } catch {
       setError(t.loginErrorGeneric as string);
@@ -53,7 +53,7 @@ export default function LoginPage() {
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${siteUrl}/auth/callback`,
+        redirectTo: `${siteUrl}/auth/callback?next=/dashboard`,
       },
     });
     if (oauthError) {

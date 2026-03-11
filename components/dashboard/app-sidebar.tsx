@@ -4,6 +4,7 @@ import * as React from "react"
 import {
   ArrowUpCircleIcon,
   BarChartIcon,
+  Calendar,
   CameraIcon,
   ClipboardListIcon,
   DatabaseIcon,
@@ -33,124 +34,48 @@ import { NavMain } from "./nav-main"
 import { NavSecondary } from "./nav-secondary"
 import { NavUser } from "./nav-user"
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
+import { useAppSelector } from "@/lib/store/hooks"
+
+const ADMIN_DATA = {
   navMain: [
-    {
-      title: "Dashboard",
-      url: "#",
-      icon: LayoutDashboardIcon,
-    },
-    {
-      title: "Lifecycle",
-      url: "#",
-      icon: ListIcon,
-    },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: BarChartIcon,
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: FolderIcon,
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: UsersIcon,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: CameraIcon,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: FileTextIcon,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: FileCodeIcon,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: SettingsIcon,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: HelpCircleIcon,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: SearchIcon,
-    },
+    { title: "Dashboard", url: "/dashboard", icon: LayoutDashboardIcon },
+    { title: "Lifecycle", url: "#", icon: ListIcon },
+    { title: "Analytics", url: "#", icon: BarChartIcon },
+    { title: "Projects", url: "#", icon: FolderIcon },
+    { title: "Users", url: "#", icon: UsersIcon },
   ],
   documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: DatabaseIcon,
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: ClipboardListIcon,
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: FileIcon,
-    },
+    { name: "Global Reports", url: "#", icon: ClipboardListIcon },
+    { name: "System Logs", url: "#", icon: DatabaseIcon },
+  ]
+};
+
+const HOST_DATA = {
+  navMain: [
+    { title: "Overview", url: "/dashboard", icon: LayoutDashboardIcon },
+    { title: "My Listings", url: "#", icon: ListIcon },
+    { title: "Reservations", url: "#", icon: Calendar, isActive: true },
+    { title: "Earnings", url: "#", icon: BarChartIcon },
   ],
-}
+  documents: [
+    { name: "Booking Reports", url: "#", icon: ClipboardListIcon },
+    { name: "Tax Documents", url: "#", icon: FileTextIcon },
+  ]
+};
+
+const SECONDARY_NAV = [
+  { title: "Settings", url: "#", icon: SettingsIcon },
+  { title: "Help Center", url: "#", icon: HelpCircleIcon },
+];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { profile } = useAppSelector((s) => s.user);
+  
+  const isAdmin = !!profile?.isAdmin;
+  const isHost = !!profile?.isHost;
+  
+  const sidebarData = isAdmin ? ADMIN_DATA : isHost ? HOST_DATA : { navMain: [], documents: [] };
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -160,21 +85,30 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
-                <ArrowUpCircleIcon className="h-5 w-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+              <a href="/">
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                  <ArrowUpCircleIcon className="size-5" />
+                </div>
+                <div className="flex flex-col gap-0.5 leading-none">
+                  <span className="text-sm font-bold">Rotaly {isAdmin ? 'Admin' : 'Host'}</span>
+                  <span className="text-xs text-muted-foreground">Premium Platform</span>
+                </div>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
+        <NavMain items={sidebarData.navMain} />
+        {sidebarData.documents.length > 0 && <NavDocuments items={sidebarData.documents} />}
+        <NavSecondary items={SECONDARY_NAV} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={{
+          name: profile?.fullName || "Guest",
+          email: profile?.email || "",
+          avatar: profile?.avatarUrl || ""
+        }} />
       </SidebarFooter>
     </Sidebar>
   )
