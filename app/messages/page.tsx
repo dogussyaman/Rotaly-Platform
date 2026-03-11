@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChatWindow } from '@/components/messaging/chat-window';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,139 +9,50 @@ import { Search, MessageSquare, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useLocale } from '@/lib/i18n/locale-context';
-
-interface Conversation {
-  id: string;
-  otherUserName: string;
-  otherUserAvatar: string;
-  lastMessage: string;
-  lastMessageTime: Date;
-  unreadCount: number;
-  isActive: boolean;
-}
-
-interface Message {
-  id: string;
-  sender: string;
-  senderAvatar: string;
-  content: string;
-  timestamp: Date;
-  isCurrentUser: boolean;
-}
-
-const CONVERSATIONS: Conversation[] = [
-  {
-    id: 'conv-1',
-    otherUserName: 'Sarah Wilson',
-    otherUserAvatar:
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
-    lastMessage: "Thanks for the quick response! See you next week.",
-    lastMessageTime: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    unreadCount: 0,
-    isActive: false,
-  },
-  {
-    id: 'conv-2',
-    otherUserName: 'James Mitchell',
-    otherUserAvatar:
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
-    lastMessage: 'Can you tell me more about the amenities?',
-    lastMessageTime: new Date(Date.now() - 30 * 60 * 1000),
-    unreadCount: 2,
-    isActive: true,
-  },
-  {
-    id: 'conv-3',
-    otherUserName: 'Emma Davis',
-    otherUserAvatar:
-      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop',
-    lastMessage: 'Perfect! I will check in early.',
-    lastMessageTime: new Date(Date.now() - 5 * 60 * 1000),
-    unreadCount: 0,
-    isActive: false,
-  },
-];
-
-const MESSAGES: Message[] = [
-  {
-    id: 'msg-1',
-    sender: 'James Mitchell',
-    senderAvatar:
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
-    content: 'Hi, I am interested in your listing. Can I ask a few questions?',
-    timestamp: new Date(Date.now() - 60 * 60 * 1000),
-    isCurrentUser: false,
-  },
-  {
-    id: 'msg-2',
-    sender: 'You',
-    senderAvatar:
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
-    content: 'Of course! Feel free to ask anything.',
-    timestamp: new Date(Date.now() - 55 * 60 * 1000),
-    isCurrentUser: true,
-  },
-  {
-    id: 'msg-3',
-    sender: 'James Mitchell',
-    senderAvatar:
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
-    content: 'Can you tell me more about the amenities?',
-    timestamp: new Date(Date.now() - 30 * 60 * 1000),
-    isCurrentUser: false,
-  },
-  {
-    id: 'msg-4',
-    sender: 'James Mitchell',
-    senderAvatar:
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop',
-    content:
-      'Specifically, does it have WiFi? And is there a kitchen for cooking?',
-    timestamp: new Date(Date.now() - 28 * 60 * 1000),
-    isCurrentUser: false,
-  },
-];
+import { useAppSelector } from '@/lib/store/hooks';
+import { fetchConversations, fetchMessages, sendMessage, type ConversationSummary, type ChatMessage } from '@/lib/supabase/messages';
 
 export default function MessagesPage() {
-  const [selectedConversation, setSelectedConversation] = useState(
-    CONVERSATIONS[1]
-  );
+  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const [selectedConversation, setSelectedConversation] = useState<ConversationSummary | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [messages, setMessages] = useState<Message[]>(MESSAGES);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isMobile, setIsMobile] = useState(false);
   const { t } = useLocale();
+  const { profile } = useAppSelector((s) => s.user);
 
-  const filteredConversations = CONVERSATIONS.filter((conv) =>
+  useEffect(() => {
+    const load = async () => {
+      if (!profile) return;
+      const data = await fetchConversations(profile.id);
+      setConversations(data);
+      if (data.length > 0) {
+        setSelectedConversation(data[0]);
+        const msgs = await fetchMessages(data[0].id, profile.id);
+        setMessages(msgs);
+      }
+    };
+    load();
+  }, [profile]);
+
+  const filteredConversations = conversations.filter((conv) =>
     conv.otherUserName
       .toLowerCase()
       .includes(searchQuery.toLowerCase())
   );
 
   const handleSendMessage = (messageContent: string) => {
-    const newMessage: Message = {
-      id: `msg-${messages.length + 1}`,
-      sender: 'You',
-      senderAvatar:
-        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop',
+    if (!profile || !selectedConversation) return;
+    sendMessage({
+      conversationId: selectedConversation.id,
+      senderId: profile.id,
+      receiverId: selectedConversation.otherUserId,
       content: messageContent,
-      timestamp: new Date(),
-      isCurrentUser: true,
-    };
-
-    setMessages([...messages, newMessage]);
-
-    // Simulate a response
-    setTimeout(() => {
-      const response: Message = {
-        id: `msg-${messages.length + 2}`,
-        sender: selectedConversation.otherUserName,
-        senderAvatar: selectedConversation.otherUserAvatar,
-        content: "Thanks for the information! I'll let you know soon.",
-        timestamp: new Date(),
-        isCurrentUser: false,
-      };
-      setMessages((prev) => [...prev, response]);
-    }, 1000);
+    }).then((saved) => {
+      if (saved) {
+        setMessages((prev) => [...prev, saved]);
+      }
+    });
   };
 
   return (
@@ -190,6 +101,9 @@ export default function MessagesPage() {
                   key={conversation.id}
                   onClick={() => {
                     setSelectedConversation(conversation);
+                    if (profile) {
+                      fetchMessages(conversation.id, profile.id).then(setMessages);
+                    }
                     setIsMobile(true);
                   }}
                   whileHover={{ backgroundColor: 'rgba(0,0,0,0.05)' }}
@@ -214,10 +128,10 @@ export default function MessagesPage() {
 
                   <div className="flex-1 min-w-0 text-left">
                     <h3 className="font-semibold text-foreground truncate">
-                      {conversation.otherUserName}
+                    {conversation.otherUserName ?? 'Kullanıcı'}
                     </h3>
                     <p className="text-sm text-muted-foreground truncate">
-                      {conversation.lastMessage}
+                      {conversation.lastMessage ?? ''}
                     </p>
                   </div>
 

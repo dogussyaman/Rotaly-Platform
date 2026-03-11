@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState, useMemo } from 'react';
+import { use, useState, useMemo, useEffect } from 'react';
 import { SearchHeader } from '@/components/header/search-header';
 import { MainFooter } from '@/components/footer/main-footer';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { tr, enUS } from 'date-fns/locale';
+import { fetchListingById, type ListingDetail } from '@/lib/supabase/bookings';
+import { Loader2 } from 'lucide-react';
 
 interface ListingDetailsProps {
   params: Promise<{
@@ -39,51 +41,11 @@ interface ListingDetailsProps {
   }>;
 }
 
-// More realistic mock data with Turkish context
-const LISTING_DATA = {
-  id: '1',
-  title: 'Boğaz Manzaralı Lüks Penthouse',
-  location: 'Bebek, İstanbul',
-  pricePerNight: 12400,
-  rating: 4.97,
-  totalReviews: 88,
-  propertyType: 'Penthouse',
-  maxGuests: 4,
-  bedrooms: 2,
-  bathrooms: 2,
-  description:
-    "İstanbul'un kalbi Bebek'te, Boğaz'ın eşsiz manzarasına karşı konumlanmış bu lüks penthouse, size unutulmaz bir konaklama deneyimi sunuyor. Modern tasarımı, geniş terası ve tam donanımlı mutfağı ile hem iş hem de tatil seyahatleriniz için idealdir. Sahile sadece 2 dakika yürüme mesafesindedir.",
-  images: [
-    'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&h=800&fit=crop',
-    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&h=800&fit=crop',
-    'https://images.unsplash.com/photo-1600607687940-c52af0b439r8?w=1200&h=800&fit=crop',
-    'https://images.unsplash.com/photo-1600566753190-17f0fec2a44e?w=1200&h=800&fit=crop',
-  ],
-  amenities: [
-    { icon: Wifi, name: 'Hızlı WiFi', key: 'amenityWifi' },
-    { icon: Utensils, name: 'Tam Donanımlı Mutfak', key: 'amenityKitchen' },
-    { icon: Wind, name: 'Klima', key: 'amenityAirConditioning' },
-    { icon: Waves, name: 'Havuz', key: 'amenityPool' },
-    { icon: ShieldCheck, name: 'Güvenlik', key: 'safety' },
-  ],
-  host: {
-    name: 'Aslıhan Y.',
-    rating: 4.95,
-    reviews: 142,
-    superhost: true,
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop',
-  },
-  rules: [
-    'Evcil hayvan kabul edilmez',
-    'Parti/etkinlik düzenlenemez',
-    'Sigara içilmez',
-    'Giriş saati: 15:00 - 20:00',
-  ],
-};
-
 export default function ListingDetailsPage({ params }: ListingDetailsProps) {
   const { id } = use(params);
   const { t, locale } = useLocale();
+  const [listing, setListing] = useState<ListingDetail | null>(null);
+  const [loading, setLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
@@ -94,15 +56,33 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
 
   const dateLocale = locale === 'tr' ? tr : enUS;
 
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      const data = await fetchListingById(id);
+      setListing(data);
+      setLoading(false);
+    };
+    load();
+  }, [id]);
+
   const handlePrevImage = () => {
     setSelectedImageIndex((prev) =>
-      prev === 0 ? LISTING_DATA.images.length - 1 : prev - 1
+      !listing || listing.images.length === 0
+        ? 0
+        : prev === 0
+          ? listing.images.length - 1
+          : prev - 1
     );
   };
 
   const handleNextImage = () => {
     setSelectedImageIndex((prev) =>
-      prev === LISTING_DATA.images.length - 1 ? 0 : prev + 1
+      !listing || listing.images.length === 0
+        ? 0
+        : prev === listing.images.length - 1
+          ? 0
+          : prev + 1
     );
   };
 
@@ -113,9 +93,14 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
   }, [dateRange]);
 
   const priceCalc = useMemo(() => {
-    const subtotal = LISTING_DATA.pricePerNight * totalNights;
+    if (!listing) {
+      return { subtotal: 0, serviceFee: 0, cleaningFee: 0, total: 0 };
+    }
+    const subtotal = listing.pricePerNight * totalNights;
     const serviceFee = Math.round(subtotal * 0.12);
-    const cleaningFee = 850;
+    const cleaningFee =  Number.isFinite((listing as any).cleaningFee)
+      ? Number((listing as any).cleaningFee)
+      : 850;
     return { subtotal, serviceFee, cleaningFee, total: subtotal + serviceFee + cleaningFee };
   }, [totalNights]);
 
@@ -124,6 +109,26 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
       <SearchHeader />
 
       <main className="pt-20 pb-20">
+        {loading && (
+          <div className="flex items-center justify-center py-32">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
+        )}
+
+        {!loading && !listing && (
+          <div className="max-w-3xl mx-auto px-6 py-24 text-center">
+            <h1 className="text-2xl font-bold mb-2">İlan bulunamadı</h1>
+            <p className="text-muted-foreground mb-6">
+              Aradığınız ilan silinmiş veya yayından kaldırılmış olabilir.
+            </p>
+            <Link href="/search">
+              <Button variant="outline">Diğer ilanlara göz at</Button>
+            </Link>
+          </div>
+        )}
+
+        {listing && (
+        <>
         {/* Gallery Section */}
         <section className="max-w-7xl mx-auto px-6 mb-12">
           {/* Breadcrumbs or Back */}
@@ -132,13 +137,13 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
               {t.stays as string}
             </Link>
             <span className="text-muted-foreground">/</span>
-            <span className="text-sm font-medium text-foreground truncate">{LISTING_DATA.title}</span>
+            <span className="text-sm font-medium text-foreground truncate">{listing.title}</span>
           </div>
 
           <div className="relative aspect-[21/9] rounded-3xl overflow-hidden group shadow-2xl">
             <Image
-              src={LISTING_DATA.images[selectedImageIndex]}
-              alt={LISTING_DATA.title}
+              src={listing.images[selectedImageIndex] ?? 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&h=800&fit=crop'}
+              alt={listing.title}
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-105"
               priority
@@ -164,7 +169,7 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
 
             {/* Image Counters */}
             <div className="absolute bottom-6 right-6 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full text-white text-sm font-bold border border-white/20">
-              {selectedImageIndex + 1} / {LISTING_DATA.images.length}
+              {selectedImageIndex + 1} / {listing.images.length || 1}
             </div>
 
             {/* Top Actions */}
@@ -188,22 +193,24 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
             {/* Header Info */}
             <div className="space-y-4">
               <Badge variant="secondary" className="bg-secondary/50 text-foreground border-none px-3 py-1 font-bold">
-                {LISTING_DATA.propertyType}
+                {(listing as any).property_type ?? 'Konaklama'}
               </Badge>
               <h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground leading-tight">
-                {LISTING_DATA.title}
+                {listing.title}
               </h1>
-              <div className="flex flex-wrap items-center gap-6 text-muted-foreground">
+          <div className="flex flex-wrap items-center gap-6 text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
-                  <span className="font-bold text-foreground text-lg">{LISTING_DATA.rating}</span>
+                  <span className="font-bold text-foreground text-lg">{listing.rating.toFixed(2)}</span>
                   <span className="underline font-medium hover:text-foreground cursor-pointer">
-                    {LISTING_DATA.totalReviews} {t.dashboardReviewsLabel as string}
+                    {listing.totalReviews} {t.dashboardReviewsLabel as string}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="w-5 h-5" />
-                  <span className="font-medium">{LISTING_DATA.location}</span>
+                  <span className="font-medium">
+                    {[listing.address, listing.city, listing.country].filter(Boolean).join(', ')}
+                  </span>
                 </div>
               </div>
             </div>
@@ -214,25 +221,25 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
                 <div className="text-muted-foreground flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
                   <Users className="w-4 h-4" /> {t.listingGuestsLabel as string}
                 </div>
-                <div className="text-xl font-bold">{LISTING_DATA.maxGuests} {t.guests as string}</div>
+                <div className="text-xl font-bold">{listing.maxGuests} {t.guests as string}</div>
               </div>
               <div className="space-y-1">
                 <div className="text-muted-foreground flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
                   <Bed className="w-4 h-4" /> {t.listingBedroomsLabel as string}
                 </div>
-                <div className="text-xl font-bold">{LISTING_DATA.bedrooms}</div>
+                <div className="text-xl font-bold">{listing.bedrooms}</div>
               </div>
               <div className="space-y-1">
                 <div className="text-muted-foreground flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
                   <Bath className="w-4 h-4" /> {t.listingBathsLabel as string}
                 </div>
-                <div className="text-xl font-bold">{LISTING_DATA.bathrooms}</div>
+                <div className="text-xl font-bold">{listing.bathrooms}</div>
               </div>
               <div className="space-y-1">
                 <div className="text-muted-foreground flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
                   <Info className="w-4 h-4" /> {t.listingTypeLabel as string}
                 </div>
-                <div className="text-xl font-bold">{LISTING_DATA.propertyType}</div>
+                <div className="text-xl font-bold">{(listing as any).property_type ?? 'Stay'}</div>
               </div>
             </div>
 
@@ -240,7 +247,7 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
             <div className="space-y-4">
               <h2 className="text-2xl font-bold border-b pb-4">{t.listingAboutSpace as string}</h2>
               <p className="text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                {LISTING_DATA.description}
+                {listing.description}
               </p>
             </div>
 
@@ -248,12 +255,20 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
             <div className="space-y-6">
               <h2 className="text-2xl font-bold border-b pb-4">{t.listingAmenitiesTitle as string}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-12">
-                {LISTING_DATA.amenities.map((item, i) => (
+                {/* Şimdilik sadece birkaç temel amenity örneği gösteriyoruz */}
+                {[Wifi, Utensils, Wind, Waves, ShieldCheck].map((Icon, i) => (
                   <div key={i} className="flex items-center gap-4 group">
                     <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center group-hover:bg-foreground group-hover:text-background transition-colors duration-300">
-                      <item.icon className="w-6 h-6" />
+                      <Icon className="w-6 h-6" />
                     </div>
-                    <span className="text-lg font-medium text-foreground">{t[item.key as keyof typeof t] || item.name}</span>
+                    <span className="text-lg font-medium text-foreground">
+                      {/* Çeviri key'i yoksa basit metin */}
+                      {i === 0 && (t.amenityWifi as string)}
+                      {i === 1 && (t.amenityKitchen as string)}
+                      {i === 2 && (t.amenityAirConditioning as string)}
+                      {i === 3 && (t.amenityPool as string)}
+                      {i === 4 && 'Güvenlik'}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -263,21 +278,31 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
             </div>
 
             {/* Host Section */}
+            {listing.host && (
             <div className="p-8 bg-muted/40 rounded-[2.5rem] border border-border/60">
               <div className="flex flex-col md:flex-row gap-8 items-start md:items-center justify-between">
                 <div className="flex items-center gap-6">
                   <div className="relative">
                     <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-xl">
-                      <Image src={LISTING_DATA.host.avatar} alt={LISTING_DATA.host.name} fill className="object-cover" />
+                      <Image
+                        src={
+                          listing.host.avatarUrl ??
+                          'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop'
+                        }
+                        alt={listing.host.fullName ?? 'Ev Sahibi'}
+                        fill
+                        className="object-cover"
+                      />
                     </div>
-                    {LISTING_DATA.host.superhost && (
+                    {/* superhost bilgisi yoksa gizli */}
+                    {false && (
                       <div className="absolute -bottom-2 -right-2 bg-foreground text-background w-8 h-8 rounded-full flex items-center justify-center border-4 border-white">
                         <Star className="w-3 h-3 fill-current" />
                       </div>
                     )}
                   </div>
                   <div>
-                    <h3 className="text-2xl font-bold">Ev Sahibi: {LISTING_DATA.host.name}</h3>
+                    <h3 className="text-2xl font-bold">Ev Sahibi: {listing.host.fullName ?? 'Ev Sahibi'}</h3>
                     <p className="text-muted-foreground font-medium">{t.dashboardMemberSince as string}: 2021</p>
                   </div>
                 </div>
@@ -289,11 +314,11 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
               </div>
               <div className="mt-8 grid sm:grid-cols-3 gap-6 pt-8 border-t border-border/60">
                 <div>
-                  <div className="text-2xl font-bold">{LISTING_DATA.host.reviews}</div>
+                  <div className="text-2xl font-bold">{listing.totalReviews}</div>
                   <div className="text-xs font-bold text-muted-foreground uppercase">{t.dashboardReviewsLabel as string}</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold underline cursor-pointer">{LISTING_DATA.host.rating} ★</div>
+                  <div className="text-2xl font-bold underline cursor-pointer">{listing.rating.toFixed(2)} ★</div>
                   <div className="text-xs font-bold text-muted-foreground uppercase">{t.listingHostRating as string}</div>
                 </div>
                 <div>
@@ -302,6 +327,7 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
                 </div>
               </div>
             </div>
+            )}
           </div>
 
           {/* Right Column: Sticky Booking Card */}
@@ -312,12 +338,12 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
 
                 <div className="flex items-baseline justify-between mb-8">
                   <div>
-                    <span className="text-3xl font-black text-foreground">₺{LISTING_DATA.pricePerNight.toLocaleString('tr-TR')}</span>
+                    <span className="text-3xl font-black text-foreground">₺{listing.pricePerNight.toLocaleString('tr-TR')}</span>
                     <span className="text-muted-foreground font-medium ml-1">/{t.listingPerNight as string}</span>
                   </div>
-                  <div className="flex items-center gap-1 text-sm font-bold">
+                    <div className="flex items-center gap-1 text-sm font-bold">
                     <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                    {LISTING_DATA.rating}
+                    {listing.rating.toFixed(2)}
                   </div>
                 </div>
 
@@ -375,8 +401,8 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
                         onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
                         className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-muted font-bold"
                       >-</button>
-                      <button
-                        onClick={() => setGuestCount(Math.min(LISTING_DATA.maxGuests, guestCount + 1))}
+                              <button
+                        onClick={() => setGuestCount(Math.min(listing.maxGuests, guestCount + 1))}
                         className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-muted font-bold"
                       >+</button>
                     </div>
@@ -396,7 +422,7 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
                 {/* Price Breakdown */}
                 <div className="mt-8 space-y-4 pt-8 border-t border-border/60">
                   <div className="flex justify-between items-center text-lg">
-                    <span className="text-muted-foreground underline underline-offset-4 decoration-muted-foreground/30">₺{LISTING_DATA.pricePerNight.toLocaleString('tr-TR')} x {totalNights} gece</span>
+                    <span className="text-muted-foreground underline underline-offset-4 decoration-muted-foreground/30">₺{listing.pricePerNight.toLocaleString('tr-TR')} x {totalNights} gece</span>
                     <span className="font-bold">₺{priceCalc.subtotal.toLocaleString('tr-TR')}</span>
                   </div>
                   <div className="flex justify-between items-center text-lg">
@@ -428,6 +454,8 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
             </aside>
           </div>
         </section>
+        </>
+        )}
       </main>
 
       <MainFooter />

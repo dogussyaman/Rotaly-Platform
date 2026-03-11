@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import {
@@ -15,89 +15,22 @@ import {
   Settings,
   Eye,
   MessageSquare,
+  Loader2,
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useLocale } from '@/lib/i18n/locale-context';
-
-const HOST_STATS = {
-  totalEarnings: 15840,
-  thisMonthEarnings: 3420,
-  bookings: 24,
-  reviews: 4.92,
-  reviewCount: 127,
-  responseRate: 98,
-};
-
-const HOST_LISTINGS = [
-  {
-    id: '1',
-    title: 'Luxurious Beachfront Villa',
-    location: 'Bali, Indonesia',
-    bookings: 8,
-    rating: 4.95,
-    earnings: 3600,
-    image: 'https://images.unsplash.com/photo-1570129477492-45a003537e1f?w=400&h=300&fit=crop',
-    status: 'active',
-  },
-  {
-    id: '2',
-    title: 'Modern Apartment in Downtown',
-    location: 'New York, USA',
-    bookings: 12,
-    rating: 4.88,
-    earnings: 3840,
-    image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=300&fit=crop',
-    status: 'active',
-  },
-  {
-    id: '3',
-    title: 'Cozy Mountain Cabin',
-    location: 'Colorado, USA',
-    bookings: 4,
-    rating: 4.92,
-    earnings: 1120,
-    image: 'https://images.unsplash.com/photo-1537671608828-cc564c51e25d?w=400&h=300&fit=crop',
-    status: 'active',
-  },
-];
-
-const UPCOMING_BOOKINGS = [
-  {
-    id: 'book-1',
-    guestName: 'Sarah Anderson',
-    listingTitle: 'Beachfront Villa',
-    checkIn: '2024-03-20',
-    checkOut: '2024-03-27',
-    nights: 7,
-    totalPrice: 3150,
-    status: 'confirmed',
-  },
-  {
-    id: 'book-2',
-    guestName: 'Michael Chen',
-    listingTitle: 'Downtown Apartment',
-    checkIn: '2024-03-15',
-    checkOut: '2024-03-18',
-    nights: 3,
-    totalPrice: 960,
-    status: 'confirmed',
-  },
-  {
-    id: 'book-3',
-    guestName: 'Emma Davis',
-    listingTitle: 'Beachfront Villa',
-    checkIn: '2024-03-28',
-    checkOut: '2024-04-04',
-    nights: 7,
-    totalPrice: 3150,
-    status: 'pending',
-  },
-];
+import { useAppSelector } from '@/lib/store/hooks';
+import { fetchHostByUserId, fetchHostListings, fetchHostStats, fetchHostBookings, type HostListingCard, type HostBooking, type HostStats } from '@/lib/supabase/host';
 
 export default function HostDashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [stats, setStats] = useState<HostStats | null>(null);
+  const [listings, setListings] = useState<HostListingCard[]>([]);
+  const [bookings, setBookings] = useState<HostBooking[]>([]);
+  const [loading, setLoading] = useState(true);
   const { t } = useLocale();
+  const { profile } = useAppSelector((s) => s.user);
 
   const container = {
     hidden: { opacity: 0 },
@@ -113,6 +46,28 @@ export default function HostDashboardPage() {
     hidden: { opacity: 0, y: 10 },
     show: { opacity: 1, y: 0 },
   };
+
+  useEffect(() => {
+    const load = async () => {
+      if (!profile) return;
+      setLoading(true);
+      const hostProfile = await fetchHostByUserId(profile.id);
+      if (!hostProfile) {
+        setLoading(false);
+        return;
+      }
+      const [hostListings, hostStats, hostBookings] = await Promise.all([
+        fetchHostListings(hostProfile.hostId),
+        fetchHostStats(hostProfile.hostId),
+        fetchHostBookings(hostProfile.hostId),
+      ]);
+      setListings(hostListings);
+      setStats(hostStats);
+      setBookings(hostBookings);
+      setLoading(false);
+    };
+    load();
+  }, [profile]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/30">
@@ -140,6 +95,24 @@ export default function HostDashboardPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-12">
+        {loading && (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          </div>
+        )}
+
+        {!loading && !profile && (
+          <div className="text-center py-16">
+            <p className="text-lg text-muted-foreground">
+              Ev sahibi panelini görmek için önce giriş yapmalısınız.
+            </p>
+            <Link href="/auth/login" className="mt-4 inline-flex">
+              <Button>{t.login as string}</Button>
+            </Link>
+          </div>
+        )}
+
+        {!loading && profile && stats && (
         {/* Stats Grid */}
         <motion.div
           variants={container}
@@ -150,31 +123,31 @@ export default function HostDashboardPage() {
           {[
             {
               label: t.hostDashboardTotalEarnings as string,
-              value: `$${HOST_STATS.totalEarnings.toLocaleString()}`,
+              value: `₺${stats.totalEarnings.toLocaleString('tr-TR')}`,
               icon: DollarSign,
               color: 'text-green-500',
             },
             {
               label: t.hostDashboardThisMonth as string,
-              value: `$${HOST_STATS.thisMonthEarnings}`,
+              value: `₺${stats.thisMonthEarnings.toLocaleString('tr-TR')}`,
               icon: TrendingUp,
               color: 'text-blue-500',
             },
             {
               label: t.hostDashboardBookings as string,
-              value: HOST_STATS.bookings,
+              value: stats.bookings,
               icon: Calendar,
               color: 'text-purple-500',
             },
             {
               label: t.hostDashboardRating as string,
-              value: `${HOST_STATS.reviews}★`,
+              value: `${stats.averageRating.toFixed(2)}★`,
               icon: Star,
               color: 'text-yellow-500',
             },
             {
               label: t.hostDashboardResponseRate as string,
-              value: `${HOST_STATS.responseRate}%`,
+              value: `${stats.responseRate}%`,
               icon: MessageSquare,
               color: 'text-pink-500',
             },
@@ -227,7 +200,7 @@ export default function HostDashboardPage() {
         </motion.div>
 
         {/* Overview Tab */}
-        {activeTab === 'overview' && (
+        {activeTab === 'overview' && bookings && (
           <motion.div
             variants={container}
             initial="hidden"
@@ -240,7 +213,7 @@ export default function HostDashboardPage() {
                 {t.hostDashboardUpcomingBookings as string}
               </h2>
               <div className="space-y-3">
-                {UPCOMING_BOOKINGS.map((booking) => (
+                {bookings.map((booking) => (
                   <motion.div
                     key={booking.id}
                     whileHover={{ scale: 1.01 }}
@@ -252,7 +225,7 @@ export default function HostDashboardPage() {
                           {booking.guestName}
                         </h3>
                         <p className="text-sm text-muted-foreground mt-1">
-                          {booking.listingTitle} • {booking.nights} nights
+                          {booking.listingTitle ?? 'İlan'} • {booking.nights} nights
                         </p>
                         <p className="text-sm text-muted-foreground mt-1">
                           {booking.checkIn} - {booking.checkOut}
@@ -261,7 +234,7 @@ export default function HostDashboardPage() {
                       <div className="flex items-center gap-4">
                         <div className="text-right">
                           <p className="font-bold text-foreground">
-                            ${booking.totalPrice}
+                            ₺{booking.totalPrice.toLocaleString('tr-TR')}
                           </p>
                           <span
                             className={`text-xs font-medium px-2 py-1 rounded-full ${
@@ -330,7 +303,7 @@ export default function HostDashboardPage() {
             transition={{ duration: 0.3 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {HOST_LISTINGS.map((listing) => (
+            {listings.map((listing) => (
               <motion.div
                 key={listing.id}
                 whileHover={{ scale: 1.02 }}
@@ -362,7 +335,7 @@ export default function HostDashboardPage() {
                   <div className="grid grid-cols-3 gap-2 py-3 border-y border-border">
                     <div className="text-center">
                       <p className="text-2xl font-bold text-foreground">
-                        {listing.bookings}
+                        {listing.bookingsCount}
                       </p>
                     <p className="text-xs text-muted-foreground">
                       {t.hostDashboardBookingsLabel as string}
@@ -370,7 +343,7 @@ export default function HostDashboardPage() {
                     </div>
                     <div className="text-center">
                       <p className="text-2xl font-bold text-foreground">
-                        {listing.rating}
+                        {listing.rating.toFixed(2)}
                       </p>
                     <p className="text-xs text-muted-foreground">
                       {t.hostDashboardRatingLabel as string}
@@ -378,7 +351,7 @@ export default function HostDashboardPage() {
                     </div>
                     <div className="text-center">
                       <p className="text-2xl font-bold text-foreground">
-                        ${listing.earnings / 100}k
+                        ₺{listing.earnings.toLocaleString('tr-TR')}
                       </p>
                     <p className="text-xs text-muted-foreground">
                       {t.hostDashboardEarnedLabel as string}
@@ -470,6 +443,7 @@ export default function HostDashboardPage() {
           </motion.div>
         )}
       </div>
+      )}
     </div>
   );
 }

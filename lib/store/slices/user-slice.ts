@@ -7,6 +7,9 @@ export interface UserProfile {
   fullName: string | null;
   avatarUrl: string | null;
   isHost: boolean;
+  isAdmin: boolean;
+  isTourOperator: boolean;
+  roles: string[];
   points: number;
 }
 
@@ -26,7 +29,7 @@ export const fetchUserProfile = createAsyncThunk('user/fetchProfile', async () =
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [profileRes, pointsRes] = await Promise.all([
+  const [profileRes, pointsRes, rolesRes] = await Promise.all([
     supabase
       .from('profiles')
       .select('full_name, avatar_url, is_host')
@@ -37,7 +40,13 @@ export const fetchUserProfile = createAsyncThunk('user/fetchProfile', async () =
       .select('points_balance')
       .eq('user_id', user.id)
       .maybeSingle(),
+    supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id),
   ]);
+
+  const roles = (rolesRes.data ?? []).map((r: any) => String(r.role));
 
   return {
     id: user.id,
@@ -45,6 +54,9 @@ export const fetchUserProfile = createAsyncThunk('user/fetchProfile', async () =
     fullName: profileRes.data?.full_name ?? null,
     avatarUrl: profileRes.data?.avatar_url ?? null,
     isHost: profileRes.data?.is_host ?? false,
+    isAdmin: roles.includes('admin'),
+    isTourOperator: roles.includes('tour_operator'),
+    roles,
     points: pointsRes.data?.points_balance ?? 0,
   } satisfies UserProfile;
 });

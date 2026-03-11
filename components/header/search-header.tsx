@@ -144,18 +144,62 @@ function UserMenu() {
                 {profile.isHost && (
                   <span className="ml-auto text-[10px] bg-foreground text-white font-black px-1.5 py-0.5 rounded-full">HOST</span>
                 )}
+                {profile.isAdmin && (
+                  <span className="ml-auto text-[10px] bg-rose-600 text-white font-black px-1.5 py-0.5 rounded-full">
+                    ADMIN
+                  </span>
+                )}
               </div>
             </div>
 
             {/* Menü öğeleri */}
             <div className="py-1.5">
+              {/* Misafir / roller için profil yönlendirmesi */}
+              <Link
+                href={profile.isAdmin || profile.isHost ? '/dashboard' : '/profile'}
+                onClick={() => setOpen(false)}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+              >
+                Profilim & Rezervasyonlarım
+              </Link>
+              <Link
+                href="/messages"
+                onClick={() => setOpen(false)}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+              >
+                Mesajlarım
+              </Link>
+
+              {/* Ev sahibi için */}
               {profile.isHost && (
                 <Link
                   href="/host/dashboard"
                   onClick={() => setOpen(false)}
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
                 >
-                  Dashboard
+                  Ev Sahibi Paneli
+                </Link>
+              )}
+
+              {/* Tur operatörü için */}
+              {profile.isTourOperator && (
+                <Link
+                  href="/tours"
+                  onClick={() => setOpen(false)}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+                >
+                  Turlarım
+                </Link>
+              )}
+
+              {/* Admin için */}
+              {profile.isAdmin && (
+                <Link
+                  href="/dashboard"
+                  onClick={() => setOpen(false)}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+                >
+                  Admin Paneli
                 </Link>
               )}
               <button
