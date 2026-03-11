@@ -223,16 +223,16 @@ export function SearchHeader() {
   const { t } = useLocale();
   const pathname = usePathname();
   const dispatch = useAppDispatch();
-  const { profile } = useAppSelector((s) => s.user);
+  const { profile, initialized } = useAppSelector((s) => s.user);
   const [isScrolled, setIsScrolled] = useState(false);
   const [heroSearchVisible, setHeroSearchVisible] = useState(true);
 
   // Kullanıcı oturumunu kontrol et
   useEffect(() => {
-    if (!profile) {
+    if (!initialized && !profile) {
       dispatch(fetchUserProfile());
     }
-  }, [dispatch, profile]);
+  }, [dispatch, profile, initialized]);
 
   const tabs = [
     { label: t.stays as string, href: '/' },
@@ -306,10 +306,11 @@ export function SearchHeader() {
               ))}
             </nav>
 
-            {/* Auth + Lang — right */}
-            <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex items-center gap-2 flex-shrink-0 min-w-[120px] justify-end">
               <LanguageSwitcher />
-              {profile ? (
+              {!initialized ? (
+                <div className="w-24 h-9 bg-black/5 animate-pulse rounded-full" />
+              ) : profile ? (
                 <UserMenu />
               ) : (
                 <>

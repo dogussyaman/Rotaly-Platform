@@ -84,6 +84,12 @@ CREATE POLICY "bookings_update_own" ON public.bookings FOR UPDATE
     JOIN public.hosts h ON l.host_id = h.id 
     WHERE l.id = listing_id AND h.user_id = auth.uid()
   ));
+CREATE POLICY "bookings_delete_own" ON public.bookings FOR DELETE 
+  USING (guest_id = auth.uid() OR EXISTS (
+    SELECT 1 FROM public.listings l 
+    JOIN public.hosts h ON l.host_id = h.id 
+    WHERE l.id = listing_id AND h.user_id = auth.uid()
+  ));
 
 -- Availability calendar policies
 CREATE POLICY "availability_select_all" ON public.availability_calendar FOR SELECT USING (true);

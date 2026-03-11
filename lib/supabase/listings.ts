@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
+import { isListingAvailable } from '@/lib/supabase/bookings';
 
 export interface LocationSuggestion {
   label: string;  // "İstanbul, Türkiye"
@@ -159,7 +160,7 @@ export async function fetchListings(params: FetchListingsParams = {}): Promise<L
     return [];
   }
 
-  return (data ?? []).map((row) => {
+  let mapped = (data ?? []).map((row) => {
     const images = (row.listing_images as { url: string; is_primary: boolean; sort_order: number }[])
       .sort((a, b) => {
         if (a.is_primary && !b.is_primary) return -1;
@@ -183,4 +184,20 @@ export async function fetchListings(params: FetchListingsParams = {}): Promise<L
       lng: Number(row.longitude) || 0,
     };
   });
+
+  if (params.checkIn && params.checkOut) {
+    const checkIn = params.checkIn;
+    const checkOut = params.checkOut;
+
+    const availabilityResults = await Promise.all(
+      mapped.map(async (listing) => ({
+        listing,
+        available: await isListingAvailable(listing.id, checkIn, checkOut),
+      }))
+    );
+
+    mapped = availabilityResults.filter((r) => r.available).map((r) => r.listing);
+  }
+
+  return mapped;
 }

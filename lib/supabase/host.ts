@@ -260,3 +260,22 @@ export async function fetchHostBookings(hostId: string): Promise<HostBooking[]> 
   });
 }
 
+export async function updateHostBookingStatus(
+  bookingId: string,
+  status: 'confirmed' | 'cancelled',
+): Promise<boolean> {
+  const supabase = createClient();
+
+  const { error } = await supabase
+    .from('bookings')
+    .update({ status })
+    .eq('id', bookingId);
+
+  if (error) {
+    console.error('updateHostBookingStatus error:', error.message);
+    return false;
+  }
+
+  return true;
+}
+

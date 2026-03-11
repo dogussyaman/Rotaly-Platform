@@ -157,3 +157,40 @@ export async function sendMessage(input: SendMessageInput): Promise<ChatMessage 
   };
 }
 
+export async function getOrCreateConversation(
+  user1Id: string,
+  user2Id: string
+): Promise<string | null> {
+  const supabase = createClient();
+
+  // Try to find existing conversation
+  // Note: Standard Supabase .or() with complex and/or might be tricky,
+  // we'll try a simpler approach if needed, but this is the logical way.
+  const { data: existing, error: findError } = await supabase
+    .from('conversations')
+    .select('id')
+    .or(`and(participant_1.eq.${user1Id},participant_2.eq.${user2Id}),and(participant_1.eq.${user2Id},participant_2.eq.${user1Id})`)
+    .maybeSingle();
+
+  if (existing) {
+    return existing.id;
+  }
+
+  // Create new if not found
+  const { data: created, error: createError } = await supabase
+    .from('conversations')
+    .insert({
+      participant_1: user1Id < user2Id ? user1Id : user2Id,
+      participant_2: user1Id < user2Id ? user2Id : user1Id,
+    })
+    .select('id')
+    .single();
+
+  if (createError) {
+    console.error('getOrCreateConversation error:', createError.message);
+    return null;
+  }
+
+  return created.id;
+}
+

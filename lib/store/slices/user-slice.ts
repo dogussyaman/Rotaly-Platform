@@ -16,11 +16,13 @@ export interface UserProfile {
 interface UserState {
   profile: UserProfile | null;
   loading: boolean;
+  initialized: boolean;
 }
 
 const initialState: UserState = {
   profile: null,
   loading: false,
+  initialized: false,
 };
 
 export const fetchUserProfile = createAsyncThunk('user/fetchProfile', async () => {
@@ -77,9 +79,11 @@ const userSlice = createSlice({
       .addCase(fetchUserProfile.fulfilled, (state, action) => {
         state.profile = action.payload;
         state.loading = false;
+        state.initialized = true;
       })
       .addCase(fetchUserProfile.rejected, (state) => {
         state.loading = false;
+        state.initialized = true;
       });
   },
 });

@@ -30,6 +30,12 @@ export interface TourBookingSummary {
   startTime: string | null;
 }
 
+export interface UpdateProfileInput {
+  fullName?: string | null;
+  phone?: string | null;
+  bio?: string | null;
+}
+
 export async function fetchWishlists(userId: string): Promise<WishlistSummary[]> {
   const supabase = createClient();
 
@@ -139,5 +145,83 @@ export async function fetchTourBookings(userId: string): Promise<TourBookingSumm
     status: row.status,
     startTime: row.tour_schedules?.start_time ?? null,
   }));
+}
+
+export async function updateUserProfile(input: UpdateProfileInput): Promise<boolean> {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    console.error('updateUserProfile getUser error:', userError?.message);
+    return false;
+  }
+
+  const payload: Record<string, any> = {};
+  if (input.fullName !== undefined) {
+    payload.full_name = input.fullName;
+  }
+  if (input.phone !== undefined) {
+    payload.phone = input.phone;
+  }
+  if (input.bio !== undefined) {
+    payload.bio = input.bio;
+  }
+
+  if (Object.keys(payload).length === 0) {
+    return true;
+  }
+
+  const { error } = await supabase.from('profiles').update(payload).eq('id', user.id);
+
+  if (error) {
+    console.error('updateUserProfile error:', error.message);
+    return false;
+  }
+
+  return true;
+}
+
+export async function requestPasswordReset(email: string): Promise<boolean> {
+  const supabase = createClient();
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/auth/reset-password`,
+  });
+
+  if (error) {
+    console.error('requestPasswordReset error:', error.message);
+    return false;
+  }
+
+  return true;
+}
+
+export async function deleteAccount(): Promise<boolean> {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    console.error('deleteAccount getUser error:', userError?.message);
+    return false;
+  }
+
+  const { error } = await supabase.from('profiles').delete().eq('id', user.id);
+
+  if (error) {
+    console.error('deleteAccount error:', error.message);
+    return false;
+  }
+
+  await supabase.auth.signOut();
+
+  return true;
 }
 

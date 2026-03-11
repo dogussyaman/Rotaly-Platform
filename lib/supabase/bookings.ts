@@ -38,6 +38,9 @@ export interface CreateBookingInput {
   guestsCount: number;
   totalPrice: number;
   specialRequests?: string | null;
+  checkInSlotStart?: string | null;
+  checkInSlotEnd?: string | null;
+  extras?: Record<string, any> | null;
 }
 
 export interface BookingWithListing {
@@ -48,13 +51,53 @@ export interface BookingWithListing {
   totalPrice: number;
   status: string;
   createdAt: string;
+  checkInSlotStart?: string | null;
+  checkInSlotEnd?: string | null;
+  extras?: Record<string, any> | null;
   listing: {
     id: string;
     title: string;
     city: string | null;
     country: string | null;
     imageUrl: string | null;
+    hostUserId?: string | null;
   } | null;
+}
+
+export interface UpdateBookingInput {
+  checkIn?: Date;
+  checkOut?: Date;
+  guestsCount?: number;
+  specialRequests?: string | null;
+  checkInSlotStart?: string | null;
+  checkInSlotEnd?: string | null;
+  extras?: Record<string, any> | null;
+}
+
+export async function isListingAvailable(
+  listingId: string,
+  checkIn: Date,
+  checkOut: Date
+): Promise<boolean> {
+  const supabase = createClient();
+
+  const checkInStr = checkIn.toISOString().slice(0, 10);
+  const checkOutStr = checkOut.toISOString().slice(0, 10);
+
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('id, check_in, check_out, status')
+    .eq('listing_id', listingId)
+    .in('status', ['pending', 'confirmed'])
+    .lt('check_in', checkOutStr)
+    .gt('check_out', checkInStr);
+
+  if (error) {
+    console.error('isListingAvailable error:', error.message);
+    return true;
+  }
+
+  return !data || data.length === 0;
 }
 
 export async function fetchListingById(id: string): Promise<ListingDetail | null> {
@@ -115,7 +158,7 @@ export async function fetchListingById(id: string): Promise<ListingDetail | null
     })
     .map((img: any) => img.url as string);
 
-  const hostProfile = data.hosts?.profiles;
+  const hostProfile = Array.isArray(data.hosts) ? data.hosts[0]?.profiles : (data.hosts as any)?.profiles;
 
   return {
     id: data.id,
@@ -133,19 +176,32 @@ export async function fetchListingById(id: string): Promise<ListingDetail | null
     latitude: data.latitude ? Number(data.latitude) : null,
     longitude: data.longitude ? Number(data.longitude) : null,
     images,
-    rules: data.house_rules
+    rules: data.house_rules && Array.isArray(data.house_rules) && data.house_rules[0]
       ? {
-          smokingAllowed: !!data.house_rules.smoking_allowed,
-          petsAllowed: !!data.house_rules.pets_allowed,
-          partiesAllowed: !!data.house_rules.parties_allowed,
-          additionalRules: data.house_rules.additional_rules ?? null,
+          smokingAllowed: !!data.house_rules[0].smoking_allowed,
+          petsAllowed: !!data.house_rules[0].pets_allowed,
+          partiesAllowed: !!data.house_rules[0].parties_allowed,
+          additionalRules: data.house_rules[0].additional_rules ?? null,
+        }
+      : (data.house_rules as any)
+      ? {
+          smokingAllowed: !!(data.house_rules as any).smoking_allowed,
+          petsAllowed: !!(data.house_rules as any).pets_allowed,
+          partiesAllowed: !!(data.house_rules as any).parties_allowed,
+          additionalRules: (data.house_rules as any).additional_rules ?? null,
         }
       : null,
-    host: data.hosts
+    host: data.hosts && Array.isArray(data.hosts) && data.hosts[0]
       ? {
-          id: data.hosts.id,
-          fullName: hostProfile?.full_name ?? null,
-          avatarUrl: hostProfile?.avatar_url ?? null,
+          id: data.hosts[0].id,
+          fullName: (data.hosts[0].profiles as any)?.full_name ?? null,
+          avatarUrl: (data.hosts[0].profiles as any)?.avatar_url ?? null,
+        }
+      : (data.hosts as any)
+      ? {
+          id: (data.hosts as any).id,
+          fullName: (data.hosts as any).profiles?.full_name ?? null,
+          avatarUrl: (data.hosts as any).profiles?.avatar_url ?? null,
         }
       : null,
   };
@@ -164,6 +220,9 @@ export async function createBooking(input: CreateBookingInput): Promise<{ id: st
       guests_count: input.guestsCount,
       total_price: input.totalPrice,
       special_requests: input.specialRequests ?? null,
+      check_in_slot_start: input.checkInSlotStart ?? null,
+      check_in_slot_end: input.checkInSlotEnd ?? null,
+      extras: input.extras ?? null,
       status: 'pending',
     })
     .select('id')
@@ -192,11 +251,15 @@ export async function fetchUserBookings(userId: string): Promise<BookingWithList
         total_price,
         status,
         created_at,
+        check_in_slot_start,
+        check_in_slot_end,
+        extras,
         listings (
           id,
           title,
           city,
           country,
+          hosts (user_id),
           listing_images (
             url,
             is_primary,
@@ -232,6 +295,9 @@ export async function fetchUserBookings(userId: string): Promise<BookingWithList
       totalPrice: Number(row.total_price),
       status: row.status,
       createdAt: row.created_at,
+      checkInSlotStart: row.check_in_slot_start ?? null,
+      checkInSlotEnd: row.check_in_slot_end ?? null,
+      extras: (row.extras as Record<string, any> | null) ?? null,
       listing: row.listings
         ? {
             id: row.listings.id,
@@ -239,9 +305,100 @@ export async function fetchUserBookings(userId: string): Promise<BookingWithList
             city: row.listings.city ?? null,
             country: row.listings.country ?? null,
             imageUrl,
+            hostUserId: Array.isArray(row.listings.hosts) 
+              ? row.listings.hosts[0]?.user_id 
+              : row.listings.hosts?.user_id ?? null,
           }
         : null,
     } as BookingWithListing;
   });
+}
+
+export async function updateBooking(
+  bookingId: string,
+  input: UpdateBookingInput,
+): Promise<boolean> {
+  const supabase = createClient();
+
+  const payload: Record<string, any> = {};
+
+  if (input.checkIn) {
+    payload.check_in = input.checkIn.toISOString().slice(0, 10);
+  }
+  if (input.checkOut) {
+    payload.check_out = input.checkOut.toISOString().slice(0, 10);
+  }
+  if (typeof input.guestsCount === 'number') {
+    payload.guests_count = input.guestsCount;
+  }
+  if (input.specialRequests !== undefined) {
+    payload.special_requests = input.specialRequests;
+  }
+  if (input.checkInSlotStart !== undefined) {
+    payload.check_in_slot_start = input.checkInSlotStart;
+  }
+  if (input.checkInSlotEnd !== undefined) {
+    payload.check_in_slot_end = input.checkInSlotEnd;
+  }
+  if (input.extras !== undefined) {
+    payload.extras = input.extras;
+  }
+
+  if (Object.keys(payload).length === 0) {
+    return true;
+  }
+
+  const { error } = await supabase
+    .from('bookings')
+    .update(payload)
+    .eq('id', bookingId);
+
+  if (error) {
+    console.error('updateBooking error:', error.message);
+    return false;
+  }
+
+  return true;
+}
+
+export async function cancelBooking(bookingId: string): Promise<boolean> {
+  const supabase = createClient();
+
+  const { error } = await supabase
+    .from('bookings')
+    .update({ status: 'cancelled' })
+    .eq('id', bookingId);
+
+  if (error) {
+    console.error('cancelBooking error:', error.message);
+    return false;
+  }
+
+  return true;
+}
+
+export async function deleteBooking(bookingId: string): Promise<boolean> {
+  const supabase = createClient();
+
+  // We use .select() to confirm the row was actually found and deleted
+  // If RLS prevents deletion, it will return an empty array without an error
+  const { data, error, status } = await supabase
+    .from('bookings')
+    .delete()
+    .eq('id', bookingId)
+    .select('id');
+
+  if (error) {
+    console.error('deleteBooking error:', error.message, 'Status:', status);
+    return false;
+  }
+
+  // If data is empty, it means no row was deleted (likely RLS)
+  if (!data || data.length === 0) {
+    console.warn(`deleteBooking: Row not found or RLS prevented deletion for ID: ${bookingId}. Status: ${status}`);
+    return false;
+  }
+
+  return true;
 }
 

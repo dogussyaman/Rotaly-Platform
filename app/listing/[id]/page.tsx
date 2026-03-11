@@ -1,6 +1,7 @@
 'use client';
 
 import { use, useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { SearchHeader } from '@/components/header/search-header';
 import { MainFooter } from '@/components/footer/main-footer';
 import { Button } from '@/components/ui/button';
@@ -44,6 +45,7 @@ interface ListingDetailsProps {
 export default function ListingDetailsPage({ params }: ListingDetailsProps) {
   const { id } = use(params);
   const { t, locale } = useLocale();
+  const router = useRouter();
   const [listing, setListing] = useState<ListingDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -103,6 +105,24 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
       : 850;
     return { subtotal, serviceFee, cleaningFee, total: subtotal + serviceFee + cleaningFee };
   }, [totalNights]);
+
+  const handleReserveClick = () => {
+    const params = new URLSearchParams();
+
+    if (dateRange.from) {
+      params.set('from', format(dateRange.from, 'yyyy-MM-dd'));
+    }
+    if (dateRange.to) {
+      params.set('to', format(dateRange.to, 'yyyy-MM-dd'));
+    }
+    if (guestCount > 0) {
+      params.set('guests', String(guestCount));
+    }
+
+    const query = params.toString();
+    const url = query ? `/checkout/${id}?${query}` : `/checkout/${id}`;
+    router.push(url);
+  };
 
   return (
     <div className="min-h-screen bg-background font-sans">
@@ -409,11 +429,12 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
                   </div>
                 </div>
 
-                <Link href={`/checkout/${id}`}>
-                  <Button className="w-full h-16 rounded-2xl bg-foreground text-background font-black text-xl hover:bg-foreground/90 transition-transform active:scale-95 shadow-xl shadow-foreground/10">
-                    {t.listingReserve as string}
-                  </Button>
-                </Link>
+                <Button
+                  className="w-full h-16 rounded-2xl bg-foreground text-background font-black text-xl hover:bg-foreground/90 transition-transform active:scale-95 shadow-xl shadow-foreground/10"
+                  onClick={handleReserveClick}
+                >
+                  {t.listingReserve as string}
+                </Button>
 
                 <p className="text-center text-sm text-muted-foreground mt-4 font-medium italic">
                   Henüz bir ödeme yapmayacaksınız

@@ -153,6 +153,17 @@ CREATE POLICY "tour_bookings_update_guest_or_operator" ON public.tour_bookings
     )
   );
 
+DROP POLICY IF EXISTS "tour_bookings_delete_guest_or_operator" ON public.tour_bookings;
+CREATE POLICY "tour_bookings_delete_guest_or_operator" ON public.tour_bookings
+  FOR DELETE USING (
+    guest_id = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM public.tours t
+      JOIN public.tour_operators o ON t.operator_id = o.id
+      WHERE t.id = tour_id AND o.user_id = auth.uid()
+    )
+  );
+
 -- RLS policies for tour_reviews
 DROP POLICY IF EXISTS "tour_reviews_select_public" ON public.tour_reviews;
 CREATE POLICY "tour_reviews_select_public" ON public.tour_reviews

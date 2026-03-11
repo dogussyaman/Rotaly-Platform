@@ -21,7 +21,8 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { fetchListingById, createBooking, type ListingDetail } from '@/lib/supabase/bookings';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { fetchListingById, createBooking, isListingAvailable, type ListingDetail } from '@/lib/supabase/bookings';
 import { useAppSelector } from '@/lib/store/hooks';
 
 interface CheckoutPageProps {
@@ -33,13 +34,38 @@ interface CheckoutPageProps {
 export default function CheckoutPage({ params }: CheckoutPageProps) {
   const { id } = use(params);
   const { t } = useLocale();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { profile } = useAppSelector((s) => s.user);
   const [listing, setListing] = useState<ListingDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [checkInSlotKey, setCheckInSlotKey] = useState<string>('');
+  const [extrasState, setExtrasState] = useState({
+    parking: false,
+    babyBed: false,
+    extraCleaning: false,
+    withPet: false,
+  });
+  const [extrasNote, setExtrasNote] = useState('');
 
-  const nights = 5; // şimdilik sabit, ileride tarihe göre hesaplanabilir
+  const fromParam = searchParams.get('from');
+  const toParam = searchParams.get('to');
+  const guestsParam = searchParams.get('guests');
+
+  const selectedCheckIn = fromParam ? new Date(fromParam) : null;
+  const selectedCheckOut = toParam ? new Date(toParam) : null;
+
+  let nights = 5;
+  if (selectedCheckIn && selectedCheckOut) {
+    const diffMs = Math.abs(selectedCheckOut.getTime() - selectedCheckIn.getTime());
+    const calculated = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+    nights = calculated;
+  }
+
+  const guests = guestsParam ? Number.parseInt(guestsParam, 10) || 2 : 2;
 
   const subtotal = listing ? listing.pricePerNight * nights : 0;
   const cleaningFee = 850;
@@ -56,26 +82,71 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
     load();
   }, [id]);
 
+  const checkInSlots: { key: string; label: string; start: string; end: string }[] = [
+    { key: '13-14', label: '13:00 - 14:00', start: '13:00:00', end: '14:00:00' },
+    { key: '14-15', label: '14:00 - 15:00', start: '14:00:00', end: '15:00:00' },
+    { key: '15-16', label: '15:00 - 16:00', start: '15:00:00', end: '16:00:00' },
+    { key: '16-17', label: '16:00 - 17:00', start: '16:00:00', end: '17:00:00' },
+    { key: '17-18', label: '17:00 - 18:00', start: '17:00:00', end: '18:00:00' },
+    { key: '18-19', label: '18:00 - 19:00', start: '18:00:00', end: '19:00:00' },
+    { key: '19-20', label: '19:00 - 20:00', start: '19:00:00', end: '20:00:00' },
+    { key: '20-21', label: '20:00 - 21:00', start: '20:00:00', end: '21:00:00' },
+    { key: '21-22', label: '21:00 - 22:00', start: '21:00:00', end: '22:00:00' },
+    { key: '22-23', label: '22:00 - 23:00', start: '22:00:00', end: '23:00:00' },
+  ];
+
+  const selectedSlot = checkInSlots.find((s) => s.key === checkInSlotKey) ?? null;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!listing || !profile || submitting) return;
     setSubmitting(true);
+    setErrorMessage(null);
+
+    if (!selectedSlot) {
+      setErrorMessage('Lütfen tahmini giriş saat aralığını seçin.');
+      setSubmitting(false);
+      return;
+    }
+
     const now = new Date();
-    const checkIn = now;
-    const checkOut = new Date(now.getTime() + nights * 24 * 60 * 60 * 1000);
+    const fallbackCheckIn = now;
+    const fallbackCheckOut = new Date(now.getTime() + nights * 24 * 60 * 60 * 1000);
+
+    const checkIn = selectedCheckIn ?? fallbackCheckIn;
+    const checkOut = selectedCheckOut ?? fallbackCheckOut;
+
+    const available = await isListingAvailable(listing.id, checkIn, checkOut);
+    if (!available) {
+      setErrorMessage('Bu tarih aralığında bu ilan dolu, lütfen başka tarih seçin.');
+      setSubmitting(false);
+      return;
+    }
 
     const result = await createBooking({
       listingId: listing.id,
       guestId: profile.id,
       checkIn,
       checkOut,
-      guestsCount: 2,
+      guestsCount: guests,
       totalPrice: total,
+      checkInSlotStart: selectedSlot.start,
+      checkInSlotEnd: selectedSlot.end,
+      extras: {
+        options: extrasState,
+        note: extrasNote.trim() || null,
+      },
     });
 
     if (result) {
       setSuccess(true);
+      setSubmitting(false);
+      setTimeout(() => {
+        router.push('/profile?tab=bookings');
+      }, 1500);
+      return;
     }
+
     setSubmitting(false);
   };
 
@@ -120,7 +191,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                         Tarihler
                       </div>
                       <div className="text-lg font-bold">
-                        {nights} gece (tarihler daha sonra seçilecek)
+                        {nights} gece
                       </div>
                     </div>
                   </div>
@@ -129,9 +200,99 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                       <div className="text-sm font-black uppercase tracking-widest text-muted-foreground mb-1">
                         Misafirler
                       </div>
-                      <div className="text-lg font-bold">2 misafir</div>
+                    <div className="text-lg font-bold">{guests} misafir</div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-2">
+                    <div className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                      Giriş Saati Aralığı
+                    </div>
+                    <select
+                      value={checkInSlotKey}
+                      onChange={(e) => setCheckInSlotKey(e.target.value)}
+                      className="w-full h-11 px-3 rounded-2xl border border-border bg-background text-sm"
+                    >
+                      <option value="">Seçiniz</option>
+                      {checkInSlots.map((slot) => (
+                        <option key={slot.key} value={slot.key}>
+                          {slot.label}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-[11px] text-muted-foreground">
+                      Yaklaşık ne zaman giriş yapacağınızı seçin. Ev sahibi hazırlığını buna göre yapar.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                      Ek Hizmetler / Tercihler
+                    </div>
+                    <div className="grid grid-cols-1 gap-2 text-xs">
+                      <label className="inline-flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          className="rounded border-border"
+                          checked={extrasState.parking}
+                          onChange={(e) =>
+                            setExtrasState((prev) => ({ ...prev, parking: e.target.checked }))
+                          }
+                        />
+                        <span>Otopark istiyorum</span>
+                      </label>
+                      <label className="inline-flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          className="rounded border-border"
+                          checked={extrasState.babyBed}
+                          onChange={(e) =>
+                            setExtrasState((prev) => ({ ...prev, babyBed: e.target.checked }))
+                          }
+                        />
+                        <span>Bebek yatağı talep ediyorum</span>
+                      </label>
+                      <label className="inline-flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          className="rounded border-border"
+                          checked={extrasState.extraCleaning}
+                          onChange={(e) =>
+                            setExtrasState((prev) => ({
+                              ...prev,
+                              extraCleaning: e.target.checked,
+                            }))
+                          }
+                        />
+                        <span>Ekstra temizlik hizmeti talep ediyorum</span>
+                      </label>
+                      <label className="inline-flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          className="rounded border-border"
+                          checked={extrasState.withPet}
+                          onChange={(e) =>
+                            setExtrasState((prev) => ({ ...prev, withPet: e.target.checked }))
+                          }
+                        />
+                        <span>Evcil hayvan ile geleceğim</span>
+                      </label>
+                    </div>
                     </div>
                   </div>
+
+                <div className="space-y-2 pt-2">
+                  <div className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                    Ev Sahibine Notunuz
+                  </div>
+                  <textarea
+                    value={extrasNote}
+                    onChange={(e) => setExtrasNote(e.target.value)}
+                    className="w-full min-h-[72px] rounded-2xl border border-border bg-background px-3 py-2 text-sm resize-none"
+                    placeholder="Örneğin, geç giriş yapacağım, özel beslenme tercihlerim var vb."
+                  />
+                </div>
                 </section>
 
                 {/* Payment Section */}
@@ -226,7 +387,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                   <div className="pt-8 border-t space-y-4">
                     <Button
                       type="submit"
-                      disabled={submitting || !profile}
+                      disabled={submitting || !profile || success}
                       className="w-full h-16 rounded-3xl bg-foreground text-background font-black text-xl hover:bg-foreground/85 transition-transform active:scale-95 shadow-2xl shadow-foreground/10"
                     >
                       {submitting ? (
@@ -243,6 +404,11 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                         'Rezervasyonu Tamamla ve Öde'
                       )}
                     </Button>
+                    {errorMessage && (
+                      <p className="text-xs text-red-500 text-center">
+                        {errorMessage}
+                      </p>
+                    )}
                     {!profile && (
                       <p className="text-xs text-red-500 text-center">
                         Rezervasyon tamamlamak için önce giriş yapmalısınız.
