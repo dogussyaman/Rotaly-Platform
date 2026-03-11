@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { SearchHeader } from '@/components/header/search-header';
 import { ListingCard } from '@/components/listings/listing-card';
 import { FilterSidebar } from '@/components/search/filter-sidebar';
@@ -8,171 +8,74 @@ import { HeroSearchBar } from '@/components/search/hero-search-bar';
 import { useSearchStore } from '@/lib/store/search-store';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
-import { LayoutGrid, LayoutList, Sliders } from 'lucide-react';
+import { LayoutGrid, LayoutList, Sliders, ChevronDown, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale } from '@/lib/i18n/locale-context';
+import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { AnimatePresence } from 'framer-motion';
+import dynamic from 'next/dynamic';
+import { useSearchParams } from 'next/navigation';
+import { fetchListings, type ListingRow } from '@/lib/supabase/listings';
 
-// Mock data - In real app, this would come from Supabase
-const ALL_LISTINGS = [
-  {
-    id: '1',
-    title: 'Luxurious Beachfront Villa',
-    location: 'Bali, Indonesia',
-    pricePerNight: 450,
-    rating: 4.95,
-    totalReviews: 128,
-    images: ['https://images.unsplash.com/photo-1570129477492-45a003537e1f?w=600&h=400&fit=crop'],
-    propertyType: 'Villa',
-    maxGuests: 8,
-    bedrooms: 4,
-  },
-  {
-    id: '2',
-    title: 'Modern Apartment in Downtown',
-    location: 'New York, USA',
-    pricePerNight: 320,
-    rating: 4.88,
-    totalReviews: 95,
-    images: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&h=400&fit=crop'],
-    propertyType: 'Apartment',
-    maxGuests: 4,
-    bedrooms: 2,
-  },
-  {
-    id: '3',
-    title: 'Cozy Mountain Cabin',
-    location: 'Colorado, USA',
-    pricePerNight: 280,
-    rating: 4.92,
-    totalReviews: 156,
-    images: ['https://images.unsplash.com/photo-1537671608828-cc564c51e25d?w=600&h=400&fit=crop'],
-    propertyType: 'Cabin',
-    maxGuests: 6,
-    bedrooms: 3,
-  },
-  {
-    id: '4',
-    title: 'Historic Parisian Apartment',
-    location: 'Paris, France',
-    pricePerNight: 380,
-    rating: 4.9,
-    totalReviews: 203,
-    images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=600&h=400&fit=crop'],
-    propertyType: 'Apartment',
-    maxGuests: 3,
-    bedrooms: 1,
-  },
-  {
-    id: '5',
-    title: 'Tropical Island Bungalow',
-    location: 'Maldives',
-    pricePerNight: 520,
-    rating: 4.97,
-    totalReviews: 87,
-    images: ['https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&h=400&fit=crop'],
-    propertyType: 'Bungalow',
-    maxGuests: 2,
-    bedrooms: 1,
-  },
-  {
-    id: '6',
-    title: 'Desert Luxury Estate',
-    location: 'Phoenix, USA',
-    pricePerNight: 420,
-    rating: 4.86,
-    totalReviews: 142,
-    images: ['https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&h=400&fit=crop'],
-    propertyType: 'Villa',
-    maxGuests: 10,
-    bedrooms: 5,
-  },
-  {
-    id: '7',
-    title: 'Urban Loft in Tokyo',
-    location: 'Tokyo, Japan',
-    pricePerNight: 290,
-    rating: 4.91,
-    totalReviews: 167,
-    images: ['https://images.unsplash.com/photo-1449844908441-8829872d2607?w=600&h=400&fit=crop'],
-    propertyType: 'Apartment',
-    maxGuests: 2,
-    bedrooms: 1,
-  },
-  {
-    id: '8',
-    title: 'Charming London Cottage',
-    location: 'London, UK',
-    pricePerNight: 350,
-    rating: 4.94,
-    totalReviews: 234,
-    images: ['https://images.unsplash.com/photo-1512207736139-e04b6ff91629?w=600&h=400&fit=crop'],
-    propertyType: 'Cottage',
-    maxGuests: 4,
-    bedrooms: 2,
-  },
-  {
-    id: '9',
-    title: 'Minimalist Barcelona Studio',
-    location: 'Barcelona, Spain',
-    pricePerNight: 220,
-    rating: 4.87,
-    totalReviews: 189,
-    images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&h=400&fit=crop'],
-    propertyType: 'Apartment',
-    maxGuests: 2,
-    bedrooms: 1,
-  },
-];
+const SearchMap = dynamic(() => import('@/components/search/search-map'), {
+  ssr: false,
+  loading: () => <div className="w-full h-full bg-muted animate-pulse rounded-3xl" />,
+});
 
 export default function SearchPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('relevant');
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(true);
   const [showMap, setShowMap] = useState(false);
+  const [listings, setListings] = useState<ListingRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const { t } = useLocale();
-  const { filters } = useSearchStore();
+  const searchParams = useSearchParams();
+  const { filters, setLocation, setGuests, setCheckIn, setCheckOut } = useSearchStore();
 
-  // Filter listings based on search criteria
-  const filteredListings = useMemo(() => {
-    return ALL_LISTINGS.filter((listing) => {
-      // Price filter
-      if (
-        listing.pricePerNight < filters.priceMin ||
-        listing.pricePerNight > filters.priceMax
-      ) {
-        return false;
-      }
+  // Sync URL params to store on mount or when URL changes
+  useEffect(() => {
+    const loc = searchParams.get('location');
+    const gst = searchParams.get('guests');
+    const cin = searchParams.get('checkin');
+    const cout = searchParams.get('checkout');
 
-      // Location filter
-      if (
-        filters.location &&
-        !listing.location
-          .toLowerCase()
-          .includes(filters.location.toLowerCase())
-      ) {
-        return false;
-      }
+    if (loc) setLocation(loc);
+    if (gst) setGuests(parseInt(gst));
+    if (cin) setCheckIn(new Date(cin));
+    if (cout) setCheckOut(new Date(cout));
+  }, [searchParams, setLocation, setGuests, setCheckIn, setCheckOut]);
 
-      // Property type filter
-      if (
-        filters.propertyType.length > 0 &&
-        !filters.propertyType.includes(listing.propertyType)
-      ) {
-        return false;
-      }
-
-      // Guest count filter
-      if (listing.maxGuests < filters.guests) {
-        return false;
-      }
-
-      return true;
+  // Supabase'den veri çek — filtreler değişince yeniden çek
+  const loadListings = useCallback(async () => {
+    setLoading(true);
+    const data = await fetchListings({
+      location: filters.location,
+      priceMin: filters.priceMin,
+      priceMax: filters.priceMax,
+      propertyType: filters.propertyType,
+      guests: filters.guests,
+      checkIn: filters.checkIn,
+      checkOut: filters.checkOut,
     });
+    setListings(data);
+    setLoading(false);
   }, [filters]);
 
-  // Sort listings
+  useEffect(() => {
+    loadListings();
+  }, [loadListings]);
+
+  // Client-side sıralama
   const sortedListings = useMemo(() => {
-    const sorted = [...filteredListings];
+    const sorted = [...listings];
     switch (sortBy) {
       case 'price-asc':
         return sorted.sort((a, b) => a.pricePerNight - b.pricePerNight);
@@ -183,7 +86,7 @@ export default function SearchPage() {
       default:
         return sorted;
     }
-  }, [filteredListings, sortBy]);
+  }, [listings, sortBy]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -202,111 +105,108 @@ export default function SearchPage() {
               <HeroSearchBar />
             </div>
           </motion.div>
-          {/* Results Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="mb-8"
-          >
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              {filters.location || (t.searchAllStays as string)}
-            </h1>
-            <p className="text-muted-foreground">
-              {sortedListings.length}{' '}
-              {(t.searchResultsSuffix as string) || ''}
-            </p>
-          </motion.div>
+
 
           {/* Filters & Controls */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="mb-8 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between"
+            className="mb-8 flex flex-wrap gap-4 items-center justify-between bg-card p-2 rounded-2xl border border-border/50"
           >
-            <Button
-              variant={showFilters ? 'secondary' : 'outline'}
-              size="sm"
-              className="gap-2 border-border"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <Sliders className="w-4 h-4" />
-              {t.filters as string}
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button
+                variant={showFilters ? 'secondary' : 'outline'}
+                size="sm"
+                className="gap-2 rounded-xl h-10 px-4 border-border/60 hover:bg-muted font-bold"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Sliders className="w-4 h-4" />
+                {t.filters as string}
+              </Button>
+
+              <Badge variant="secondary" className="h-10 px-4 rounded-xl flex items-center gap-2 bg-muted/50 border-none text-foreground font-black">
+                <span className="opacity-60">{filters.location || (t.searchAllStays as string)}</span>
+                <span className="w-1 h-1 rounded-full bg-foreground/20" />
+                <span>{sortedListings.length} {t.searchResultsSuffix as string}</span>
+              </Badge>
+            </div>
 
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  {t.searchSortLabel as string}:
-                </span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="text-sm bg-card border border-border rounded-lg px-3 py-2 text-foreground"
-                >
-                  <option value="relevant">{t.searchSortRelevant as string}</option>
-                  <option value="price-asc">{t.searchSortPriceAsc as string}</option>
-                  <option value="price-desc">{t.searchSortPriceDesc as string}</option>
-                  <option value="rating">{t.searchSortRating as string}</option>
-                </select>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-10 px-4 rounded-xl border-border/60 font-bold gap-2">
+                      <span className="text-muted-foreground font-medium">{t.searchSortLabel as string}:</span>
+                      <span>
+                        {sortBy === 'relevant' && t.searchSortRelevant}
+                        {sortBy === 'price-asc' && t.searchSortPriceAsc}
+                        {sortBy === 'price-desc' && t.searchSortPriceDesc}
+                        {sortBy === 'rating' && t.searchSortRating}
+                      </span>
+                      <ChevronDown className="w-4 h-4 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48 rounded-2xl p-1.5 shadow-xl border-border/60 backdrop-blur-xl">
+                    <DropdownMenuRadioGroup value={sortBy} onValueChange={setSortBy}>
+                      <DropdownMenuRadioItem value="relevant" className="rounded-xl px-3 py-2 font-medium">{t.searchSortRelevant as string}</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="price-asc" className="rounded-xl px-3 py-2 font-medium">{t.searchSortPriceAsc as string}</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="price-desc" className="rounded-xl px-3 py-2 font-medium">{t.searchSortPriceDesc as string}</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="rating" className="rounded-xl px-3 py-2 font-medium">{t.searchSortRating as string}</DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
-              <div className="flex items-center gap-2 border border-border rounded-lg p-1">
+              <div className="flex items-center gap-1 border border-border/60 rounded-xl p-1 bg-muted/20">
                 <Button
-                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('grid')}
-                  className="w-10 h-10 p-0"
+                  className={`w-8 h-8 p-0 rounded-lg ${viewMode === 'grid' ? 'bg-white shadow-sm' : ''}`}
                 >
                   <LayoutGrid className="w-4 h-4" />
                 </Button>
                 <Button
-                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  variant={viewMode === 'list' ? 'secondary' : 'ghost'}
                   size="sm"
                   onClick={() => setViewMode('list')}
-                  className="w-10 h-10 p-0"
+                  className={`w-8 h-8 p-0 rounded-lg ${viewMode === 'list' ? 'bg-white shadow-sm' : ''}`}
                 >
                   <LayoutList className="w-4 h-4" />
                 </Button>
               </div>
-            </div>
 
-            <Button
-              variant={showMap ? 'secondary' : 'outline'}
-              size="sm"
-              className="gap-2 border-border"
-              onClick={() => setShowMap((v) => !v)}
-            >
-              {showMap ? (t.searchShowList as string) : (t.searchShowMap as string)}
-            </Button>
+              <Button
+                variant={showMap ? 'secondary' : 'outline'}
+                size="sm"
+                className="h-10 px-4 rounded-xl border-border/60 font-bold gap-2 hidden sm:flex"
+                onClick={() => setShowMap((v) => !v)}
+              >
+                {showMap ? (t.searchShowList as string) : (t.searchShowMap as string)}
+              </Button>
+            </div>
           </motion.div>
 
           {/* Main Content */}
           <div className="flex gap-6">
-            <div className="flex-1 flex gap-6">
-              {/* Sidebar Filters - Desktop */}
-              {showFilters && (
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="w-full md:w-64 flex-shrink-0"
-                >
-                  <FilterSidebar />
-                </motion.div>
-              )}
-
-              {!showFilters && (
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="hidden md:block w-64 flex-shrink-0"
-                >
-                  <FilterSidebar />
-                </motion.div>
-              )}
+            <div className="flex-1 flex gap-6 items-start">
+              {/* Sidebar Filters */}
+              <AnimatePresence>
+                {showFilters && (
+                  <motion.div
+                    initial={{ opacity: 0, width: 0, x: -20 }}
+                    animate={{ opacity: 1, width: 280, x: 0 }}
+                    exit={{ opacity: 0, width: 0, x: -20 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    className="overflow-hidden flex-shrink-0"
+                  >
+                    <div className="w-[280px]">
+                      <FilterSidebar />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Listings Grid/List */}
               <motion.div
@@ -315,13 +215,19 @@ export default function SearchPage() {
                 transition={{ duration: 0.4 }}
                 className="flex-1 min-w-0"
               >
-                {sortedListings.length > 0 ? (
+                {loading ? (
+                  <div className="flex items-center justify-center py-24">
+                    <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                  </div>
+                ) : sortedListings.length > 0 ? (
                   <motion.div
                     layout
                     className={
-                      viewMode === 'grid'
-                        ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
-                        : 'space-y-4'
+                      viewMode === 'list'
+                        ? 'space-y-4'
+                        : showMap
+                          ? 'grid grid-cols-1 sm:grid-cols-2 gap-6'
+                          : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
                     }
                   >
                     {sortedListings.map((listing, index) => (
@@ -356,11 +262,8 @@ export default function SearchPage() {
             </div>
 
             {showMap && (
-              <div className="hidden lg:block w-[420px] h-[calc(100vh-220px)] sticky top-28 rounded-3xl bg-muted border border-border overflow-hidden">
-                <div className="w-full h-full flex items-center justify-center text-sm text-muted-foreground px-6 text-center">
-                  {/* Placeholder for future interactive map */}
-                  <span>Harita görünümü yakında eklenecek. Şimdilik listeden devam edebilirsiniz.</span>
-                </div>
+              <div className="hidden lg:block w-[420px] h-[calc(100vh-220px)] sticky top-28 rounded-3xl border border-border overflow-hidden bg-card shadow-xl">
+                <SearchMap listings={sortedListings} />
               </div>
             )}
           </div>

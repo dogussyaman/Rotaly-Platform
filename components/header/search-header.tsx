@@ -3,10 +3,13 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Globe, Check } from 'lucide-react';
+import { Search, Check, Star, ChevronDown, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale } from '@/lib/i18n/locale-context';
 import { LOCALES, type Locale } from '@/lib/i18n/translations';
+import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
+import { fetchUserProfile, clearUser } from '@/lib/store/slices/user-slice';
+import { createClient } from '@/lib/supabase/client';
 
 // ─── Language Switcher ──────────────────────────────────────────────────────
 
@@ -68,13 +71,124 @@ function LanguageSwitcher() {
   );
 }
 
+// ─── User Menu ───────────────────────────────────────────────────────────────
+
+function UserMenu() {
+  const dispatch = useAppDispatch();
+  const { profile, loading } = useAppSelector((s) => s.user);
+  const [open, setOpen] = useState(false);
+  const supabase = createClient();
+
+  const initials = profile?.fullName
+    ? profile.fullName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+    : profile?.email?.[0]?.toUpperCase() ?? '?';
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    dispatch(clearUser());
+    setOpen(false);
+    window.location.href = '/';
+  };
+
+  if (loading) {
+    return <div className="w-9 h-9 rounded-full bg-muted animate-pulse" />;
+  }
+
+  if (!profile) return null;
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 px-2 py-1.5 rounded-2xl hover:bg-white/20 transition-all border border-border/60 backdrop-blur-md shadow-sm"
+      >
+        {/* Avatar */}
+        <div className="w-8 h-8 rounded-full overflow-hidden bg-foreground flex items-center justify-center flex-shrink-0">
+          {profile.avatarUrl ? (
+            <img src={profile.avatarUrl} alt={profile.fullName ?? ''} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-xs font-black text-white leading-none">{initials}</span>
+          )}
+        </div>
+
+        {/* İsim */}
+        <span className="hidden sm:block text-sm font-semibold text-foreground max-w-[80px] truncate">
+          {profile.fullName?.split(' ')[0] ?? profile.email.split('@')[0]}
+        </span>
+
+        {/* Puan */}
+        <span className="hidden sm:flex items-center gap-0.5 bg-amber-100 text-amber-700 text-[10px] font-black px-1.5 py-0.5 rounded-full">
+          <Star className="w-2.5 h-2.5 fill-amber-500 stroke-none" />
+          {profile.points.toLocaleString('tr-TR')}
+        </span>
+
+        <ChevronDown className="w-3.5 h-3.5 text-muted-foreground hidden sm:block" />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 top-full mt-2 w-56 bg-card rounded-2xl shadow-2xl border border-border overflow-hidden z-[60]"
+          >
+            {/* Profil özeti */}
+            <div className="px-4 py-3 border-b border-border bg-muted/30">
+              <p className="text-sm font-bold text-foreground truncate">{profile.fullName ?? profile.email}</p>
+              <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
+              <div className="flex items-center gap-1 mt-1.5">
+                <Star className="w-3 h-3 fill-amber-500 stroke-none" />
+                <span className="text-xs font-bold text-amber-600">{profile.points.toLocaleString('tr-TR')} puan</span>
+                {profile.isHost && (
+                  <span className="ml-auto text-[10px] bg-foreground text-white font-black px-1.5 py-0.5 rounded-full">HOST</span>
+                )}
+              </div>
+            </div>
+
+            {/* Menü öğeleri */}
+            <div className="py-1.5">
+              {profile.isHost && (
+                <Link
+                  href="/host/dashboard"
+                  onClick={() => setOpen(false)}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+                >
+                  Dashboard
+                </Link>
+              )}
+              <button
+                onClick={handleSignOut}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Çıkış Yap
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ─── Main Header (Nav only) ──────────────────────────────────────────────────
 
 export function SearchHeader() {
   const { t } = useLocale();
   const pathname = usePathname();
+  const dispatch = useAppDispatch();
+  const { profile } = useAppSelector((s) => s.user);
   const [isScrolled, setIsScrolled] = useState(false);
   const [heroSearchVisible, setHeroSearchVisible] = useState(true);
+
+  // Kullanıcı oturumunu kontrol et
+  useEffect(() => {
+    if (!profile) {
+      dispatch(fetchUserProfile());
+    }
+  }, [dispatch, profile]);
 
   const tabs = [
     { label: t.stays as string, href: '/' },
@@ -115,7 +229,7 @@ export function SearchHeader() {
       {/* ── Navbar ── */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-          ? 'bg-card/95 backdrop-blur-xl shadow-sm'
+          ? 'bg-[#f3f3f3] backdrop-blur-xl shadow-sm'
           : 'bg-transparent'
           }`}
       >
@@ -151,18 +265,24 @@ export function SearchHeader() {
             {/* Auth + Lang — right */}
             <div className="flex items-center gap-2 flex-shrink-0">
               <LanguageSwitcher />
-              <Link
-                href="/auth/login"
-                className="hidden sm:block text-sm font-medium text-foreground hover:text-foreground/70 transition-colors px-3 py-1.5"
-              >
-                {t.login as string}
-              </Link>
-              <Link
-                href="/auth/signup"
-                className="bg-foreground text-card text-sm font-semibold px-4 py-2 rounded-full hover:bg-foreground/85 transition-colors shadow-sm"
-              >
-                {t.signup as string}
-              </Link>
+              {profile ? (
+                <UserMenu />
+              ) : (
+                <>
+                  <Link
+                    href="/auth/login"
+                    className="hidden sm:block text-sm font-medium text-foreground hover:text-foreground/70 transition-colors px-3 py-1.5"
+                  >
+                    {t.login as string}
+                  </Link>
+                  <Link
+                    href="/auth/signup"
+                    className="bg-foreground text-card text-sm font-semibold px-4 py-2 rounded-full hover:bg-foreground/85 transition-colors shadow-sm"
+                  >
+                    {t.signup as string}
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -181,11 +301,11 @@ export function SearchHeader() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.28, ease: 'easeInOut' }}
-              className="flex justify-center w-full max-w-7xl"
+              className="flex justify-center w-full max-w-7xl "
             >
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="flex items-center gap-2.5 bg-card/95 backdrop-blur-xl border-x border-b border-border border-t-0 rounded-b-full px-5 py-2.5 shadow-lg hover:shadow-xl transition-all text-sm font-medium text-foreground max-w-xl w-full justify-center"
+                className="flex items-center gap-2.5 bg-[#f3f3f3] backdrop-blur-xl border-x border-b border-border border-t-0 rounded-b-full px-5 py-2.5 shadow-lg hover:shadow-xl transition-all text-sm font-medium text-foreground max-w-xl w-full justify-center"
               >
                 <Search className="w-4 h-4 text-muted-foreground" />
                 <span>{t.locationPlaceholder as string}</span>

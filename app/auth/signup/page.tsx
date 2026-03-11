@@ -9,6 +9,8 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Mail, Lock, User } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/locale-context';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 
 export default function SignUpPage() {
   const [formData, setFormData] = useState({
@@ -21,6 +23,8 @@ export default function SignUpPage() {
   const [error, setError] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
   const { t } = useLocale();
+  const router = useRouter();
+  const supabase = createClient();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
@@ -46,10 +50,27 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      // TODO: Implement Supabase signup
-      console.log('[v0] Sign up with:', formData);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    } catch (err) {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            role: 'guest',
+          },
+        },
+      });
+
+      if (signUpError) {
+        setError(signUpError.message);
+        return;
+      }
+
+      if (data.user) {
+        router.push('/');
+        router.refresh();
+      }
+    } catch {
       setError(t.signupErrorGeneric as string);
     } finally {
       setLoading(false);

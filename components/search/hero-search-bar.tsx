@@ -1,10 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Search, ChevronLeft, ChevronRight, Minus, Plus, X } from 'lucide-react';
+import { MapPin, Search, ChevronLeft, ChevronRight, Minus, Plus, X, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useLocale } from '@/lib/i18n/locale-context';
+import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
+import { setSearch } from '@/lib/store/slices/search-slice';
+import { searchLocations, type LocationSuggestion } from '@/lib/supabase/listings';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -111,14 +114,46 @@ export function HeroSearchBar() {
   const router = useRouter();
   const { t } = useLocale();
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const dispatch = useAppDispatch();
+  const reduxSearch = useAppSelector((s) => s.search);
 
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
-  const [location, setLocation] = useState('');
-  const [dateRange, setDateRange] = useState<DateRange>({ start: null, end: null });
+  const [location, setLocation] = useState(reduxSearch.location);
+  const [dateRange, setDateRange] = useState<DateRange>({
+    start: reduxSearch.checkIn ? new Date(reduxSearch.checkIn) : null,
+    end: reduxSearch.checkOut ? new Date(reduxSearch.checkOut) : null,
+  });
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
-  const [guests, setGuests] = useState({ adults: 1, children: 0, infants: 0 });
+  const [guests, setGuests] = useState({
+    adults: Math.max(1, reduxSearch.guests),
+    children: 0,
+    infants: 0,
+  });
   const [calYear, setCalYear] = useState(new Date().getFullYear());
   const [calMonth, setCalMonth] = useState(new Date().getMonth());
+
+  // Canlı lokasyon arama
+  const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([]);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const fetchSuggestions = useCallback(async (q: string) => {
+    setLocationLoading(true);
+    const results = await searchLocations(q);
+    setLocationSuggestions(results);
+    setLocationLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (activePanel !== 'location') return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchSuggestions(location);
+    }, 250);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [location, activePanel, fetchSuggestions]);
 
   // Close on outside click
   useEffect(() => {
@@ -163,6 +198,14 @@ export function HeroSearchBar() {
   const nextCalYear = calMonth === 11 ? calYear + 1 : calYear;
 
   const handleSearch = () => {
+    // Redux'a kaydet (search sayfasında tekrar okumak için)
+    dispatch(setSearch({
+      location,
+      checkIn: dateRange.start ? dateRange.start.toISOString() : null,
+      checkOut: dateRange.end ? dateRange.end.toISOString() : null,
+      guests: totalGuests,
+    }));
+
     const params = new URLSearchParams();
     if (location) params.set('location', location);
     if (dateRange.start) params.set('checkin', dateRange.start.toISOString());
@@ -174,7 +217,6 @@ export function HeroSearchBar() {
 
   const months = t.months as string[];
   const days = t.days as string[];
-  const destinations = t.destinations as string[];
 
   return (
     <div ref={wrapperRef} className="relative w-full max-w-4xl mx-auto">
@@ -260,6 +302,7 @@ export function HeroSearchBar() {
             transition={{ duration: 0.15 }}
             className="absolute top-[calc(100%+10px)] left-0 w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 z-50"
           >
+            {/* Input */}
             <div className="relative mb-3">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
@@ -269,28 +312,46 @@ export function HeroSearchBar() {
                 placeholder={t.searchPlaceholder as string}
                 className="w-full pl-9 pr-8 py-3 bg-gray-50 rounded-xl text-sm outline-none focus:ring-2 focus:ring-foreground/20 transition-all placeholder:text-gray-400"
               />
-              {location && (
+              {locationLoading && (
+                <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 animate-spin" />
+              )}
+              {!locationLoading && location && (
                 <button onClick={() => setLocation('')} className="absolute right-3 top-1/2 -translate-y-1/2">
                   <X className="w-3.5 h-3.5 text-gray-400 hover:text-foreground transition-colors" />
                 </button>
               )}
             </div>
+
+            {/* Başlık */}
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 px-3 mb-1.5">
+              {location.trim() ? 'Eşleşen Lokasyonlar' : 'Popüler Destinasyonlar'}
+            </p>
+
+            {/* Sonuçlar */}
             <div className="space-y-0.5">
-              {destinations.map(dest => (
+              {locationSuggestions.length === 0 && !locationLoading && (
+                <p className="text-sm text-gray-400 text-center py-4">
+                  {location.trim() ? 'Sonuç bulunamadı' : 'Yükleniyor...'}
+                </p>
+              )}
+              {locationSuggestions.map((sug) => (
                 <button
-                  key={dest}
-                  onClick={() => { setLocation(dest); setActivePanel('checkin'); }}
+                  key={sug.label}
+                  onClick={() => { setLocation(sug.label); setActivePanel('checkin'); }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors text-left"
                 >
-                  <div className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <div className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center shrink-0">
                     <MapPin className="w-4 h-4 text-gray-500" />
                   </div>
-                  <div>
-                    <span className="text-sm font-semibold text-foreground">{dest.split(',')[0]}</span>
-                    {dest.includes(',') && (
-                      <span className="text-xs text-gray-400 ml-1">{dest.split(',').slice(1).join(',').trim()}</span>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-semibold text-foreground">{sug.city}</span>
+                    {sug.country && (
+                      <span className="text-xs text-gray-400 ml-1">{sug.country}</span>
                     )}
                   </div>
+                  <span className="text-[10px] text-gray-400 shrink-0">
+                    {sug.count} ilan
+                  </span>
                 </button>
               ))}
             </div>

@@ -8,6 +8,8 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Mail, Lock } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/locale-context';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -15,6 +17,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { t } = useLocale();
+  const router = useRouter();
+  const supabase = createClient();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,11 +26,19 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // TODO: Implement Supabase login
-      console.log('[v0] Login with:', { email, password });
-      // Simulated delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    } catch (err) {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        setError(signInError.message);
+        return;
+      }
+
+      router.push('/');
+      router.refresh();
+    } catch {
       setError(t.loginErrorGeneric as string);
     } finally {
       setLoading(false);
