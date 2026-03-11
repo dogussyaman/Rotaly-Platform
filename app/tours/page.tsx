@@ -215,35 +215,39 @@ export default function ToursPage() {
         <div className="min-h-screen bg-background font-sans">
             <SearchHeader />
 
-            <main className="pt-24 pb-20">
+            <main className="pb-20">
                 {/* Hero Section */}
-                <section className="relative h-[450px] w-full flex items-center justify-center overflow-hidden mb-16">
-                    {/* Gradient fallback always shown, image layered on top */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-amber-900 to-orange-800" />
-                    {!heroError && (
-                        <Image
-                            src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8df0?w=1600&h=900&fit=crop&auto=format"
-                            alt="Tours Hero"
-                            fill
-                            className="object-cover brightness-50"
-                            onError={() => setHeroError(true)}
-                        />
-                    )}
-                    {/* Overlay for better text readability */}
-                    <div className="absolute inset-0 bg-black/40" />
-                    <div className="relative z-10 text-center text-white px-6">
+                <section
+                    className="relative min-h-[520px] w-full flex items-center justify-center overflow-hidden mb-16"
+                    style={{
+                        background: 'linear-gradient(175deg, #b8d4e8 0%, #cfe2f0 40%, #deeaf5 70%, #eef4f9 100%)',
+                    }}
+                >
+                    {/* Background building photo */}
+                    <div
+                        className="absolute inset-0 pointer-events-none select-none"
+                        aria-hidden="true"
+                        style={{
+                            backgroundImage: `url(https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1800&h=900&fit=crop)`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center 20%',
+                            opacity: 0.25,
+                        }}
+                    />
+
+                    <div className="relative z-10 text-center text-foreground px-6 pt-24">
                         <motion.h1
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             className="text-5xl md:text-7xl font-black mb-6 tracking-tight"
                         >
-                            Dünyayı <span className="text-amber-400">Keşfet</span>
+                            Dünyayı <span className="text-amber-600">Keşfet</span>
                         </motion.h1>
                         <motion.p
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="text-xl md:text-2xl font-medium max-w-2xl mx-auto opacity-90"
+                            className="text-xl md:text-2xl font-medium max-w-2xl mx-auto text-foreground/60"
                         >
                             Profesyonel rehberler eşliğinde, unutulmaz anılar biriktireceğiniz benzersiz turlar ve aktiviteler.
                         </motion.p>

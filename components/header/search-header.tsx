@@ -119,8 +119,8 @@ export function SearchHeader() {
           : 'bg-transparent'
           }`}
       >
-        <div className="max-w-7xl mx-auto px-6 py-2">
-          <div className="h-16 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-6 py-1.5">
+          <div className="h-14 flex items-center justify-between gap-4">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 flex-shrink-0">
               <div className="w-8 h-8 bg-foreground rounded-xl flex items-center justify-center shadow-sm">
@@ -173,7 +173,7 @@ export function SearchHeader() {
           z-40 → navbarın (z-50) arkasında kalır ama sayfanın önünde.
           top-[72px] → navbar yüksekliği 64px + üst/alt py-2 ≈ 72px.
           Bu div'in className'ini istediğin gibi özelleştirebilirsin. */}
-      <div className="fixed top-[80px] left-0 right-0 z-80 flex justify-center px-6">
+      <div className="fixed top-[68px] left-0 right-0 z-80 flex justify-center px-6">
         <AnimatePresence>
           {isScrolled && !heroSearchVisible && (
             <motion.div

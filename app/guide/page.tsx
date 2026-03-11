@@ -107,24 +107,42 @@ export default function GuidePage() {
         <div className="min-h-screen bg-background font-sans">
             <SearchHeader />
 
-            <main className="pt-24 pb-32">
+            <main className="pb-32">
                 {/* Modern Library Hero */}
-                <section className="bg-foreground text-background py-20 px-6 overflow-hidden relative">
-                    <div className="absolute top-0 right-0 w-1/3 h-full opacity-10 pointer-events-none">
-                        <BookOpen className="w-full h-full rotate-12 translate-x-12 translate-y-12" />
+                <section
+                    className="relative min-h-[520px] w-full flex items-center justify-center overflow-hidden text-foreground"
+                    style={{
+                        background: 'linear-gradient(175deg, #b8d4e8 0%, #cfe2f0 40%, #deeaf5 70%, #eef4f9 100%)',
+                    }}
+                >
+                    {/* Background building photo */}
+                    <div
+                        className="absolute inset-0 pointer-events-none select-none"
+                        aria-hidden="true"
+                        style={{
+                            backgroundImage: `url(https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1800&h=900&fit=crop)`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center 20%',
+                            opacity: 0.25,
+                        }}
+                    >
+                        <div className="absolute top-0 right-0 w-1/3 h-full opacity-10 pointer-events-none">
+                            <BookOpen className="w-full h-full rotate-12 translate-x-12 translate-y-12" />
+                        </div>
                     </div>
-                    <div className="max-w-4xl mx-auto text-center relative z-10">
+
+                    <div className="max-w-4xl mx-auto text-center relative z-10 pt-24 px-6">
                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                            <Badge className="bg-amber-500 text-foreground border-none font-black mb-6 px-4 py-1">PROFESYONEL SEYAHAT KÜTÜPHANESİ</Badge>
-                            <h1 className="text-5xl md:text-7xl font-black mb-8 tracking-tight leading-tight">Nasıl Yardımcı <br /><span className="text-amber-500">Olabiliriz?</span></h1>
+                            <Badge className="bg-amber-500 text-foreground border-none font-black mb-6 px-4 py-1 uppercase tracking-widest text-[10px]">PROFESYONEL SEYAHAT KÜTÜPHANESİ</Badge>
+                            <h1 className="text-5xl md:text-7xl font-black mb-8 tracking-tighter leading-none">Nasıl Yardımcı <br /><span className="text-amber-600">Olabiliriz?</span></h1>
                         </motion.div>
 
-                        <div className="relative max-w-2xl mx-auto">
-                            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-muted-foreground" />
+                        <div className="relative max-w-2xl mx-auto mt-4">
+                            <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-foreground/40" />
                             <input
                                 type="text"
                                 placeholder="Vize, iptal, ödeme veya konaklama hakkında bir soru yazın..."
-                                className="w-full h-18 pl-16 pr-8 rounded-3xl bg-secondary/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all text-lg font-medium backdrop-blur-md"
+                                className="w-full h-18 pl-16 pr-8 rounded-[2rem] bg-white/60 border border-black/5 text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all text-lg font-bold shadow-xl backdrop-blur-md"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />

@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { SearchHeader } from '@/components/header/search-header';
 import { HeroSearchBar } from '@/components/search/hero-search-bar';
+import { Badge } from '../ui/badge';
 
 interface HeroSectionProps {
     t: any;
@@ -109,9 +110,8 @@ export function HeroSection({ t }: HeroSectionProps) {
                                         <span className="leading-tight">{d ?? ''}</span>
                                         {price && (
                                             <span
-                                                className={`mt-0.5 text-[7px] leading-tight ${
-                                                    isToday ? 'text-white/80' : 'text-gray-400'
-                                                }`}
+                                                className={`mt-0.5 text-[7px] text-bold leading-tight ${isToday ? 'text-white/80' : 'text-gray-400'
+                                                    } ${price < 1900 ? 'text-green-600' : 'text-gray-400'}`}
                                             >
                                                 {price.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} ₺
                                             </span>
