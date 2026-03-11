@@ -1,17 +1,18 @@
 export type Locale = 'tr' | 'en' | 'de' | 'fr';
 
 export const LOCALES: { code: Locale; label: string; flag: string }[] = [
-  { code: 'tr', label: 'Türkçe', flag: 'TR' },
-  { code: 'en', label: 'English', flag: 'EN' },
-  { code: 'de', label: 'Deutsch', flag: 'DE' },
-  { code: 'fr', label: 'Français', flag: 'FR' },
+  { code: 'tr', label: 'Türkçe', flag: '🇹🇷' },
+  { code: 'en', label: 'English', flag: '🇬🇧' },
+  { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
+  { code: 'fr', label: 'Français', flag: '🇫🇷' },
 ];
 
 export const translations = {
   tr: {
     // Nav
     stays: 'Konaklama',
-    experiences: 'Deneyimler',
+    tours: 'Turlar',
+    guides: 'Rehber',
     hotels: 'Oteller',
     login: 'Giriş Yap',
     signup: 'Kayıt Ol',
@@ -226,7 +227,8 @@ export const translations = {
   },
   en: {
     stays: 'Stays',
-    experiences: 'Experiences',
+    tours: 'Tours',
+    guides: 'Guide',
     hotels: 'Hotels',
     login: 'Log in',
     signup: 'Sign up',
@@ -432,7 +434,8 @@ export const translations = {
   },
   de: {
     stays: 'Unterkünfte',
-    experiences: 'Erlebnisse',
+    tours: 'Touren',
+    guides: 'Reiseführer',
     hotels: 'Hotels',
     login: 'Anmelden',
     signup: 'Registrieren',
@@ -630,7 +633,8 @@ export const translations = {
   },
   fr: {
     stays: 'Séjours',
-    experiences: 'Expériences',
+    tours: 'Tours',
+    guides: 'Guide',
     hotels: 'Hôtels',
     login: 'Se connecter',
     signup: "S'inscrire",

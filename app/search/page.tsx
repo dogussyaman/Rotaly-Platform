@@ -9,6 +9,7 @@ import { useSearchStore } from '@/lib/store/search-store';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { LayoutGrid, LayoutList, Sliders } from 'lucide-react';
+import Link from 'next/link';
 import { useLocale } from '@/lib/i18n/locale-context';
 
 // Mock data - In real app, this would come from Supabase
@@ -330,7 +331,9 @@ export default function SearchPage() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: index * 0.05 }}
                       >
-                        <ListingCard {...listing} layout={viewMode} />
+                        <Link href={`/listing/${listing.id}`}>
+                          <ListingCard {...listing} layout={viewMode} />
+                        </Link>
                       </motion.div>
                     ))}
                   </motion.div>

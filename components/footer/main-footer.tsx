@@ -10,10 +10,10 @@ export function MainFooter() {
         {
             title: t.support as string,
             links: [
-                { label: 'Yardım Merkezi', href: '/faq' },
+                { label: 'Sıkça Sorulan Sorular (SSS)', href: '/faq' },
+                { label: 'İletişim & Destek', href: '/contact' },
                 { label: 'İptal ve İade Politikası', href: '/cancellation-policy' },
-                { label: 'Güvenlik Bilgisi', href: '#' },
-                { label: 'Engelli Desteği', href: '#' }
+                { label: 'Güvenlik Bilgisi', href: '#' }
             ]
         },
         {
@@ -36,8 +36,8 @@ export function MainFooter() {
             title: t.company as string,
             links: [
                 { label: 'Hakkımızda', href: '/about' },
-                { label: 'İletişim', href: '/contact' },
-                { label: 'Haberler', href: '#' },
+                { label: 'Biz Kimiz?', href: '/about' },
+                { label: 'Haberler & Blog', href: '#' },
                 { label: 'Kariyer', href: '#' }
             ]
         },
