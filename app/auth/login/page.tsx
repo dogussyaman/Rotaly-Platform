@@ -70,7 +70,7 @@ export default function LoginPage() {
         {/* Background Image / Overlay */}
         <div className="absolute inset-0 z-0">
           <img
-            src="/auth_hero_image_1773336657260.png"
+            src="/auth_hero_image.png"
             alt="Luxury Villa"
             className="w-full h-full object-cover opacity-60 scale-105 motion-safe:animate-[pulse_10s_ease-in-out_infinite]"
           />
@@ -106,23 +106,23 @@ export default function LoginPage() {
               Hayalindeki tatili planlamak hiç bu kadar kolay olmamıştı. Binlerce seçenek arasından sana en uygun olanı bul.
             </p>
           </div>
-          
+
           <div className="flex items-center gap-4">
-             <div className="flex -space-x-3">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="w-10 h-10 rounded-full border-2 border-foreground bg-muted overflow-hidden">
-                    <img 
-                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 10}`} 
-                      alt="User" 
-                      className="w-full h-full object-cover" 
-                    />
-                  </div>
-                ))}
-             </div>
-             <p className="text-xs text-white/50 font-medium leading-tight">
-               <span className="text-white font-bold text-sm block">12.4k+ Gezgin</span>
-               Tarafından tercih ediliyor
-             </p>
+            <div className="flex -space-x-3">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="w-10 h-10 rounded-full border-2 border-foreground bg-muted overflow-hidden">
+                  <img
+                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 10}`}
+                    alt="User"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-white/50 font-medium leading-tight">
+              <span className="text-white font-bold text-sm block">12.4k+ Gezgin</span>
+              Tarafından tercih ediliyor
+            </p>
           </div>
         </motion.div>
       </div>
@@ -141,14 +141,14 @@ export default function LoginPage() {
             <span className="font-bold text-lg text-foreground">StayHub</span>
           </Link>
           <div className="ml-auto flex items-center gap-4">
-             <LanguageSwitcher />
-             <Link 
-               href="/" 
-               className="text-muted-foreground hover:text-foreground p-2 rounded-full hover:bg-muted transition-colors"
-               title="Geri Dön"
-             >
-               <ChevronLeft className="w-5 h-5" />
-             </Link>
+            <LanguageSwitcher />
+            <Link
+              href="/"
+              className="text-muted-foreground hover:text-foreground p-2 rounded-full hover:bg-muted transition-colors"
+              title="Geri Dön"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Link>
           </div>
         </div>
 

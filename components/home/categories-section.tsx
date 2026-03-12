@@ -1,7 +1,7 @@
 'use client';
 
 import type { JSX } from 'react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
 
@@ -98,14 +98,14 @@ export function CategoriesSection({
     const [showLeftFade, setShowLeftFade] = useState(false);
     const [showRightFade, setShowRightFade] = useState(false);
 
-    const updateEdgeFades = () => {
+    const updateEdgeFades = useCallback(() => {
         const el = catScrollRef.current;
         if (!el) return;
 
         const maxScrollLeft = el.scrollWidth - el.clientWidth;
         setShowLeftFade(el.scrollLeft > 0);
         setShowRightFade(el.scrollLeft < maxScrollLeft - 1);
-    };
+    }, [catScrollRef]);
 
     useEffect(() => {
         updateEdgeFades();
@@ -113,8 +113,7 @@ export function CategoriesSection({
         const onResize = () => updateEdgeFades();
         window.addEventListener('resize', onResize);
         return () => window.removeEventListener('resize', onResize);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [updateEdgeFades]);
 
     const scrollCats = (dir: 'left' | 'right') => {
         catScrollRef.current?.scrollBy({ left: dir === 'left' ? -320 : 320, behavior: 'smooth' });
@@ -158,18 +157,18 @@ export function CategoriesSection({
                         <button
                             onClick={() => scrollCats('right')}
                             className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
-                            aria-label="Ä°leri"
+                            aria-label="İleri"
                         >
                             <ChevronRight className="w-4 h-4 text-foreground" />
                         </button>
                     </div>
                 </div>
 
-                <div className="relative">
+                <div className="relative py-4">
                     <div
                         ref={catScrollRef}
                         onScroll={updateEdgeFades}
-                        className="flex gap-4 overflow-x-auto pb-2 pr-6 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                        className="flex gap-4 overflow-x-auto pb-2 pr-6 py-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                     >
                         {CATEGORY_IDS.map(id => {
                             const badge = CATEGORY_BADGES[id];
@@ -180,17 +179,15 @@ export function CategoriesSection({
                                     whileHover={{ y: -2 }}
                                     whileTap={{ scale: 0.97 }}
                                     onClick={() => setActiveCategory(id)}
-                                    className={`flex-shrink-0 w-44 p-4 rounded-2xl border text-left transition-all duration-200 ${
-                                        isActive
-                                            ? 'border-foreground bg-card shadow-md'
-                                            : 'border-border bg-card hover:border-foreground/40 hover:shadow-sm'
-                                    }`}
+                                    className={`flex-shrink-0 w-44 p-4 rounded-2xl border text-left transition-all duration-200 ${isActive
+                                        ? 'border-foreground bg-card shadow-md'
+                                        : 'border-border bg-card hover:border-foreground/40 hover:shadow-sm'
+                                        }`}
                                 >
                                     <div className="flex items-start justify-between mb-3">
                                         <div
-                                            className={`text-foreground transition-opacity ${
-                                                isActive ? 'opacity-100' : 'opacity-55'
-                                            }`}
+                                            className={`text-foreground transition-opacity ${isActive ? 'opacity-100' : 'opacity-55'
+                                                }`}
                                         >
                                             <CategoryIcon id={id} />
                                         </div>
@@ -200,8 +197,7 @@ export function CategoriesSection({
                                     </div>
                                     <div className="font-bold text-sm text-foreground">{categoryLabels[id]}</div>
                                     <div className="text-xs text-muted-foreground mt-0.5">
-                                        {CATEGORY_COUNTS[id]}{' '}
-                                        {(t.listingsTitle as string).includes('Property') ? 'Properties' : 'MÃ¼lk'}
+                                        {CATEGORY_COUNTS[id]} {t.categoryPropertyLabel as string}
                                     </div>
                                 </motion.button>
                             );
@@ -210,19 +206,16 @@ export function CategoriesSection({
 
                     <div
                         aria-hidden="true"
-                        className={`pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-background/90 via-background/50 to-transparent backdrop-blur-sm transition-opacity duration-200 ${
-                            showLeftFade ? 'opacity-100' : 'opacity-0'
-                        }`}
+                        className={`pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-background/90 via-background/50 to-transparent backdrop-blur-sm transition-opacity duration-200 ${showLeftFade ? 'opacity-100' : 'opacity-0'
+                            }`}
                     />
                     <div
                         aria-hidden="true"
-                        className={`pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background/90 via-background/50 to-transparent backdrop-blur-sm transition-opacity duration-200 ${
-                            showRightFade ? 'opacity-100' : 'opacity-0'
-                        }`}
+                        className={`pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background/90 via-background/50 to-transparent backdrop-blur-sm transition-opacity duration-200 ${showRightFade ? 'opacity-100' : 'opacity-0'
+                            }`}
                     />
                 </div>
             </div>
         </section>
     );
 }
-

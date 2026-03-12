@@ -50,6 +50,7 @@ export const translations = {
     // Category
     selectCategory: 'Kategori Seç',
     categorySubtitle: 'Her kategoride en doğru eşleşmeyi keşfet',
+    categoryPropertyLabel: 'Mülk',
     filters: 'Filtrele',
     // Listings
     listingsTitle: "1.000'den fazla konaklama yeri",
@@ -487,6 +488,7 @@ export const translations = {
     infantsDesc: 'Under 2',
     selectCategory: 'Select Category',
     categorySubtitle: 'Uncover the Perfect Match in Every Category',
+    categoryPropertyLabel: 'Properties',
     filters: 'Filters',
     listingsTitle: '1,000+ places to stay',
     listingsSubtitle: 'Total price including all fees',
@@ -918,6 +920,7 @@ export const translations = {
     infantsDesc: 'Unter 2 Jahre',
     selectCategory: 'Kategorie wählen',
     categorySubtitle: 'Die perfekte Unterkunft in jeder Kategorie',
+    categoryPropertyLabel: 'Unterkünfte',
     filters: 'Filter',
     listingsTitle: 'Über 1.000 Unterkünfte',
     listingsSubtitle: 'Gesamtpreis inklusive aller Gebühren',
@@ -1341,6 +1344,7 @@ export const translations = {
     infantsDesc: 'Moins de 2 ans',
     selectCategory: 'Choisir une catégorie',
     categorySubtitle: 'Trouvez la correspondance parfaite dans chaque catégorie',
+    categoryPropertyLabel: 'Logements',
     filters: 'Filtres',
     listingsTitle: 'Plus de 1 000 logements',
     listingsSubtitle: 'Prix total toutes charges comprises',

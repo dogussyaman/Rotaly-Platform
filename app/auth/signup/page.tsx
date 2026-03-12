@@ -102,7 +102,7 @@ export default function SignUpPage() {
         {/* Background Image / Overlay */}
         <div className="absolute inset-0 z-0 text-white/50">
           <img
-            src="/auth_hero_image_1773336657260.png"
+            src="/auth_hero_image.png"
             alt="Luxury Villa"
             className="w-full h-full object-cover opacity-60 scale-105 motion-safe:animate-[pulse_10s_ease-in-out_infinite]"
           />
@@ -138,20 +138,20 @@ export default function SignUpPage() {
               StayHub topluluğuna katılarak dünyanın her yerindeki özel konaklama yerlerine erişim sağla.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-3 gap-4 border-t border-white/10 pt-8 mt-8">
-             <div>
-                <p className="text-white font-bold text-xl">10k+</p>
-                <p className="text-white/50 text-xs font-medium uppercase tracking-wider">İlanlar</p>
-             </div>
-             <div>
-                <p className="text-white font-bold text-xl">250+</p>
-                <p className="text-white/50 text-xs font-medium uppercase tracking-wider">Destinasyon</p>
-             </div>
-             <div>
-                <p className="text-white font-bold text-xl">4.9/5</p>
-                <p className="text-white/50 text-xs font-medium uppercase tracking-wider">Müşteri Memnuniyeti</p>
-             </div>
+            <div>
+              <p className="text-white font-bold text-xl">10k+</p>
+              <p className="text-white/50 text-xs font-medium uppercase tracking-wider">İlanlar</p>
+            </div>
+            <div>
+              <p className="text-white font-bold text-xl">250+</p>
+              <p className="text-white/50 text-xs font-medium uppercase tracking-wider">Destinasyon</p>
+            </div>
+            <div>
+              <p className="text-white font-bold text-xl">4.9/5</p>
+              <p className="text-white/50 text-xs font-medium uppercase tracking-wider">Müşteri Memnuniyeti</p>
+            </div>
           </div>
         </motion.div>
       </div>
@@ -170,14 +170,14 @@ export default function SignUpPage() {
             <span className="font-bold text-lg text-foreground">StayHub</span>
           </Link>
           <div className="ml-auto flex items-center gap-4">
-             <LanguageSwitcher />
-             <Link 
-               href="/" 
-               className="text-muted-foreground hover:text-foreground p-2 rounded-full hover:bg-muted transition-colors"
-               title="Geri Dön"
-             >
-               <ChevronLeft className="w-5 h-5" />
-             </Link>
+            <LanguageSwitcher />
+            <Link
+              href="/"
+              className="text-muted-foreground hover:text-foreground p-2 rounded-full hover:bg-muted transition-colors"
+              title="Geri Dön"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Link>
           </div>
         </div>
 
@@ -341,7 +341,7 @@ export default function SignUpPage() {
                   <Link href="/privacy" className="text-foreground hover:underline underline-offset-2">
                     {t.loginPrivacy as string}
                   </Link>
-                   {' '}{t.loginAgreeSuffix as string}
+                  {' '}{t.loginAgreeSuffix as string}
                 </Label>
               </div>
 
