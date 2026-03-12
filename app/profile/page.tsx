@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { tr } from 'date-fns/locale';
 import { SearchHeader } from '@/components/header/search-header';
 import { MainFooter } from '@/components/footer/main-footer';
 import { Button } from '@/components/ui/button';
@@ -23,9 +22,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Loader2 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { clearUser } from '@/lib/store/slices/user-slice';
+import { useLocale } from '@/lib/i18n/locale-context';
 import {
   fetchUserBookings,
   type BookingWithListing,
@@ -57,6 +56,7 @@ import { ProfileSkeleton } from './components/ProfileSkeletons';
 export default function ProfilePage() {
   const dispatch = useAppDispatch();
   const { profile, loading: authLoading, initialized } = useAppSelector((s) => s.user);
+  const { t } = useLocale();
 
   const [activeTab, setActiveTab] = useState<'bookings' | 'tours' | 'wishlists' | 'loyalty' | 'account'>('bookings');
   const [bookings, setBookings] = useState<BookingWithListing[]>([]);
@@ -128,7 +128,7 @@ export default function ProfilePage() {
       fullName: profileFullName,
       // If schema supports phone/bio, add them here
     });
-    setProfileMessage(ok ? 'Profil başarıyla güncellendi.' : 'Güncelleme sırasında hata oluştu.');
+    setProfileMessage(ok ? (t.profileUpdateSuccess as string) : (t.profileUpdateError as string));
     setSavingProfile(false);
   };
 
@@ -136,7 +136,7 @@ export default function ProfilePage() {
     if (!profile?.email) return;
     setPasswordSaving(true);
     const ok = await requestPasswordReset(profile.email);
-    setPasswordMessage(ok ? 'Şifre sıfırlama e-postası gönderildi.' : 'Hata oluştu.');
+    setPasswordMessage(ok ? (t.profilePasswordResetSent as string) : (t.profileGenericError as string));
     setPasswordSaving(false);
   };
 
@@ -145,9 +145,9 @@ export default function ProfilePage() {
     const ok = await deleteAccount();
     if (ok) {
       dispatch(clearUser());
-      setAccountMessage('Hesabınız silindi.');
+      setAccountMessage(t.profileAccountDeleted as string);
     } else {
-      setAccountMessage('Hata oluştu.');
+      setAccountMessage(t.profileGenericError as string);
     }
     setAccountDeleting(false);
   };
@@ -157,9 +157,9 @@ export default function ProfilePage() {
     const ok = await cancelBooking(booking.id);
     if (ok) {
       setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: 'cancelled' } : b));
-      setBookingMessage('Rezervasyon iptal edildi.');
+      setBookingMessage(t.profileBookingCancelled as string);
     } else {
-      setBookingMessage('İptal edilemedi.');
+      setBookingMessage(t.profileCancelFailed as string);
     }
     setBookingActionId(null);
     setCancelBookingTarget(null);
@@ -170,9 +170,9 @@ export default function ProfilePage() {
     const ok = await deleteBooking(booking.id);
     if (ok) {
       setBookings(prev => prev.filter(b => b.id !== booking.id));
-      setBookingMessage('Kalıcı olarak silindi.');
+      setBookingMessage(t.profileBookingDeleted as string);
     } else {
-      setBookingMessage('Silinemedi.');
+      setBookingMessage(t.profileDeleteFailed as string);
     }
     setBookingActionId(null);
     setDeleteBookingTarget(null);
@@ -188,9 +188,9 @@ export default function ProfilePage() {
             <ProfileSkeleton />
           ) : !profile ? (
             <div className="text-center py-16">
-              <h1 className="text-2xl font-bold mb-2">Profil için giriş yapmanız gerekiyor</h1>
+              <h1 className="text-2xl font-bold mb-2">{t.profileLoginRequiredTitle as string}</h1>
               <Link href="/auth/login">
-                <Button size="lg" className="rounded-2xl px-8">Giriş Yap</Button>
+                <Button size="lg" className="rounded-2xl px-8">{t.login as string}</Button>
               </Link>
             </div>
           ) : (
@@ -250,17 +250,17 @@ export default function ProfilePage() {
       <Dialog open={!!detailBooking} onOpenChange={() => setDetailBooking(null)}>
         <DialogContent className="rounded-3xl max-w-lg">
           <DialogHeader>
-            <DialogTitle>Rezervasyon Detayı</DialogTitle>
+            <DialogTitle>{t.profileBookingDetailTitle as string}</DialogTitle>
           </DialogHeader>
           <div className="text-sm space-y-4">
             {detailBooking && (
               <>
                 <div className="p-4 bg-muted/40 rounded-2xl space-y-2">
-                  <p><strong>İlan:</strong> {detailBooking.listing?.title}</p>
-                  <p><strong>Giriş:</strong> {detailBooking.checkIn}</p>
-                  <p><strong>Çıkış:</strong> {detailBooking.checkOut}</p>
-                  <p><strong>Durum:</strong> {detailBooking.status}</p>
-                  <p><strong>Misafir:</strong> {detailBooking.guestsCount} kişi</p>
+                  <p><strong>{t.profileFieldListing as string}:</strong> {detailBooking.listing?.title}</p>
+                  <p><strong>{t.profileFieldCheckIn as string}:</strong> {detailBooking.checkIn}</p>
+                  <p><strong>{t.profileFieldCheckOut as string}:</strong> {detailBooking.checkOut}</p>
+                  <p><strong>{t.profileFieldStatus as string}:</strong> {detailBooking.status}</p>
+                  <p><strong>{t.profileFieldGuests as string}:</strong> {detailBooking.guestsCount} {t.profilePeopleSuffix as string}</p>
                 </div>
               </>
             )}
@@ -271,16 +271,16 @@ export default function ProfilePage() {
       <AlertDialog open={!!cancelBookingTarget} onOpenChange={() => setCancelBookingTarget(null)}>
         <AlertDialogContent className="rounded-3xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>İptal etmek istediğinize emin misiniz?</AlertDialogTitle>
-            <AlertDialogDescription>Bu rezervasyon iptal edilecek. İptal politikasına göre iade durumunuz değişebilir.</AlertDialogDescription>
+            <AlertDialogTitle>{t.profileCancelDialogTitle as string}</AlertDialogTitle>
+            <AlertDialogDescription>{t.profileCancelDialogDesc as string}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-2xl">Vazgeç</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-2xl">{t.profileBack as string}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => cancelBookingTarget && handleCancelBooking(cancelBookingTarget)}
               className="rounded-2xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              İptal Et
+              {t.profileCancel as string}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -289,16 +289,16 @@ export default function ProfilePage() {
       <AlertDialog open={!!deleteBookingTarget} onOpenChange={() => setDeleteBookingTarget(null)}>
         <AlertDialogContent className="rounded-3xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>Rezervasyonu kalıcı olarak sil?</AlertDialogTitle>
-            <AlertDialogDescription>Bu işlem geri alınamaz ve rezervasyon geçmişinizden silinir.</AlertDialogDescription>
+            <AlertDialogTitle>{t.profileDeleteDialogTitle as string}</AlertDialogTitle>
+            <AlertDialogDescription>{t.profileDeleteDialogDesc as string}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-2xl">Kapat</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-2xl">{t.profileClose as string}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteBookingTarget && handleDeleteBooking(deleteBookingTarget)}
               className="rounded-2xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Evet, Sil
+              {t.profileConfirmDelete as string}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

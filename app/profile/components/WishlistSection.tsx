@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { tr } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
+import { useLocale } from '@/lib/i18n/locale-context';
+import { dateFnsLocale, formatNumber } from '@/lib/i18n/format';
 import { type WishlistSummary } from '@/lib/supabase/profile';
 
 interface WishlistSectionProps {
@@ -12,12 +13,15 @@ interface WishlistSectionProps {
 }
 
 export function WishlistSection({ loading, wishlists }: WishlistSectionProps) {
+  const { t, locale } = useLocale();
+  const dateLocale = dateFnsLocale(locale);
+
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">Listelerim (Wishlist)</h2>
+        <h2 className="text-xl font-bold">{t.profileWishlistsTitle as string}</h2>
         <Link href="/search">
-          <Button variant="outline" size="sm" className="rounded-2xl px-4">Yeni yerler keşfet</Button>
+          <Button variant="outline" size="sm" className="rounded-2xl px-4">{t.profileWishlistsCta as string}</Button>
         </Link>
       </div>
       {loading ? (
@@ -27,7 +31,7 @@ export function WishlistSection({ loading, wishlists }: WishlistSectionProps) {
           ))}
         </div>
       ) : wishlists.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Henüz bir favori listeniz yok.</p>
+        <p className="text-sm text-muted-foreground">{t.profileWishlistsEmpty as string}</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {wishlists.map((wl) => (
@@ -35,10 +39,11 @@ export function WishlistSection({ loading, wishlists }: WishlistSectionProps) {
               <div>
                 <p className="text-sm font-semibold">{wl.name}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {wl.itemsCount} ilan • {format(new Date(wl.createdAt), 'dd MMM yyyy', { locale: tr })} oluşturuldu
+                  {formatNumber(wl.itemsCount, locale)} {t.profileWishlistItemsSuffix as string} •{' '}
+                  {format(new Date(wl.createdAt), 'dd MMM yyyy', { locale: dateLocale })} {t.profileCreatedSuffix as string}
                 </p>
               </div>
-              <Button variant="outline" size="sm" className="rounded-xl">Gör</Button>
+              <Button variant="outline" size="sm" className="rounded-xl">{t.profileView as string}</Button>
             </div>
           ))}
         </div>

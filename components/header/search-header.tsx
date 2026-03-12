@@ -3,73 +3,14 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Check, Star, ChevronDown, LogOut } from 'lucide-react';
+import { Search, Star, ChevronDown, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale } from '@/lib/i18n/locale-context';
-import { LOCALES, type Locale } from '@/lib/i18n/translations';
+import { LanguageSwitcher } from '@/components/layout/language-switcher';
+import { formatNumber } from '@/lib/i18n/format';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { fetchUserProfile, clearUser } from '@/lib/store/slices/user-slice';
 import { createClient } from '@/lib/supabase/client';
-
-// ─── Language Switcher ──────────────────────────────────────────────────────
-
-function LanguageSwitcher() {
-  const { locale, setLocale } = useLocale();
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      const el = document.getElementById('lang-switcher');
-      if (el && !el.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  return (
-    <div className="relative" id="lang-switcher">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-2 px-3 py-2 rounded-2xl border border-border/60 hover:bg-white/20 transition-all text-sm font-medium text-foreground backdrop-blur-md hover:border-foreground/20 active:scale-95 shadow-sm"
-        aria-label="Dil seçin"
-      >
-        <span className="text-lg leading-none transform group-hover:scale-110 transition-transform">
-          {LOCALES.find(l => l.code === locale)?.flag}
-        </span>
-        <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-          {locale}
-        </span>
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 6, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 6, scale: 0.97 }}
-            transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-48 bg-card rounded-2xl shadow-2xl border border-border overflow-hidden z-[60]"
-          >
-            {LOCALES.map(l => (
-              <button
-                key={l.code}
-                onClick={() => { setLocale(l.code as Locale); setOpen(false); }}
-                className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-muted ${locale === l.code ? 'text-foreground font-semibold bg-muted/50' : 'text-muted-foreground'
-                  }`}
-              >
-                <span className="flex items-center gap-2.5">
-                  <span className="text-base">{l.flag}</span>
-                  <span>{l.label}</span>
-                </span>
-                {locale === l.code && <Check className="w-3.5 h-3.5 text-foreground" />}
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
 
 // ─── User Menu ───────────────────────────────────────────────────────────────
 
@@ -78,6 +19,7 @@ function UserMenu() {
   const { profile, loading } = useAppSelector((s) => s.user);
   const [open, setOpen] = useState(false);
   const supabase = createClient();
+  const { t, locale } = useLocale();
 
   const initials = profile?.fullName
     ? profile.fullName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
@@ -119,7 +61,7 @@ function UserMenu() {
         {/* Puan */}
         <span className="hidden sm:flex items-center gap-0.5 bg-amber-100 text-amber-700 text-[10px] font-black px-1.5 py-0.5 rounded-full">
           <Star className="w-2.5 h-2.5 fill-amber-500 stroke-none" />
-          {profile.points.toLocaleString('tr-TR')}
+          {formatNumber(profile.points, locale)}
         </span>
 
         <ChevronDown className="w-3.5 h-3.5 text-muted-foreground hidden sm:block" />
@@ -140,7 +82,9 @@ function UserMenu() {
               <p className="text-xs text-muted-foreground truncate">{profile.email}</p>
               <div className="flex items-center gap-1 mt-1.5">
                 <Star className="w-3 h-3 fill-amber-500 stroke-none" />
-                <span className="text-xs font-bold text-amber-600">{profile.points.toLocaleString('tr-TR')} puan</span>
+                <span className="text-xs font-bold text-amber-600">
+                  {formatNumber(profile.points, locale)} {t.navPointsLabel as string}
+                </span>
                 {profile.isHost && (
                   <span className="ml-auto text-[10px] bg-foreground text-white font-black px-1.5 py-0.5 rounded-full">HOST</span>
                 )}
@@ -160,14 +104,14 @@ function UserMenu() {
                 onClick={() => setOpen(false)}
                 className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
               >
-                Profilim & Rezervasyonlarım
+                {t.navProfileBookings as string}
               </Link>
               <Link
                 href="/messages"
                 onClick={() => setOpen(false)}
                 className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
               >
-                Mesajlarım
+                {t.navMessages as string}
               </Link>
 
               {/* Ev sahibi için */}
@@ -177,7 +121,7 @@ function UserMenu() {
                   onClick={() => setOpen(false)}
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
                 >
-                  Ev Sahibi Paneli
+                  {t.navHostPanel as string}
                 </Link>
               )}
 
@@ -188,18 +132,18 @@ function UserMenu() {
                   onClick={() => setOpen(false)}
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
                 >
-                  Turlarım
+                  {t.navMyTours as string}
                 </Link>
               )}
 
               {/* Admin için */}
-              {profile.isAdmin && (
+              {profile.isHost && profile.isAdmin && (
                 <Link
                   href="/dashboard"
                   onClick={() => setOpen(false)}
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
                 >
-                  Admin Paneli
+                  {t.navAdminPanel as string}
                 </Link>
               )}
               <button
@@ -207,7 +151,7 @@ function UserMenu() {
                 className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-colors"
               >
                 <LogOut className="w-4 h-4" />
-                Çıkış Yap
+                {t.navSignOut as string}
               </button>
             </div>
           </motion.div>
@@ -333,12 +277,8 @@ export function SearchHeader() {
         </div>
       </header>
 
-      {/* ── Search Form Wrapper ──
-          header'ın TAMAMEN DIŞINDA, bağımsız fixed div.
-          z-40 → navbarın (z-50) arkasında kalır ama sayfanın önünde.
-          top-[72px] → navbar yüksekliği 64px + üst/alt py-2 ≈ 72px.
-          Bu div'in className'ini istediğin gibi özelleştirebilirsin. */}
-      <div className="fixed top-[68px] left-0 right-0 z-80 flex justify-center px-6">
+      {/* ── Search Form Wrapper ── */}
+      <div className="fixed top-[68px] left-0 right-0 z-40 flex justify-center px-6 pointer-events-none">
         <AnimatePresence>
           {isScrolled && !heroSearchVisible && (
             <motion.div
@@ -346,7 +286,7 @@ export function SearchHeader() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.28, ease: 'easeInOut' }}
-              className="flex justify-center w-full max-w-7xl "
+              className="flex justify-center w-full max-w-7xl pointer-events-auto"
             >
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}

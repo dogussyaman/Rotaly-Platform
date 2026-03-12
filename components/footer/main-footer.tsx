@@ -13,23 +13,23 @@ export function MainFooter() {
                 { label: 'Sıkça Sorulan Sorular (SSS)', href: '/faq' },
                 { label: 'İletişim & Destek', href: '/contact' },
                 { label: 'İptal ve İade Politikası', href: '/cancellation-policy' },
-                { label: 'Güvenlik Bilgisi', href: '#' }
+                { label: 'Güvenlik Bilgisi', href: '/safety' }
             ]
         },
         {
             title: t.community as string,
             links: [
-                { label: 'StayHub.org', href: '#' },
-                { label: 'Ayrımcılıkla Mücadele', href: '#' },
-                { label: 'Arkadaşını Davet Et', href: '#' }
+                { label: 'StayHub.org', href: '/community' },
+                { label: 'Ayrımcılıkla Mücadele', href: '/anti-discrimination' },
+                { label: 'Arkadaşını Davet Et', href: '/invite' }
             ]
         },
         {
             title: t.hosting as string,
             links: [
                 { label: 'Evinizi Listeleyin', href: '/host' },
-                { label: 'Ev Sahipleri için Destek', href: '#' },
-                { label: 'Kaynaklara Göz At', href: '#' }
+                { label: 'Ev Sahipleri için Destek', href: '/host/support' },
+                { label: 'Kaynaklara Göz At', href: '/host/resources' }
             ]
         },
         {
@@ -37,8 +37,8 @@ export function MainFooter() {
             links: [
                 { label: 'Hakkımızda', href: '/about' },
                 { label: 'Biz Kimiz?', href: '/about' },
-                { label: 'Haberler & Blog', href: '#' },
-                { label: 'Kariyer', href: '#' }
+                { label: 'Haberler & Blog', href: '/blog' },
+                { label: 'Kariyer', href: '/careers' }
             ]
         },
     ];
@@ -71,9 +71,9 @@ export function MainFooter() {
                         <Link href="/terms" className="hover:underline">Koşullar</Link>
                     </div>
                     <div className="flex items-center gap-6">
-                        {['Twitter', 'Facebook', 'Instagram'].map(s => (
-                            <Link key={s} href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium">{s}</Link>
-                        ))}
+                        <Link href="https://twitter.com/rotaly" target="_blank" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium">Twitter</Link>
+                        <Link href="https://facebook.com/rotaly" target="_blank" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium">Facebook</Link>
+                        <Link href="https://instagram.com/rotaly" target="_blank" className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium">Instagram</Link>
                     </div>
                 </div>
             </div>

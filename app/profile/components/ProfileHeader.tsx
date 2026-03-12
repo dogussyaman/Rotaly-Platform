@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import { Star, TicketPercent } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useLocale } from '@/lib/i18n/locale-context';
+import { formatNumber } from '@/lib/i18n/format';
 
 interface ProfileHeaderProps {
   profile: {
@@ -16,6 +18,8 @@ interface ProfileHeaderProps {
 }
 
 export function ProfileHeader({ profile, lifetimePoints }: ProfileHeaderProps) {
+  const { t, locale } = useLocale();
+
   return (
     <section className="rounded-3xl border border-border bg-card/60 backdrop-blur-md p-6 md:p-8 flex flex-col md:flex-row gap-6 items-start md:items-center shadow-sm">
       <div className="relative">
@@ -40,11 +44,11 @@ export function ProfileHeader({ profile, lifetimePoints }: ProfileHeaderProps) {
             {profile.fullName ?? profile.email}
           </h1>
           <Badge variant="secondary" className="rounded-full px-3 py-1 text-xs font-semibold">
-            Misafir hesabı
+            {t.profileGuestBadge as string}
           </Badge>
           {profile.isHost && (
             <Badge className="rounded-full px-3 py-1 text-xs font-semibold bg-foreground text-card">
-              Ev Sahibi
+              {t.profileHostBadge as string}
             </Badge>
           )}
         </div>
@@ -52,12 +56,12 @@ export function ProfileHeader({ profile, lifetimePoints }: ProfileHeaderProps) {
         <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-muted-foreground mt-2">
           <span className="flex items-center gap-1">
             <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-            {profile.points.toLocaleString('tr-TR')} sadakat puanı
+            {formatNumber(profile.points, locale)} {t.profileLoyaltyPointsSuffix as string}
           </span>
           {lifetimePoints !== undefined && (
             <span className="flex items-center gap-1">
               <TicketPercent className="w-3 h-3" />
-              Toplam {lifetimePoints.toLocaleString('tr-TR')} puan kazanıldı
+              {t.profileLifetimePrefix as string} {formatNumber(lifetimePoints, locale)} {t.profileLifetimeSuffix as string}
             </span>
           )}
         </div>

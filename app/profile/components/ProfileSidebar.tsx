@@ -1,6 +1,8 @@
 'use client';
 
 import { Calendar, MapPin, Star, TicketPercent, Users, LucideIcon } from 'lucide-react';
+import { useLocale } from '@/lib/i18n/locale-context';
+import { formatNumber } from '@/lib/i18n/format';
 
 interface Tab {
   id: string;
@@ -16,19 +18,23 @@ interface ProfileSidebarProps {
 }
 
 export function ProfileSidebar({ activeTab, setActiveTab, bookingCount, pointsBalance }: ProfileSidebarProps) {
+  const { t, locale } = useLocale();
+
   const tabs: Tab[] = [
-    { id: 'bookings', label: 'Rezervasyonlar', icon: Calendar },
-    { id: 'tours', label: 'Turlar', icon: MapPin },
-    { id: 'wishlists', label: 'Listeler', icon: Star },
-    { id: 'loyalty', label: 'Puan & Hareketler', icon: TicketPercent },
-    { id: 'account', label: 'Hesap Ayarları', icon: Users },
+    { id: 'bookings', label: t.profileTabBookings as string, icon: Calendar },
+    { id: 'tours', label: t.profileTabTours as string, icon: MapPin },
+    { id: 'wishlists', label: t.profileTabWishlists as string, icon: Star },
+    { id: 'loyalty', label: t.profileTabLoyalty as string, icon: TicketPercent },
+    { id: 'account', label: t.profileTabAccount as string, icon: Users },
   ];
 
   return (
     <aside className="lg:col-span-3">
       <div className="sticky top-32 space-y-6">
         <div className="space-y-2">
-          <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4 pl-4">Kategoriler</h3>
+          <h3 className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-4 pl-4">
+            {t.profileSidebarTitle as string}
+          </h3>
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -47,17 +53,17 @@ export function ProfileSidebar({ activeTab, setActiveTab, bookingCount, pointsBa
 
         {/* Küçük özet kartı */}
         <div className="rounded-2xl border border-border bg-card shadow-sm px-4 py-4 space-y-2 text-xs">
-          <p className="font-bold text-foreground">Seyahat Özeti</p>
+          <p className="font-bold text-foreground">{t.profileSummaryTitle as string}</p>
           <div className="space-y-1.5">
             <p className="flex justify-between items-center text-muted-foreground">
-              <span>Toplam rezervasyon</span>
-              <span className="font-black text-foreground">{bookingCount}</span>
+              <span>{t.profileSummaryBookings as string}</span>
+              <span className="font-black text-foreground">{formatNumber(bookingCount, locale)}</span>
             </p>
             {pointsBalance !== undefined && (
               <p className="flex justify-between items-center text-muted-foreground">
-                <span>Puan bakiyesi</span>
+                <span>{t.profileSummaryPoints as string}</span>
                 <span className="font-black text-amber-600">
-                  {pointsBalance.toLocaleString('tr-TR')}
+                  {formatNumber(pointsBalance, locale)}
                 </span>
               </p>
             )}

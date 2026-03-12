@@ -14,7 +14,6 @@ import {
     Star,
     Clock,
     Users,
-    Calendar,
     Layers,
     Camera,
     Trees,
@@ -24,14 +23,14 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 
-const TOUR_CATEGORIES = [
-    { name: 'Kültür & Sanat', icon: Compass, color: 'bg-amber-100 text-amber-600' },
-    { name: 'Macera', icon: Mountain, color: 'bg-sky-100 text-sky-600' },
-    { name: 'Gurme', icon: Utensils, color: 'bg-rose-100 text-rose-600' },
-    { name: 'Doğa', icon: Trees, color: 'bg-emerald-100 text-emerald-600' },
-    { name: 'Fotoğrafçılık', icon: Camera, color: 'bg-indigo-100 text-indigo-600' },
-    { name: 'Su Sporları', icon: Waves, color: 'bg-cyan-100 text-cyan-600' },
-];
+const TOUR_CATEGORY_META = [
+    { icon: Compass, color: 'bg-amber-100 text-amber-600' },
+    { icon: Mountain, color: 'bg-sky-100 text-sky-600' },
+    { icon: Utensils, color: 'bg-rose-100 text-rose-600' },
+    { icon: Trees, color: 'bg-emerald-100 text-emerald-600' },
+    { icon: Camera, color: 'bg-indigo-100 text-indigo-600' },
+    { icon: Waves, color: 'bg-cyan-100 text-cyan-600' },
+] as const;
 
 const TOUR_GRADIENTS = [
     'from-amber-500 to-orange-600',
@@ -42,94 +41,116 @@ const TOUR_GRADIENTS = [
     'from-rose-500 to-pink-700',
 ];
 
-const MOCK_TOURS = [
+const MOCK_TOURS_BASE = [
     {
         id: '1',
-        title: 'Kapadokya Balon Turu & Gün Doğumu',
-        location: 'Göreme, Nevşehir',
         price: 4500,
         rating: 4.98,
         reviews: 1240,
-        duration: '3 Saat',
         maxGuests: 12,
         image: 'https://images.unsplash.com/photo-1544833055-175c0cfcebb0?w=800&h=600&fit=crop&auto=format',
         gradient: 'from-amber-500 to-orange-600',
-        category: 'Macera',
-        badge: 'En Çok Satan'
+        titleIndex: 0,
+        locationIndex: 0,
+        durationIndex: 0,
+        badgeIndex: 0,
     },
     {
         id: '2',
-        title: 'Boğazda Akşam Yemeği ve Türk Gecesi',
-        location: 'Beşiktaş, İstanbul',
         price: 2200,
         rating: 4.85,
         reviews: 856,
-        duration: '4 Saat',
         maxGuests: 50,
         image: 'https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&h=600&fit=crop&auto=format',
         gradient: 'from-sky-500 to-indigo-700',
-        category: 'Gurme',
-        badge: 'Popüler'
+        titleIndex: 1,
+        locationIndex: 1,
+        durationIndex: 1,
+        badgeIndex: 1,
     },
     {
         id: '3',
-        title: 'Efes Antik Kenti Rehberli Yürüyüş Turu',
-        location: 'Selçuk, İzmir',
         price: 1800,
         rating: 4.92,
         reviews: 2100,
-        duration: '5 Saat',
         maxGuests: 15,
         image: 'https://images.unsplash.com/photo-1558642891-54be180ea339?w=800&h=600&fit=crop&auto=format',
         gradient: 'from-stone-600 to-amber-800',
-        category: 'Kültür & Sanat',
-        badge: 'Tarihi'
+        titleIndex: 2,
+        locationIndex: 2,
+        durationIndex: 2,
+        badgeIndex: 2,
     },
     {
         id: '4',
-        title: 'Fethiye Ölüdeniz Yamaç Paraşütü',
-        location: 'Ölüdeniz, Muğla',
         price: 3800,
         rating: 4.99,
         reviews: 450,
-        duration: '2 Saat',
         maxGuests: 1,
         image: 'https://images.unsplash.com/photo-1503220317375-aaad61436b1b?w=800&h=600&fit=crop&auto=format',
         gradient: 'from-cyan-500 to-sky-700',
-        category: 'Macera',
-        badge: 'Adrenalin'
+        titleIndex: 3,
+        locationIndex: 3,
+        durationIndex: 3,
+        badgeIndex: 3,
     },
     {
         id: '5',
-        title: 'Antalya Düden Şelalesi Tekne Turu',
-        location: 'Muratpaşa, Antalya',
         price: 1200,
         rating: 4.78,
         reviews: 620,
-        duration: '6 Saat',
         maxGuests: 25,
         image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&h=600&fit=crop&auto=format',
         gradient: 'from-teal-500 to-emerald-700',
-        category: 'Su Sporları',
-        badge: 'Aile Dostu'
+        titleIndex: 4,
+        locationIndex: 4,
+        durationIndex: 4,
+        badgeIndex: 4,
     },
     {
         id: '6',
-        title: 'Gaziantep Tadım ve Mutfak Atölyesi',
-        location: 'Şahinbey, Gaziantep',
         price: 1500,
         rating: 4.96,
         reviews: 310,
-        duration: '4 Saat',
         maxGuests: 8,
         image: 'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=800&h=600&fit=crop&auto=format',
         gradient: 'from-rose-500 to-pink-700',
-        category: 'Gurme',
-        badge: 'Özel Tur'
-    }
-];
+        titleIndex: 5,
+        locationIndex: 5,
+        durationIndex: 5,
+        badgeIndex: 5,
+    },
+] as const;
 
-function TourCard({ tour, index }: { tour: typeof MOCK_TOURS[0]; index: number }) {
+type LocalizedTour = {
+    id: string;
+    title: string;
+    location: string;
+    price: number;
+    rating: number;
+    reviews: number;
+    duration: string;
+    maxGuests: number;
+    image: string;
+    gradient: string;
+    badge: string;
+};
+
+function TourCard({
+    tour,
+    index,
+    formatCurrency,
+    maxGuestsLabel,
+    perPersonLabel,
+    reserveCta
+}: {
+    tour: LocalizedTour;
+    index: number;
+    formatCurrency: (value: number) => string;
+    maxGuestsLabel: (maxGuests: number) => string;
+    perPersonLabel: string;
+    reserveCta: string;
+}) {
     const [imgError, setImgError] = useState(false);
 
     return (
@@ -191,16 +212,16 @@ function TourCard({ tour, index }: { tour: typeof MOCK_TOURS[0]; index: number }
                     </div>
                     <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
                         <Users className="w-4 h-4" />
-                        Maks. {tour.maxGuests} Kişi
+                        {maxGuestsLabel(tour.maxGuests)}
                     </div>
                 </div>
 
                 <div className="pt-4 flex items-center justify-between border-t border-dashed">
                     <div>
-                        <span className="text-2xl font-black">₺{tour.price.toLocaleString('tr-TR')}</span>
-                        <span className="text-muted-foreground text-xs font-bold ml-1">/ kişi</span>
+                        <span className="text-2xl font-black">{formatCurrency(tour.price)}</span>
+                        <span className="text-muted-foreground text-xs font-bold ml-1">{perPersonLabel}</span>
                     </div>
-                    <Button size="sm" className="rounded-xl font-black px-4 bg-foreground hover:bg-foreground/90">Rezerve Et</Button>
+                    <Button size="sm" className="rounded-xl font-black px-4 bg-foreground hover:bg-foreground/90">{reserveCta}</Button>
                 </div>
             </div>
         </motion.div>
@@ -208,8 +229,43 @@ function TourCard({ tour, index }: { tour: typeof MOCK_TOURS[0]; index: number }
 }
 
 export default function ToursPage() {
-    const { t } = useLocale();
-    const [heroError, setHeroError] = useState(false);
+    const { t, locale } = useLocale();
+
+    const localeTag =
+        locale === 'tr' ? 'tr-TR' :
+            locale === 'de' ? 'de-DE' :
+                locale === 'fr' ? 'fr-FR' : 'en-US';
+
+    const formatCurrency = (value: number) =>
+        new Intl.NumberFormat(localeTag, { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 }).format(value);
+
+    const maxGuestsLabel = (maxGuests: number) => {
+        const prefix = (t.toursMaxGuestsPrefix as string) ?? 'Max.';
+        const suffix = (t.toursMaxGuestsSuffix as string) ?? '';
+        return `${prefix} ${maxGuests}${suffix ? ` ${suffix}` : ''}`.trim();
+    };
+
+    const categories = t.toursCategories as string[];
+    const heroTitleParts = t.toursHeroTitleParts as string[];
+
+    const titles = t.toursMockTitles as string[];
+    const locations = t.toursMockLocations as string[];
+    const durations = t.toursMockDurations as string[];
+    const badges = t.toursMockBadges as string[];
+
+    const mockTours: LocalizedTour[] = MOCK_TOURS_BASE.map((base) => ({
+        id: base.id,
+        price: base.price,
+        rating: base.rating,
+        reviews: base.reviews,
+        maxGuests: base.maxGuests,
+        image: base.image,
+        gradient: base.gradient,
+        title: titles[base.titleIndex] ?? '',
+        location: locations[base.locationIndex] ?? '',
+        duration: durations[base.durationIndex] ?? '',
+        badge: badges[base.badgeIndex] ?? '',
+    }));
 
     return (
         <div className="min-h-screen bg-background font-sans">
@@ -241,7 +297,8 @@ export default function ToursPage() {
                             animate={{ opacity: 1, y: 0 }}
                             className="text-5xl md:text-7xl font-black mb-6 tracking-tight"
                         >
-                            Dünyayı <span className="text-amber-600">Keşfet</span>
+                            {heroTitleParts?.[0] ?? ''}{' '}
+                            <span className="text-amber-600">{heroTitleParts?.[1] ?? ''}</span>
                         </motion.h1>
                         <motion.p
                             initial={{ opacity: 0, y: 20 }}
@@ -249,7 +306,7 @@ export default function ToursPage() {
                             transition={{ delay: 0.1 }}
                             className="text-xl md:text-2xl font-medium max-w-2xl mx-auto text-foreground/60"
                         >
-                            Profesyonel rehberler eşliğinde, unutulmaz anılar biriktireceğiniz benzersiz turlar ve aktiviteler.
+                            {t.toursHeroSubtitle as string}
                         </motion.p>
                     </div>
                 </section>
@@ -257,9 +314,9 @@ export default function ToursPage() {
                 {/* Categories Carousel */}
                 <section className="max-w-7xl mx-auto px-6 mb-20 overflow-x-auto no-scrollbar">
                     <div className="flex gap-4 pb-2">
-                        {TOUR_CATEGORIES.map((cat, i) => (
+                        {TOUR_CATEGORY_META.map((cat, i) => (
                             <motion.button
-                                key={cat.name}
+                                key={categories?.[i] ?? i}
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: i * 0.05 }}
@@ -268,7 +325,7 @@ export default function ToursPage() {
                                 <div className={`p-3 rounded-2xl ${cat.color}`}>
                                     <cat.icon className="w-5 h-5" />
                                 </div>
-                                <span className="font-bold text-sm whitespace-nowrap">{cat.name}</span>
+                                <span className="font-bold text-sm whitespace-nowrap">{categories?.[i] ?? ''}</span>
                             </motion.button>
                         ))}
                     </div>
@@ -278,15 +335,23 @@ export default function ToursPage() {
                 <section className="max-w-7xl mx-auto px-6 mb-16">
                     <div className="flex items-end justify-between mb-10">
                         <div>
-                            <h2 className="text-3xl font-black mb-2">Popüler Turlar</h2>
-                            <p className="text-muted-foreground font-medium">En çok tercih edilen, yüksek puanlı deneyimler.</p>
+                            <h2 className="text-3xl font-black mb-2">{t.toursFeaturedTitle as string}</h2>
+                            <p className="text-muted-foreground font-medium">{t.toursFeaturedSubtitle as string}</p>
                         </div>
-                        <Button variant="outline" className="rounded-2xl font-bold px-6">Tümünü Gör</Button>
+                        <Button variant="outline" className="rounded-2xl font-bold px-6">{t.toursViewAll as string}</Button>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                        {MOCK_TOURS.map((tour, i) => (
-                            <TourCard key={tour.id} tour={tour} index={i} />
+                        {mockTours.map((tour, i) => (
+                            <TourCard
+                                key={tour.id}
+                                tour={tour}
+                                index={i}
+                                formatCurrency={formatCurrency}
+                                maxGuestsLabel={maxGuestsLabel}
+                                perPersonLabel={t.toursPerPersonLabel as string}
+                                reserveCta={t.toursReserveCta as string}
+                            />
                         ))}
                     </div>
                 </section>
@@ -295,10 +360,10 @@ export default function ToursPage() {
                 <section className="max-w-7xl mx-auto px-6 mb-20">
                     <div className="bg-muted/40 rounded-[3rem] p-12 relative overflow-hidden group border border-border/60">
                         <div className="relative z-10 max-w-xl">
-                            <Badge className="bg-sky-500 text-white border-none font-black mb-6 uppercase tracking-widest">Hikaye Başlıyor</Badge>
-                            <h2 className="text-4xl md:text-5xl font-black mb-6 leading-tight">Yolculuğun Her Adımında Yanınızdayız</h2>
+                            <Badge className="bg-sky-500 text-white border-none font-black mb-6 uppercase tracking-widest">{t.toursCtaBadge as string}</Badge>
+                            <h2 className="text-4xl md:text-5xl font-black mb-6 leading-tight">{t.toursCtaTitle as string}</h2>
                             <p className="text-muted-foreground text-lg mb-8 leading-relaxed font-medium">
-                                Yerel uzmanlar tarafından hazırlanan rotalar, kimsenin bilmediği gizli noktalar ve her detayı düşünülmüş bir organizasyon. Siz sadece ana odaklanın.
+                                {t.toursCtaSubtitle as string}
                             </p>
                             <div className="grid grid-cols-2 gap-6 mb-10">
                                 <div className="flex gap-4">
@@ -306,8 +371,8 @@ export default function ToursPage() {
                                         <Layers className="w-6 h-6 text-sky-600" />
                                     </div>
                                     <div>
-                                        <h4 className="font-black text-sm">7/24 Destek</h4>
-                                        <p className="text-xs text-muted-foreground">Her an ulaşılabiliriz</p>
+                                        <h4 className="font-black text-sm">{t.toursCtaFeature1Title as string}</h4>
+                                        <p className="text-xs text-muted-foreground">{t.toursCtaFeature1Subtitle as string}</p>
                                     </div>
                                 </div>
                                 <div className="flex gap-4">
@@ -315,15 +380,20 @@ export default function ToursPage() {
                                         <Layers className="w-6 h-6 text-sky-600" />
                                     </div>
                                     <div>
-                                        <h4 className="font-black text-sm">Güvenli Ödeme</h4>
-                                        <p className="text-xs text-muted-foreground">Uçtan uca koruma</p>
+                                        <h4 className="font-black text-sm">{t.toursCtaFeature2Title as string}</h4>
+                                        <p className="text-xs text-muted-foreground">{t.toursCtaFeature2Subtitle as string}</p>
                                     </div>
                                 </div>
                             </div>
-                            <Button size="lg" className="rounded-2xl font-black px-10 h-16 shadow-2xl">Keşfetmeye Başla</Button>
+                            <Button size="lg" className="rounded-2xl font-black px-10 h-16 shadow-2xl">{t.toursCtaButton as string}</Button>
                         </div>
                         <div className="absolute right-0 top-0 h-full w-1/2 hidden lg:block">
-                            <Image src="https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&h=800&fit=crop" alt="Exp" fill className="object-cover" />
+                            <Image
+                                src="https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&h=800&fit=crop"
+                                alt={t.toursCtaImageAlt as string}
+                                fill
+                                className="object-cover"
+                            />
                             <div className="absolute inset-0 bg-gradient-to-r from-muted/40 to-transparent" />
                         </div>
                     </div>
