@@ -14,7 +14,7 @@ export default function BookingDetailPage({ params }: { params: { id: string } }
   if (!booking) return notFound();
 
   return (
-    <div className="flex flex-1 flex-col gap-10 px-4 py-6 lg:px-6">
+    <div className="flex flex-1 flex-col gap-8 px-5 py-6 lg:px-7">
       <Section
         title={`Rezervasyon ${booking.id}`}
         description={`${formatDate(booking.checkIn)} → ${formatDate(booking.checkOut)} • ${booking.guestsCount} kişi`}

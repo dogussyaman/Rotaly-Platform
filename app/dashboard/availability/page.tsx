@@ -36,7 +36,7 @@ export default function AvailabilityPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-10 px-4 py-6 lg:px-6">
+    <div className="flex flex-1 flex-col gap-8 px-5 py-6 lg:px-7">
       <Section title="Uygunluk Takvimi" description="Müsaitlik ve özel fiyat yönetimi.">
         <ContentCard title="Takvim Görünümü" description="Yakın tarihli müsaitlik kayıtları">
           <Table>
@@ -74,4 +74,3 @@ export default function AvailabilityPage() {
     </div>
   );
 }
-

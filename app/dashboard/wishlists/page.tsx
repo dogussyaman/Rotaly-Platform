@@ -4,7 +4,7 @@ import { WISHLISTS, WISHLIST_ITEMS } from '@/lib/mock/dashboard';
 
 export default function WishlistsPage() {
   return (
-    <div className="flex flex-1 flex-col gap-10 px-4 py-6 lg:px-6">
+    <div className="flex flex-1 flex-col gap-8 px-5 py-6 lg:px-7">
       <Section title="Favoriler" description="Favori listeleri ve liste öğeleri.">
         <div className="grid gap-4 xl:grid-cols-2">
           <ContentCard title="Liste Başlıkları" description="Misafir favori listeleri">
@@ -51,4 +51,3 @@ export default function WishlistsPage() {
     </div>
   );
 }
-

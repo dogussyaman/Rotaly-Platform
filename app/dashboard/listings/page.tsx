@@ -46,7 +46,7 @@ export default function ListingsPage() {
   }));
 
   return (
-    <div className="flex flex-1 flex-col gap-10 px-4 py-6 lg:px-6">
+    <div className="flex flex-1 flex-col gap-8 px-5 py-6 lg:px-7">
       <Section title="İlanlarım" description="Yayındaki ilanlarınızın yönetimi.">
         <div className="grid gap-4">
           <ContentCard title="Aktif İlanlar" description="Fiyat ve performans takibi">
@@ -100,4 +100,3 @@ export default function ListingsPage() {
     </div>
   );
 }
-

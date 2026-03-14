@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { LucideIcon } from 'lucide-react';
+import { Star, type LucideIcon } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,11 +22,11 @@ export function Section({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className="scroll-mt-24 space-y-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <section id={id} className="scroll-mt-24 space-y-3">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between px-2">
         <div>
-          <h2 className="text-xl font-semibold">{title}</h2>
-          {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+          <h2 className="text-lg font-bold text-[#1A1A1A] tracking-tight">{title}</h2>
+          {description ? <p className="text-[11px] text-muted-foreground font-medium">{description}</p> : null}
         </div>
         {actions}
       </div>
@@ -49,16 +49,21 @@ export function StatCard({
   icon: LucideIcon;
 }) {
   return (
-    <Card className="border-none bg-muted/30 shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardDescription className="text-xs uppercase tracking-widest">{title}</CardDescription>
-        <Icon className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-muted-foreground">
-          <span className="text-emerald-500 font-semibold">{change}</span> • {helper}
-        </p>
+    <Card className="overflow-hidden border-none bg-white shadow-[0_4px_20px_0_rgba(0,0,0,0.03)] rounded-[18px]">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <p className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-widest">{title}</p>
+            <div className="text-2xl font-black text-[#1A1A1A] tracking-tighter">{value}</div>
+            <p className="text-[10px] flex items-center gap-1.5 mt-1.5">
+              <span className="text-[#0F3D3E] font-extrabold bg-[#CFE8E4]/60 px-1.5 py-0.5 rounded-md">{change}</span>
+              <span className="text-muted-foreground/50 font-bold uppercase">{helper}</span>
+            </p>
+          </div>
+          <div className="h-10 w-10 rounded-xl bg-[#F4F7F6] flex items-center justify-center text-[#0F3D3E]">
+            <Icon className="h-5 w-5" />
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
@@ -67,17 +72,17 @@ export function StatCard({
 export function StatusBadge({ status }: { status: string }) {
   const map: Record<
     string,
-    { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }
+    { label: string; className: string }
   > = {
-    confirmed: { label: 'Onaylandı', variant: 'default' },
-    pending: { label: 'Beklemede', variant: 'secondary' },
-    cancelled: { label: 'İptal', variant: 'destructive' },
-    completed: { label: 'Tamamlandı', variant: 'outline' },
+    confirmed: { label: 'Onaylandı', className: 'bg-[#CFE8E4] text-[#0F3D3E] hover:bg-[#CFE8E4]/80' },
+    pending: { label: 'Beklemede', className: 'bg-amber-100 text-amber-700 hover:bg-amber-100/80' },
+    cancelled: { label: 'İptal', className: 'bg-rose-100 text-rose-700 hover:bg-rose-100/80' },
+    completed: { label: 'Tamamlandı', className: 'bg-slate-100 text-slate-700 hover:bg-slate-100/80' },
   };
 
-  const state = map[status] ?? { label: status, variant: 'outline' };
+  const state = map[status] ?? { label: status, className: 'bg-slate-100 text-slate-700' };
   return (
-    <Badge variant={state.variant} className="capitalize">
+    <Badge className={`capitalize border-none shadow-none rounded-lg px-2.5 py-0.5 font-bold text-[11px] ${state.className}`}>
       {state.label}
     </Badge>
   );
@@ -89,77 +94,91 @@ export function BooleanBadge({ value }: { value: boolean }) {
 
 export function ListingsTable({ listings }: { listings: ListingRow[] }) {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>İlan</TableHead>
-          <TableHead>Tür</TableHead>
-          <TableHead>Konum</TableHead>
-          <TableHead>Fiyat/Gün</TableHead>
-          <TableHead>Misafir</TableHead>
-          <TableHead>Puan</TableHead>
-          <TableHead>Durum</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {listings.map((listing) => (
-          <TableRow key={listing.title}>
-            <TableCell className="font-medium">{listing.title}</TableCell>
-            <TableCell className="capitalize">{listing.propertyType}</TableCell>
-            <TableCell>
-              {listing.city}, {listing.country}
-            </TableCell>
-            <TableCell>{formatCurrency(listing.pricePerNight)}</TableCell>
-            <TableCell>{listing.maxGuests}</TableCell>
-            <TableCell>{listing.rating.toFixed(2)}</TableCell>
-            <TableCell>
-              <Badge variant={listing.isActive ? 'default' : 'secondary'}>
-                {listing.isActive ? 'Aktif' : 'Pasif'}
-              </Badge>
-            </TableCell>
+    <div className="overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent border-none">
+            <TableHead className="text-[#0F3D3E]/50 font-bold uppercase text-[11px] tracking-wider py-4">İlan</TableHead>
+            <TableHead className="text-[#0F3D3E]/50 font-bold uppercase text-[11px] tracking-wider py-4">Tür</TableHead>
+            <TableHead className="text-[#0F3D3E]/50 font-bold uppercase text-[11px] tracking-wider py-4">Konum</TableHead>
+            <TableHead className="text-[#0F3D3E]/50 font-bold uppercase text-[11px] tracking-wider py-4">Fiyat/Gün</TableHead>
+            <TableHead className="text-[#0F3D3E]/50 font-bold uppercase text-[11px] tracking-wider py-4 text-center">Misafir</TableHead>
+            <TableHead className="text-[#0F3D3E]/50 font-bold uppercase text-[11px] tracking-wider py-4">Durum</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {listings.map((listing) => (
+            <TableRow key={listing.title} className="hover:bg-[#F4F7F6]/50 transition-colors border-b border-slate-100 last:border-0 group">
+              <TableCell className="py-5">
+                <div className="font-bold text-[#1A1A1A] group-hover:text-[#0F3D3E] transition-colors">{listing.title}</div>
+                <div className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                   <Star className="size-3 fill-amber-400 text-amber-400" />
+                   {listing.rating.toFixed(1)} Puan
+                </div>
+              </TableCell>
+              <TableCell className="capitalize text-sm font-medium text-slate-600">{listing.propertyType}</TableCell>
+              <TableCell className="text-sm font-medium text-slate-500">
+                {listing.city}, {listing.country}
+              </TableCell>
+              <TableCell className="font-bold text-[#1A1A1A]">{formatCurrency(listing.pricePerNight)}</TableCell>
+              <TableCell className="text-center font-bold text-slate-600">{listing.maxGuests}</TableCell>
+              <TableCell>
+                <Badge className={`border-none shadow-none rounded-lg px-2.5 py-0.5 font-bold text-[11px] ${listing.isActive ? 'bg-[#CFE8E4] text-[#0F3D3E]' : 'bg-slate-100 text-slate-500'}`}>
+                  {listing.isActive ? 'Aktif' : 'Pasif'}
+                </Badge>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
 
 export function BookingsTable({ bookings }: { bookings: BookingRow[] }) {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Rezervasyon</TableHead>
-          <TableHead>İlan</TableHead>
-          <TableHead>Tarih</TableHead>
-          <TableHead>Misafir</TableHead>
-          <TableHead>Durum</TableHead>
-          <TableHead>Final</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {bookings.map((booking) => (
-          <TableRow key={booking.id}>
-            <TableCell className="font-medium">{booking.id}</TableCell>
-            <TableCell>{booking.listing}</TableCell>
-            <TableCell>
-              {formatDate(booking.checkIn)} → {formatDate(booking.checkOut)}
-              <div className="text-xs text-muted-foreground">
-                {booking.checkInSlotStart} - {booking.checkInSlotEnd}
-              </div>
-            </TableCell>
-            <TableCell>
-              <div className="font-medium">{booking.guest}</div>
-              <div className="text-xs text-muted-foreground">{booking.guestsCount} kişi</div>
-            </TableCell>
-            <TableCell>
-              <StatusBadge status={booking.status} />
-            </TableCell>
-            <TableCell className="font-semibold">{formatCurrency(booking.finalPrice)}</TableCell>
+    <div className="overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent border-none">
+            <TableHead className="text-[#0F3D3E]/50 font-bold uppercase text-[11px] tracking-wider py-4">Misafir</TableHead>
+            <TableHead className="text-[#0F3D3E]/50 font-bold uppercase text-[11px] tracking-wider py-4">İlan / Tarih</TableHead>
+            <TableHead className="text-[#0F3D3E]/50 font-bold uppercase text-[11px] tracking-wider py-4">Durum</TableHead>
+            <TableHead className="text-[#0F3D3E]/50 font-bold uppercase text-[11px] tracking-wider py-4 text-right">Toplam</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {bookings.map((booking) => (
+            <TableRow key={booking.id} className="hover:bg-[#F4F7F6]/50 transition-colors border-b border-slate-100 last:border-0 group">
+              <TableCell className="py-5">
+                <div className="flex items-center gap-3">
+                   <div className="h-10 w-10 rounded-xl bg-[#F4F7F6] flex items-center justify-center font-bold text-[#0F3D3E]">
+                      {booking.guest.charAt(0)}
+                   </div>
+                   <div>
+                      <div className="font-bold text-[#1A1A1A] group-hover:text-[#0F3D3E] transition-colors">{booking.guest}</div>
+                      <div className="text-[11px] text-muted-foreground font-medium">{booking.guestsCount} Misafir</div>
+                   </div>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="text-sm font-bold text-slate-700">{booking.listing}</div>
+                <div className="text-[11px] text-muted-foreground font-medium mt-0.5">
+                   {formatDate(booking.checkIn)} - {formatDate(booking.checkOut)}
+                </div>
+              </TableCell>
+              <TableCell>
+                <StatusBadge status={booking.status} />
+              </TableCell>
+              <TableCell className="text-right">
+                 <div className="font-black text-[#1A1A1A]">{formatCurrency(booking.finalPrice)}</div>
+                 <div className="text-[10px] text-[#0F3D3E] font-bold uppercase tracking-tighter">İşlem Tamam</div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
 
@@ -231,18 +250,25 @@ export function ContentCard({
   title,
   description,
   children,
+  className,
 }: {
   title: string;
   description?: string;
   children: ReactNode;
+  className?: string;
 }) {
   return (
-    <Card className="border-none bg-card/50">
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        {description ? <CardDescription>{description}</CardDescription> : null}
+    <Card className={`border-none bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[22px] overflow-hidden ${className}`}>
+      <CardHeader className="px-5 pt-5 pb-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-base font-extrabold text-[#1A1A1A] tracking-tight">{title}</CardTitle>
+            {description ? <CardDescription className="text-[11px] mt-0.5 font-medium">{description}</CardDescription> : null}
+          </div>
+          <div className="h-1 w-8 rounded-full bg-[#0F3D3E]/10" />
+        </div>
       </CardHeader>
-      <CardContent>{children}</CardContent>
+      <CardContent className="px-5 pb-5">{children}</CardContent>
     </Card>
   );
 }

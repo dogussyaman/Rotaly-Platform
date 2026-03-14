@@ -33,7 +33,7 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-10 px-4 py-6 lg:px-6">
+    <div className="flex flex-1 flex-col gap-8 px-5 py-6 lg:px-7">
       <Section title="Mesajlar" description="Misafirlerinizle olan tüm iletişiminiz.">
         <div className="grid gap-4 xl:grid-cols-1">
           <ContentCard title="Konuşmalar" description="Gelen mesajlar ve aktif görüşmeler">
@@ -95,4 +95,3 @@ export default function MessagesPage() {
     </div>
   );
 }
-

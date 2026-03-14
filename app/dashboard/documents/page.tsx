@@ -4,7 +4,7 @@ import { ContentCard, Section } from '@/components/dashboard/dashboard-ui';
 
 export default function DocumentsPage() {
   return (
-    <div className="flex flex-1 flex-col gap-10 px-4 py-6 lg:px-6">
+    <div className="flex flex-1 flex-col gap-8 px-5 py-6 lg:px-7">
       <Section title="Belgeler" description="Seyahat belgeleri ve faturalar.">
         <ContentCard title="Dosyalar" description="PDF ve bilet çıktıları">
           <div className="space-y-2 text-sm">
@@ -26,4 +26,3 @@ export default function DocumentsPage() {
     </div>
   );
 }
-

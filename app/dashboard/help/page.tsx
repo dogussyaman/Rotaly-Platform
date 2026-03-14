@@ -11,7 +11,7 @@ const FAQ = [
 
 export default function HelpPage() {
   return (
-    <div className="flex flex-1 flex-col gap-10 px-4 py-6 lg:px-6">
+    <div className="flex flex-1 flex-col gap-8 px-5 py-6 lg:px-7">
       <Section title="Yardım" description="Sık sorulan sorular ve destek.">
         <div className="grid gap-4 xl:grid-cols-2">
           <ContentCard title="SSS" description="En sık gelen sorular">

@@ -5,7 +5,7 @@ import { ContentCard, Section } from '@/components/dashboard/dashboard-ui';
 
 export default function EarningsPage() {
   return (
-    <div className="flex flex-1 flex-col gap-10 px-4 py-6 lg:px-6">
+    <div className="flex flex-1 flex-col gap-8 px-5 py-6 lg:px-7">
       <Section title="Gelirler" description="Ev sahibi gelir ve vergi özetleri.">
         <div className="grid gap-4 xl:grid-cols-2">
           <ContentCard title="Gelir Dağılımı" description="Son 30 gün">
@@ -47,4 +47,3 @@ export default function EarningsPage() {
     </div>
   );
 }
-

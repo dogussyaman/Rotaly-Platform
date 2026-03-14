@@ -4,7 +4,7 @@ import { PARTNER_PROFILES } from '@/lib/mock/dashboard';
 
 export default function RolesPage() {
   return (
-    <div className="flex flex-1 flex-col gap-10 px-4 py-6 lg:px-6">
+    <div className="flex flex-1 flex-col gap-8 px-5 py-6 lg:px-7">
       <Section title="Roller & Partnerler" description="Ajans/otel ortak profilleri ve kurumsal bilgiler.">
         <ContentCard title="Partner Kayıtları" description="Vergi ve şirket bilgileri">
           <Table>
@@ -32,4 +32,3 @@ export default function RolesPage() {
     </div>
   );
 }
-

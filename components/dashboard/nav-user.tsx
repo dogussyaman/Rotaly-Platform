@@ -47,60 +47,64 @@ export function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="text-white hover:bg-white/10 active:bg-white/20 transition-colors px-3 rounded-2xl focus-visible:ring-2 focus-visible:ring-white/30"
             >
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
+              <Avatar className="h-10 w-10 rounded-xl border border-white/20">
                 <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarFallback className="rounded-xl bg-white/10 text-white font-bold">
+                  {user.name.charAt(0)}
+                </AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs text-muted-foreground">
-                  {user.email}
+              <div className="grid flex-1 text-left text-sm leading-tight ml-2">
+                <span className="truncate font-bold tracking-tight">{user.name}</span>
+                <span className="truncate text-[10px] text-white/50 uppercase font-black">
+                  Premium Hesap
                 </span>
               </div>
-              <MoreVerticalIcon className="ml-auto size-4" />
+              <MoreVerticalIcon className="ml-auto size-4 opacity-50" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-64 rounded-2xl p-2 shadow-2xl border-none backdrop-blur-xl bg-white/95"
             side={isMobile ? "bottom" : "right"}
             align="end"
-            sideOffset={4}
+            sideOffset={12}
           >
             <DropdownMenuLabel className="p-0 font-normal">
-              <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 rounded-lg">
+              <div className="flex items-center gap-3 px-3 py-3 text-left">
+                <Avatar className="h-10 w-10 rounded-xl">
                   <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarFallback className="rounded-xl bg-[#0F3D3E] text-white font-bold">
+                    {user.name.charAt(0)}
+                  </AvatarFallback>
                 </Avatar>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs text-muted-foreground">
+                <div className="grid flex-1 text-sm leading-tight">
+                  <span className="truncate font-bold text-[#1A1A1A]">{user.name}</span>
+                  <span className="truncate text-xs text-muted-foreground font-medium">
                     {user.email}
                   </span>
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="my-2" />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <UserCircleIcon />
-                Account
+              <DropdownMenuItem className="rounded-xl px-4 py-2.5 font-semibold text-[#1A1A1A] focus:bg-[#F4F7F6]">
+                <UserCircleIcon className="mr-2 h-4 w-4" />
+                Hesabım
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCardIcon />
-                Billing
+              <DropdownMenuItem className="rounded-xl px-4 py-2.5 font-semibold text-[#1A1A1A] focus:bg-[#F4F7F6]">
+                <CreditCardIcon className="mr-2 h-4 w-4" />
+                Ödemeler
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <BellIcon />
-                Notifications
+              <DropdownMenuItem className="rounded-xl px-4 py-2.5 font-semibold text-[#1A1A1A] focus:bg-[#F4F7F6]">
+                <BellIcon className="mr-2 h-4 w-4" />
+                Bildirimler
               </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOutIcon />
-              Log out
+            <DropdownMenuSeparator className="my-2" />
+            <DropdownMenuItem className="rounded-xl px-4 py-2.5 font-bold text-destructive focus:bg-destructive/5 cursor-pointer">
+              <LogOutIcon className="mr-2 h-4 w-4" />
+              Çıkış Yap
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

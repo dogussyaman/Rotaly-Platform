@@ -4,7 +4,7 @@ import { LOYALTY_ACCOUNTS, LOYALTY_TRANSACTIONS } from '@/lib/mock/dashboard';
 
 export default function LoyaltyPage() {
   return (
-    <div className="flex flex-1 flex-col gap-10 px-4 py-6 lg:px-6">
+    <div className="flex flex-1 flex-col gap-8 px-5 py-6 lg:px-7">
       <Section title="Sadakat" description="Puan bakiyeleri ve hareketleri.">
         <div className="grid gap-4 xl:grid-cols-2">
           <ContentCard title="Hesaplar" description="loyalty_accounts tablosu">
@@ -55,4 +55,3 @@ export default function LoyaltyPage() {
     </div>
   );
 }
-

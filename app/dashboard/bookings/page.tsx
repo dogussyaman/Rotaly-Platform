@@ -39,7 +39,7 @@ export default function BookingsPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-10 px-4 py-6 lg:px-6">
+    <div className="flex flex-1 flex-col gap-8 px-5 py-6 lg:px-7">
       <Section title="Rezervasyonlar" description="Giriş/çıkış, ödeme ve durum takibi.">
         <div className="grid gap-4 xl:grid-cols-2">
           <ContentCard title="Rezervasyon Listesi" description="Giriş ve çıkış tarihleri">

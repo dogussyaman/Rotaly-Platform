@@ -37,11 +37,17 @@ export function NavDocuments({
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Documents</SidebarGroupLabel>
-      <SidebarMenu>
+      <SidebarGroupLabel className="text-white/50 font-bold uppercase tracking-widest text-[10px] px-3">
+        Belgeler
+      </SidebarGroupLabel>
+      <SidebarMenu className="px-2 gap-1">
         {items.map((item) => (
           <SidebarMenuItem key={item.name}>
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton
+              tooltip={item.name}
+              asChild
+              className="text-white/70 hover:text-white hover:bg-white/10 rounded-2xl px-3 h-9 focus-visible:ring-2 focus-visible:ring-white/30"
+            >
               <Link href={item.url}>
                 <item.icon />
                 <span>{item.name}</span>
@@ -51,7 +57,7 @@ export function NavDocuments({
               <DropdownMenuTrigger asChild>
                 <SidebarMenuAction
                   showOnHover
-                  className="rounded-sm data-[state=open]:bg-accent"
+                  className="rounded-xl data-[state=open]:bg-white/10 text-white/80 hover:text-white"
                 >
                   <MoreHorizontalIcon />
                   <span className="sr-only">More</span>
@@ -74,12 +80,6 @@ export function NavDocuments({
             </DropdownMenu>
           </SidebarMenuItem>
         ))}
-        <SidebarMenuItem>
-          <SidebarMenuButton className="text-sidebar-foreground/70">
-            <MoreHorizontalIcon className="text-sidebar-foreground/70" />
-            <span>More</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
   )

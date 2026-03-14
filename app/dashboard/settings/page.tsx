@@ -7,7 +7,7 @@ import { ContentCard, Section } from '@/components/dashboard/dashboard-ui';
 
 export default function SettingsPage() {
   return (
-    <div className="flex flex-1 flex-col gap-10 px-4 py-6 lg:px-6">
+    <div className="flex flex-1 flex-col gap-8 px-5 py-6 lg:px-7">
       <Section title="Ayarlar" description="Panel tercihleri ve hesap ayarları.">
         <div className="grid gap-4 xl:grid-cols-2">
           <ContentCard title="Genel" description="Görünüm ve bildirim tercihleri">
@@ -37,4 +37,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-

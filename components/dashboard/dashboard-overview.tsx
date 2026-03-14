@@ -26,16 +26,16 @@ function QuickLink({
   href: string;
 }) {
   return (
-    <Card className="border-none bg-card/50">
-      <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+    <Card className="border-none bg-white shadow-[0_4px_20px_0_rgba(0,0,0,0.03)] rounded-[24px] overflow-hidden group hover:shadow-[0_8px_30px_0_rgba(0,0,0,0.06)] transition-all">
+      <CardHeader className="p-5 pb-2">
+        <CardTitle className="text-base font-bold text-[#1A1A1A]">{title}</CardTitle>
+        <CardDescription className="text-xs">{description}</CardDescription>
       </CardHeader>
-      <CardContent>
-        <Button asChild variant="outline" className="w-full justify-between">
+      <CardContent className="p-5 pt-2">
+        <Button asChild variant="ghost" className="w-full justify-between hover:bg-[#F4F7F6] text-[#0F3D3E] font-bold rounded-xl group-hover:px-6 transition-all">
           <Link href={href}>
-            Aç
-            <span aria-hidden>→</span>
+            Git
+            <span aria-hidden className="group-hover:translate-x-1 transition-transform">→</span>
           </Link>
         </Button>
       </CardContent>
@@ -81,28 +81,28 @@ export function DashboardOverview() {
               { 
                 title: 'Bu Ay Gelir', 
                 value: `₺${hostStats.thisMonthEarnings.toLocaleString('tr-TR')}`, 
-                change: '', 
-                helper: 'Net kazanç',
+                change: '+%12', 
+                helper: 'Geçen aya göre',
                 icon: HOST_ICONS[0]
               },
               { 
                 title: 'Yaklaşan Giriş', 
                 value: hostStats.upcomingCheckins.toString(), 
-                change: '', 
+                change: '3 Yeni', 
                 helper: 'Gelecek 7 gün',
                 icon: HOST_ICONS[1]
               },
               { 
                 title: 'Ortalama Puan', 
                 value: hostStats.averageRating.toFixed(1), 
-                change: '', 
-                helper: `${hostStats.reviewCount} değerlendirme`,
+                change: '★ 4.9', 
+                helper: `${hostStats.reviewCount} yorum`,
                 icon: HOST_ICONS[2]
               },
               { 
                 title: 'Yeni Mesaj', 
                 value: hostStats.unreadMessages.toString(), 
-                change: '', 
+                change: 'Acil', 
                 helper: 'Okunmamış',
                 icon: HOST_ICONS[3]
               },
@@ -141,10 +141,10 @@ export function DashboardOverview() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-10 px-4 py-6 lg:px-6">
+    <div className="flex flex-1 flex-col gap-6 px-5 py-6 lg:px-8 bg-[#F4F7F6]/50">
       <Section
-        title={role === 'admin' ? 'Genel Bakış' : role === 'host' ? 'Ev Sahibi Özeti' : 'Seyahat Özeti'}
-        description="Önemli metrikler ve hızlı erişim alanları."
+        title={role === 'admin' ? 'Genel Bakış' : role === 'host' ? 'Yönetim Paneli' : 'Seyahat Özeti'}
+        description="Platform üzerindeki güncel durumunuz ve önemli bildirimler."
       >
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {stats.map((stat) => (
@@ -153,15 +153,41 @@ export function DashboardOverview() {
         </div>
       </Section>
 
-      <Separator />
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+         <Card className="xl:col-span-2 border-none bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[24px] overflow-hidden p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-extrabold text-[#1A1A1A]">Rezervasyon Takvimi</h3>
+                <p className="text-[13px] text-muted-foreground mt-1">Doluluk oranı ve giriş/çıkış planı</p>
+              </div>
+              <Button variant="outline" className="h-9 rounded-xl border-[#0F3D3E]/20 text-[#0F3D3E] font-bold">Tümünü Gör</Button>
+            </div>
+            {/* Calendar UI Placeholder based on image */}
+            <div className="h-[260px] w-full bg-[#F4F7F6] rounded-2xl flex items-center justify-center border border-dashed border-[#0F3D3E]/10">
+               <div className="text-center">
+                 <Calendar className="h-10 w-10 text-[#0F3D3E]/30 mx-auto mb-2" />
+                 <p className="text-sm font-medium text-muted-foreground">Takvim Görünümü Yükleniyor...</p>
+               </div>
+            </div>
+         </Card>
 
-      <Section title="Hızlı Erişim" description="En sık kullanılan sayfalara tek tıkla ulaşın.">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {links.map((link) => (
-            <QuickLink key={link.href} {...link} />
-          ))}
-        </div>
-      </Section>
+         <Card className="border-none bg-[#0F3D3E] shadow-2xl rounded-[24px] overflow-hidden p-6 text-white relative">
+            <div className="relative z-10">
+               <h3 className="text-lg font-extrabold mb-2">Hızlı İşlemler</h3>
+               <p className="text-[13px] text-white/60 mb-6">İşlemlerinizi hızlıca gerçekleştirin</p>
+               <div className="space-y-4">
+                  {links.map((link) => (
+                    <Link key={link.href} href={link.href} className="flex items-center justify-between p-3 bg-white/10 rounded-2xl hover:bg-white/20 transition-colors border border-white/5">
+                       <span className="font-bold">{link.title}</span>
+                       <span className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center">→</span>
+                    </Link>
+                  ))}
+               </div>
+            </div>
+            <div className="absolute top-0 right-0 h-32 w-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+            <div className="absolute bottom-0 left-0 h-48 w-48 bg-white/5 rounded-full -ml-24 -mb-24 blur-3xl"></div>
+         </Card>
+      </div>
     </div>
   );
 }
