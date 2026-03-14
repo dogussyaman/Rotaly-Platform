@@ -53,7 +53,6 @@ export default function SearchPage() {
     if (cout) setCheckOut(new Date(cout));
   }, [searchParams, setLocation, setGuests, setCheckIn, setCheckOut]);
 
-  // Supabase'den veri çek — filtreler değişince yeniden çek
   const loadListings = useCallback(async () => {
     setLoading(true);
     const data = await fetchListings({
@@ -73,7 +72,6 @@ export default function SearchPage() {
     loadListings();
   }, [loadListings]);
 
-  // Client-side sıralama
   const sortedListings = useMemo(() => {
     const sorted = [...listings];
     switch (sortBy) {
@@ -88,13 +86,31 @@ export default function SearchPage() {
     }
   }, [listings, sortBy]);
 
+  const [wasFiltersOpen, setWasFiltersOpen] = useState(true);
+
+  const toggleMap = useCallback(() => {
+    setShowMap((prev) => {
+      const isOpening = !prev;
+      if (isOpening) {
+        // Harita açılırken o anki filtre durumunu kaydet
+        setWasFiltersOpen(showFilters);
+        setShowFilters(false);
+      } else {
+        // Harita kapanırken eğer öncesinde filtreler açıksa geri aç
+        if (wasFiltersOpen) {
+          setShowFilters(true);
+        }
+      }
+      return isOpening;
+    });
+  }, [showFilters, wasFiltersOpen]);
+
   return (
     <div className="min-h-screen bg-background">
       <SearchHeader />
 
       <div className="pt-24 pb-16 px-4">
-        <div className="max-w-7xl mx-auto space-y-6">
-          {/* Search form (navbar altında, home'daki hero search'e benzer) */}
+        <div className="max-w-[1600px] mx-auto space-y-6">
           <motion.div
             id="hero-search-bar"
             initial={{ opacity: 0, y: 10 }}
@@ -106,8 +122,6 @@ export default function SearchPage() {
             </div>
           </motion.div>
 
-
-          {/* Filters & Controls */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -181,25 +195,23 @@ export default function SearchPage() {
                 variant={showMap ? 'secondary' : 'outline'}
                 size="sm"
                 className="h-10 px-4 rounded-xl border-border/60 font-bold gap-2 hidden sm:flex"
-                onClick={() => setShowMap((v) => !v)}
+                onClick={toggleMap}
               >
                 {showMap ? (t.searchShowList as string) : (t.searchShowMap as string)}
               </Button>
             </div>
           </motion.div>
 
-          {/* Main Content */}
-          <div className="flex gap-6">
+          <div className="flex gap-6 items-start">
             <div className="flex-1 flex gap-6 items-start">
-              {/* Sidebar Filters */}
-              <AnimatePresence>
+              <AnimatePresence mode="popLayout">
                 {showFilters && (
                   <motion.div
                     initial={{ opacity: 0, width: 0, x: -20 }}
                     animate={{ opacity: 1, width: 280, x: 0 }}
                     exit={{ opacity: 0, width: 0, x: -20 }}
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
-                    className="overflow-hidden flex-shrink-0"
+                    transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                    className="overflow-hidden shrink-0"
                   >
                     <div className="w-[280px]">
                       <FilterSidebar />
@@ -208,8 +220,8 @@ export default function SearchPage() {
                 )}
               </AnimatePresence>
 
-              {/* Listings Grid/List */}
               <motion.div
+                layout
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.4 }}
@@ -227,15 +239,16 @@ export default function SearchPage() {
                         ? 'space-y-4'
                         : showMap
                           ? 'grid grid-cols-1 sm:grid-cols-2 gap-6'
-                          : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
+                          : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6'
                     }
                   >
-                    {sortedListings.map((listing, index) => (
+                    {sortedListings.map((listing) => (
                       <motion.div
+                        layout
                         key={listing.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
                       >
                         <Link href={`/listing/${listing.id}`}>
                           <ListingCard {...listing} layout={viewMode} />
@@ -261,11 +274,24 @@ export default function SearchPage() {
               </motion.div>
             </div>
 
-            {showMap && (
-              <div className="hidden lg:block w-[420px] h-[calc(100vh-220px)] sticky top-28 rounded-3xl border border-border overflow-hidden bg-card shadow-xl">
-                <SearchMap listings={sortedListings} />
-              </div>
-            )}
+            <AnimatePresence>
+              {showMap && (
+                <motion.div 
+                  layout
+                  initial={{ opacity: 0, x: 20, width: 0 }}
+                  animate={{ 
+                    opacity: 1, 
+                    x: 0, 
+                    width: showFilters ? 420 : 600 
+                  }}
+                  exit={{ opacity: 0, x: 20, width: 0 }}
+                  transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                  className="hidden lg:block h-[calc(100vh-220px)] sticky top-28 rounded-3xl border border-border overflow-hidden bg-card shadow-xl"
+                >
+                  <SearchMap listings={sortedListings} />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>
