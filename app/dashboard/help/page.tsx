@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { Button } from '@/components/ui/button';
 import { ContentCard, Section } from '@/components/dashboard/dashboard-ui';
 
@@ -29,7 +31,7 @@ export default function HelpPage() {
                 Canlı destek ve ticket sistemi yakında eklenecek. Şimdilik iletişim sayfasını kullanabilirsiniz.
               </p>
               <Button asChild variant="outline" className="rounded-xl">
-                <a href="/contact">İletişim</a>
+                <Link href="/contact">İletişim</Link>
               </Button>
             </div>
           </ContentCard>
@@ -38,4 +40,3 @@ export default function HelpPage() {
     </div>
   );
 }
-

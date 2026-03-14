@@ -1,12 +1,14 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { AppSidebar } from '@/components/dashboard/app-sidebar';
 import { SiteHeader } from '@/components/dashboard/site-header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { useAppSelector } from '@/lib/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
+import { fetchUserProfile } from '@/lib/store/slices/user-slice';
 
 function getHeaderTitle(pathname: string, role: 'admin' | 'host' | 'guest') {
   if (pathname === '/dashboard') {
@@ -47,10 +49,24 @@ function getHeaderTitle(pathname: string, role: 'admin' | 'host' | 'guest') {
 
 export default function DashboardLayoutClient({ children }: { children: ReactNode }) {
   const { profile, loading, initialized } = useAppSelector((s) => s.user);
+  const dispatch = useAppDispatch();
   const router = useRouter();
   const pathname = usePathname();
 
-  if (!initialized || loading) {
+  useEffect(() => {
+    if (!initialized && !loading) {
+      void dispatch(fetchUserProfile());
+    }
+  }, [dispatch, initialized, loading]);
+
+  useEffect(() => {
+    if (initialized && !loading && !profile) {
+      router.replace('/auth/login');
+    }
+  }, [initialized, loading, profile, router]);
+
+  // Only block the UI on the initial auth/profile bootstrap.
+  if (!initialized) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
@@ -59,7 +75,6 @@ export default function DashboardLayoutClient({ children }: { children: ReactNod
   }
 
   if (!profile) {
-    router.replace('/auth/login');
     return null;
   }
 

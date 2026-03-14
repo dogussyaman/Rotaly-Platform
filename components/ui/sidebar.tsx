@@ -4,6 +4,7 @@ import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { cva, VariantProps } from 'class-variance-authority'
 import { PanelLeftIcon } from 'lucide-react'
+import { motion, useReducedMotion } from 'framer-motion'
 
 import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
@@ -31,6 +32,10 @@ const SIDEBAR_WIDTH = '16rem'
 const SIDEBAR_WIDTH_MOBILE = '18rem'
 const SIDEBAR_WIDTH_ICON = '3rem'
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b'
+
+const SIDEBAR_LAYOUT_TRANSITION = {
+  layout: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+} as const
 
 type SidebarContextProps = {
   state: 'expanded' | 'collapsed'
@@ -164,6 +169,7 @@ function Sidebar({
   collapsible?: 'offcanvas' | 'icon' | 'none'
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+  const reduceMotion = useReducedMotion()
 
   if (collapsible === 'none') {
     return (
@@ -215,10 +221,12 @@ function Sidebar({
       data-slot="sidebar"
     >
       {/* This is what handles the sidebar gap on desktop */}
-      <div
+      <motion.div
         data-slot="sidebar-gap"
+        layout={!reduceMotion}
+        transition={SIDEBAR_LAYOUT_TRANSITION}
         className={cn(
-          'relative w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear',
+          'relative w-(--sidebar-width) bg-transparent',
           'group-data-[collapsible=offcanvas]:w-0',
           'group-data-[side=right]:rotate-180',
           variant === 'floating' || variant === 'inset'
@@ -226,10 +234,12 @@ function Sidebar({
             : 'group-data-[collapsible=icon]:w-(--sidebar-width-icon)',
         )}
       />
-      <div
+      <motion.div
         data-slot="sidebar-container"
+        layout={!reduceMotion}
+        transition={SIDEBAR_LAYOUT_TRANSITION}
         className={cn(
-          'fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex',
+          'fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) md:flex',
           side === 'left'
             ? 'left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]'
             : 'right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]',
@@ -248,7 +258,7 @@ function Sidebar({
         >
           {children}
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }

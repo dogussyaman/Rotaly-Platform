@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,7 @@ export default function BookingDetailPage({ params }: { params: { id: string } }
         description={`${formatDate(booking.checkIn)} → ${formatDate(booking.checkOut)} • ${booking.guestsCount} kişi`}
         actions={
           <Button asChild variant="outline">
-            <a href="/dashboard/bookings">Geri Dön</a>
+            <Link href="/dashboard/bookings">Geri Dön</Link>
           </Button>
         }
       >
@@ -92,4 +93,3 @@ export default function BookingDetailPage({ params }: { params: { id: string } }
     </div>
   );
 }
-

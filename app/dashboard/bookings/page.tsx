@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
@@ -25,9 +27,9 @@ export default function BookingsPage() {
                 {BOOKINGS.map((booking) => (
                   <TableRow key={booking.id}>
                     <TableCell className="font-medium">
-                      <a href={`/dashboard/bookings/${booking.id}`} className="underline underline-offset-4">
+                      <Link href={`/dashboard/bookings/${booking.id}`} className="underline underline-offset-4">
                         {booking.id}
-                      </a>
+                      </Link>
                     </TableCell>
                     <TableCell>{booking.listing}</TableCell>
                     <TableCell>

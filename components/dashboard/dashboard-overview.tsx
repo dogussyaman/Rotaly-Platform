@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { Calendar, Gift, Heart, Home, MessageSquare, Star, TicketPercent, Users } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -30,10 +31,10 @@ function QuickLink({
       </CardHeader>
       <CardContent>
         <Button asChild variant="outline" className="w-full justify-between">
-          <a href={href}>
+          <Link href={href}>
             Aç
             <span aria-hidden>→</span>
-          </a>
+          </Link>
         </Button>
       </CardContent>
     </Card>
@@ -98,4 +99,3 @@ export function DashboardOverview() {
     </div>
   );
 }
-
