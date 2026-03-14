@@ -31,6 +31,8 @@ export interface HostStats {
   averageRating: number;
   reviewCount: number;
   responseRate: number;
+  upcomingCheckins: number;
+  unreadMessages: number;
 }
 
 export interface HostBooking {
@@ -72,11 +74,13 @@ export async function fetchHostByUserId(userId: string): Promise<HostProfile | n
     return null;
   }
 
+  const profile = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles;
+
   return {
     hostId: data.id,
     userId: data.user_id,
-    fullName: data.profiles?.full_name ?? null,
-    avatarUrl: data.profiles?.avatar_url ?? null,
+    fullName: profile?.full_name ?? null,
+    avatarUrl: profile?.avatar_url ?? null,
     responseRate: Number(data.response_rate ?? 0),
     responseTime: data.response_time ?? null,
     superhost: !!data.superhost,
@@ -140,10 +144,10 @@ export async function fetchHostListings(hostId: string): Promise<HostListingCard
   });
 }
 
-export async function fetchHostStats(hostId: string): Promise<HostStats> {
+export async function fetchHostStats(hostId: string, userId: string): Promise<HostStats> {
   const supabase = createClient();
 
-  // Toplam kazanç ve rezervasyon
+  // Toplam kazanç ve rezervasyonlar
   const { data: bookingAgg, error: bookingError } = await supabase
     .from('bookings')
     .select(
@@ -161,21 +165,33 @@ export async function fetchHostStats(hostId: string): Promise<HostStats> {
   let totalEarnings = 0;
   let thisMonthEarnings = 0;
   let bookings = 0;
+  let upcomingCheckins = 0;
 
   if (!bookingError && bookingAgg) {
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth();
+    
+    // Gelecek 7 günü hesapla
+    const nextWeek = new Date();
+    nextWeek.setDate(now.getDate() + 7);
+    nextWeek.setHours(23, 59, 59, 999); // End of the 7th day
 
     for (const row of bookingAgg as any[]) {
       const amount = Number(row.total_price ?? 0);
+      const checkInDate = new Date(row.check_in);
+
       if (row.status === 'confirmed' || row.status === 'completed') {
         totalEarnings += amount;
         bookings += 1;
 
-        const d = new Date(row.check_in);
-        if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) {
+        if (checkInDate.getFullYear() === currentYear && checkInDate.getMonth() === currentMonth) {
           thisMonthEarnings += amount;
+        }
+
+        // Önümüzdeki 7 gün içindeki girişler
+        if (row.status === 'confirmed' && checkInDate >= now && checkInDate <= nextWeek) {
+          upcomingCheckins += 1;
         }
       }
     }
@@ -200,13 +216,33 @@ export async function fetchHostStats(hostId: string): Promise<HostStats> {
 
   const averageRating = reviewCount > 0 ? ratingSum / reviewCount : 0;
 
+  // Okunmamış mesaj sayısı
+  const { count: unreadMessages, error: unreadError } = await supabase
+    .from('messages')
+    .select('*', { count: 'exact', head: true })
+    .eq('receiver_id', userId)
+    .eq('is_read', false);
+
+  if (unreadError) {
+    console.error('fetchHostStats unreadMessages error:', unreadError.message);
+  }
+
+  // Host response rate bilgisini getir
+  const { data: hostData } = await supabase
+    .from('hosts')
+    .select('response_rate')
+    .eq('id', hostId)
+    .single();
+
   return {
     totalEarnings,
     thisMonthEarnings,
     bookings,
     averageRating,
     reviewCount,
-    responseRate: 98, // Henüz gerçek hesap yok, host tablosundaki değere yaklaşıyoruz
+    responseRate: Number(hostData?.response_rate ?? 98),
+    upcomingCheckins,
+    unreadMessages: unreadMessages ?? 0,
   };
 }
 
@@ -278,4 +314,40 @@ export async function updateHostBookingStatus(
 
   return true;
 }
+export interface HostAvailability {
+  listingTitle: string;
+  date: string;
+  isAvailable: boolean;
+  customPrice: number | null;
+}
 
+export async function fetchHostAvailability(hostId: string): Promise<HostAvailability[]> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from('availability_calendar')
+    .select(
+      `
+        date,
+        is_available,
+        custom_price,
+        listings!inner (
+          title
+        )
+      `
+    )
+    .eq('listings.host_id', hostId)
+    .order('date', { ascending: true });
+
+  if (error) {
+    console.error('fetchHostAvailability error:', error.message);
+    return [];
+  }
+
+  return (data ?? []).map((row: any) => ({
+    listingTitle: row.listings?.title ?? 'Adsız İlan',
+    date: row.date,
+    isAvailable: row.is_available,
+    customPrice: row.custom_price ? Number(row.custom_price) : null,
+  }));
+}

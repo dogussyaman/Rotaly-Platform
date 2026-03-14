@@ -39,16 +39,28 @@ const mapStyles = `
     z-index: 1000 !important;
   }
   .marker-cluster {
-    background: rgba(255, 255, 255, 0.6) !important;
-    backdrop-filter: blur(4px);
-    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(10px);
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
   }
   .marker-cluster div {
+    width: 40px !important;
+    height: 40px !important;
+    margin-left: 0 !important;
+    margin-top: -0.5px !important;
     background: #000 !important;
     color: #fff !important;
-    border-radius: 50%;
+    border-radius: 50% !important;
     font-weight: 800;
-    font-size: 12px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    border: 2px solid rgba(255,255,255,0.2);
   }
   .leaflet-popup-content-wrapper {
     padding: 0;
