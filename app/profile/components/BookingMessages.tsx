@@ -9,6 +9,7 @@ import {
   getOrCreateConversation, 
   type ChatMessage 
 } from '@/lib/supabase/messages';
+import { useMessagesRealtime } from '@/lib/supabase/use-messages-realtime';
 import { format } from 'date-fns';
 import { useLocale } from '@/lib/i18n/locale-context';
 import { dateFnsLocale } from '@/lib/i18n/format';
@@ -44,6 +45,10 @@ export function BookingMessages({ bookingId, guestId, hostUserId, onClose }: Boo
     initChat();
   }, [guestId, hostUserId]);
 
+  useMessagesRealtime(conversationId, guestId, (msg) => {
+    setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
+  });
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -62,9 +67,11 @@ export function BookingMessages({ bookingId, guestId, hostUserId, onClose }: Boo
     });
 
     if (msg) {
-      setMessages(prev => [...prev, msg]);
+      setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
       setInputText('');
     }
+    const fresh = await fetchMessages(conversationId, guestId);
+    setMessages(fresh);
     setSending(false);
   };
 

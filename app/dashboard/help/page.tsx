@@ -11,15 +11,15 @@ const FAQ = [
 
 export default function HelpPage() {
   return (
-    <div className="flex flex-1 flex-col gap-8 px-5 py-6 lg:px-7">
-      <Section title="Yardım" description="Sık sorulan sorular ve destek.">
-        <div className="grid gap-4 xl:grid-cols-2">
+    <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+      <Section title="" description="">
+        <div className="grid gap-6 xl:grid-cols-2">
           <ContentCard title="SSS" description="En sık gelen sorular">
             <div className="space-y-4">
               {FAQ.map((item) => (
                 <div key={item.q}>
-                  <p className="font-medium">{item.q}</p>
-                  <p className="text-sm text-muted-foreground">{item.a}</p>
+                  <p className="text-sm font-medium text-[#111]">{item.q}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{item.a}</p>
                 </div>
               ))}
             </div>
@@ -30,7 +30,7 @@ export default function HelpPage() {
               <p className="text-muted-foreground">
                 Canlı destek ve ticket sistemi yakında eklenecek. Şimdilik iletişim sayfasını kullanabilirsiniz.
               </p>
-              <Button asChild variant="outline" className="rounded-xl">
+              <Button asChild variant="outline" size="sm" className="rounded-lg border-[#0d9488] text-[#0d9488] hover:bg-[#f0fdfa]">
                 <Link href="/contact">İletişim</Link>
               </Button>
             </div>

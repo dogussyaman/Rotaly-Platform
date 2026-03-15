@@ -34,7 +34,7 @@ const SIDEBAR_WIDTH_ICON = '3rem'
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b'
 
 const SIDEBAR_LAYOUT_TRANSITION = {
-  layout: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+  layout: { duration: 0.22, ease: [0.32, 0.72, 0, 1] },
 } as const
 
 type SidebarContextProps = {
@@ -225,8 +225,9 @@ function Sidebar({
         data-slot="sidebar-gap"
         layout={!reduceMotion}
         transition={SIDEBAR_LAYOUT_TRANSITION}
+        style={{ willChange: reduceMotion ? 'auto' : 'width' }}
         className={cn(
-          'relative w-(--sidebar-width) bg-transparent',
+          'relative w-(--sidebar-width) bg-transparent shrink-0',
           'group-data-[collapsible=offcanvas]:w-0',
           'group-data-[side=right]:rotate-180',
           variant === 'floating' || variant === 'inset'
@@ -238,6 +239,7 @@ function Sidebar({
         data-slot="sidebar-container"
         layout={!reduceMotion}
         transition={SIDEBAR_LAYOUT_TRANSITION}
+        style={{ willChange: reduceMotion ? 'auto' : 'width' }}
         className={cn(
           'fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) md:flex',
           side === 'left'
@@ -254,7 +256,7 @@ function Sidebar({
         <div
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
-          className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
+          className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full min-w-0 flex-col overflow-hidden group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
         >
           {children}
         </div>

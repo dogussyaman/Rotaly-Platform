@@ -2,69 +2,78 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Calendar, Gift, Heart, Home, MessageSquare, Star, TicketPercent, Users, Loader2 } from 'lucide-react';
+import { Calendar, Gift, Home, MessageSquare, Star, Users, Loader2, ArrowRight } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { useAppSelector } from '@/lib/store/hooks';
-import { ADMIN_STATS, GUEST_STATS } from '@/lib/mock/dashboard';
 import { Section, StatCard } from '@/components/dashboard/dashboard-ui';
-import { fetchHostByUserId, fetchHostStats, HostStats } from '@/lib/supabase/host';
+import { fetchHostByUserId, fetchHostStats, fetchHostBookings, type HostBooking, HostStats } from '@/lib/supabase/host';
+import { fetchAdminStats, type AdminStatRow } from '@/lib/supabase/dashboard-stats';
+
+const WEEKDAYS = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+
+function getDaysInMonth(month: Date): (Date | null)[] {
+  const y = month.getFullYear();
+  const m = month.getMonth();
+  const first = new Date(y, m, 1);
+  const last = new Date(y, m + 1, 0);
+  const startPad = (first.getDay() + 6) % 7;
+  const days: (Date | null)[] = Array(startPad).fill(null);
+  for (let d = 1; d <= last.getDate(); d++) days.push(new Date(y, m, d));
+  return days;
+}
 
 const ADMIN_ICONS = [Users, Home, Calendar, Star] as const;
 const HOST_ICONS = [Gift, Calendar, Star, MessageSquare] as const;
-const GUEST_ICONS = [Calendar, Heart, Gift, TicketPercent] as const;
 
-function QuickLink({
-  title,
-  description,
-  href,
-}: {
-  title: string;
-  description: string;
-  href: string;
-}) {
+function QuickLink({ title, description, href }: { title: string; description: string; href: string }) {
   return (
-    <Card className="border-none bg-white shadow-[0_4px_20px_0_rgba(0,0,0,0.03)] rounded-[24px] overflow-hidden group hover:shadow-[0_8px_30px_0_rgba(0,0,0,0.06)] transition-all">
-      <CardHeader className="p-5 pb-2">
-        <CardTitle className="text-base font-bold text-[#1A1A1A]">{title}</CardTitle>
-        <CardDescription className="text-xs">{description}</CardDescription>
-      </CardHeader>
-      <CardContent className="p-5 pt-2">
-        <Button asChild variant="ghost" className="w-full justify-between hover:bg-[#F4F7F6] text-[#0F3D3E] font-bold rounded-xl group-hover:px-6 transition-all">
-          <Link href={href}>
-            Git
-            <span aria-hidden className="group-hover:translate-x-1 transition-transform">→</span>
-          </Link>
-        </Button>
-      </CardContent>
-    </Card>
+    <Link
+      href={href}
+      className="flex items-center justify-between rounded-xl border border-[#e5e7eb] bg-white/90 px-4 py-3 shadow-[0_1px_2px_0_rgba(0,0,0,0.04)] transition-colors hover:border-[#99f6e4] hover:bg-[#f0fdfa]/80 hover:shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]"
+    >
+      <div>
+        <span className="text-sm font-semibold text-[#111]">{title}</span>
+        <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+      </div>
+      <ArrowRight className="h-4 w-4 shrink-0 text-[#0d9488]" />
+    </Link>
   );
 }
 
 export function DashboardOverview() {
   const { profile } = useAppSelector((s) => s.user);
   const [hostStats, setHostStats] = useState<HostStats | null>(null);
+  const [hostBookings, setHostBookings] = useState<HostBooking[]>([]);
+  const [adminStats, setAdminStats] = useState<AdminStatRow[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const role: 'admin' | 'host' | 'guest' = profile?.isAdmin ? 'admin' : profile?.isHost ? 'host' : 'guest';
+  const role: 'admin' | 'host' = profile?.isAdmin ? 'admin' : 'host';
 
   useEffect(() => {
     async function loadStats() {
-      if (role === 'host' && profile?.id) {
-        try {
+      if (!profile?.id) {
+        setLoading(false);
+        return;
+      }
+      try {
+        if (role === 'host') {
           const host = await fetchHostByUserId(profile.id);
           if (host) {
-            const stats = await fetchHostStats(host.hostId, profile.id);
+            const [stats, bookings] = await Promise.all([
+              fetchHostStats(host.hostId, profile.id),
+              fetchHostBookings(host.hostId),
+            ]);
             setHostStats(stats);
+            setHostBookings(bookings);
           }
-        } catch (error) {
-          console.error('Error loading host stats:', error);
-        } finally {
-          setLoading(false);
+        } else {
+          const stats = await fetchAdminStats();
+          setAdminStats(stats);
         }
-      } else {
+      } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+      } finally {
         setLoading(false);
       }
     }
@@ -72,43 +81,55 @@ export function DashboardOverview() {
     loadStats();
   }, [role, profile?.id]);
 
+  const calendarMonth = new Date();
+  const daysWithBookings = new Set<string>();
+  hostBookings.forEach((b) => {
+    const start = new Date(b.checkIn);
+    const end = new Date(b.checkOut);
+    for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
+      daysWithBookings.add(d.toISOString().slice(0, 10));
+    }
+  });
+  const upcomingBookings = hostBookings
+    .filter((b) => b.status === 'confirmed' && new Date(b.checkIn) >= new Date())
+    .sort((a, b) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime())
+    .slice(0, 5);
+
   const stats =
     role === 'admin'
-      ? ADMIN_STATS.map((stat, index) => ({ ...stat, icon: ADMIN_ICONS[index] }))
-      : role === 'host'
-        ? hostStats 
-          ? [
-              { 
-                title: 'Bu Ay Gelir', 
-                value: `₺${hostStats.thisMonthEarnings.toLocaleString('tr-TR')}`, 
-                change: '+%12', 
-                helper: 'Geçen aya göre',
-                icon: HOST_ICONS[0]
-              },
-              { 
-                title: 'Yaklaşan Giriş', 
-                value: hostStats.upcomingCheckins.toString(), 
-                change: '3 Yeni', 
-                helper: 'Gelecek 7 gün',
-                icon: HOST_ICONS[1]
-              },
-              { 
-                title: 'Ortalama Puan', 
-                value: hostStats.averageRating.toFixed(1), 
-                change: '★ 4.9', 
-                helper: `${hostStats.reviewCount} yorum`,
-                icon: HOST_ICONS[2]
-              },
-              { 
-                title: 'Yeni Mesaj', 
-                value: hostStats.unreadMessages.toString(), 
-                change: 'Acil', 
-                helper: 'Okunmamış',
-                icon: HOST_ICONS[3]
-              },
-            ]
-          : []
-        : GUEST_STATS.map((stat, index) => ({ ...stat, icon: GUEST_ICONS[index] }));
+      ? adminStats.map((stat, index) => ({ ...stat, icon: ADMIN_ICONS[index] }))
+      : hostStats
+        ? [
+            {
+              title: 'Bu Ay Gelir',
+              value: `₺${hostStats.thisMonthEarnings.toLocaleString('tr-TR')}`,
+              change: '—',
+              helper: 'Geçen aya göre',
+              icon: HOST_ICONS[0],
+            },
+            {
+              title: 'Yaklaşan Giriş',
+              value: hostStats.upcomingCheckins.toString(),
+              change: '—',
+              helper: 'Gelecek 7 gün',
+              icon: HOST_ICONS[1],
+            },
+            {
+              title: 'Ortalama Puan',
+              value: hostStats.averageRating.toFixed(1),
+              change: '—',
+              helper: `${hostStats.reviewCount} yorum`,
+              icon: HOST_ICONS[2],
+            },
+            {
+              title: 'Yeni Mesaj',
+              value: hostStats.unreadMessages.toString(),
+              change: '—',
+              helper: 'Okunmamış',
+              icon: HOST_ICONS[3],
+            },
+          ]
+        : [];
 
   const links =
     role === 'admin'
@@ -118,19 +139,12 @@ export function DashboardOverview() {
           { title: 'Rezervasyonlar', description: 'Durum ve ödeme takibi', href: '/dashboard/bookings' },
           { title: 'Raporlar', description: 'Finansal ve operasyon', href: '/dashboard/reports' },
         ]
-      : role === 'host'
-        ? [
-            { title: 'İlanlarım', description: 'İlan yönetimi', href: '/dashboard/listings' },
-            { title: 'Uygunluk', description: 'Takvim ve fiyat', href: '/dashboard/availability' },
-            { title: 'Rezervasyonlar', description: 'Giriş/çıkış planı', href: '/dashboard/bookings' },
-            { title: 'Mesajlar', description: 'Misafir iletişimi', href: '/dashboard/messages' },
-          ]
-        : [
-            { title: 'Rezervasyonlarım', description: 'Seyahat geçmişi', href: '/dashboard/bookings' },
-            { title: 'Favorilerim', description: 'Kaydedilen ilanlar', href: '/dashboard/wishlists' },
-            { title: 'Kuponlar', description: 'Kampanyalar', href: '/dashboard/coupons' },
-            { title: 'Turlar', description: 'Deneyimler', href: '/dashboard/tours' },
-          ];
+      : [
+          { title: 'Otel ilanlarım', description: 'İlan yönetimi', href: '/dashboard/listings' },
+          { title: 'Uygunluk', description: 'Takvim ve fiyat', href: '/dashboard/availability' },
+          { title: 'Rezervasyonlar', description: 'Giriş/çıkış planı', href: '/dashboard/bookings' },
+          { title: 'Mesajlar', description: 'Misafir iletişimi', href: '/dashboard/messages' },
+        ];
 
   if (loading) {
     return (
@@ -141,52 +155,109 @@ export function DashboardOverview() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 px-5 py-6 lg:px-8 bg-[#F4F7F6]/50">
-      <Section
-        title={role === 'admin' ? 'Genel Bakış' : role === 'host' ? 'Yönetim Paneli' : 'Seyahat Özeti'}
-        description="Platform üzerindeki güncel durumunuz ve önemli bildirimler."
-      >
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div className="flex flex-1 flex-col gap-8 px-4 py-6 sm:px-6 lg:px-8">
+      <Section title="" description="">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map((stat) => (
             <StatCard key={stat.title} {...stat} />
           ))}
         </div>
       </Section>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-         <Card className="xl:col-span-2 border-none bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[24px] overflow-hidden p-6">
-            <div className="flex items-center justify-between mb-6">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div className="xl:col-span-2 space-y-4">
+          <div className="rounded-xl border border-[#e5e7eb] bg-white/90 p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] sm:p-6">
+            <div className="mb-4 flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-extrabold text-[#1A1A1A]">Rezervasyon Takvimi</h3>
-                <p className="text-[13px] text-muted-foreground mt-1">Doluluk oranı ve giriş/çıkış planı</p>
+                <h3 className="text-sm font-semibold text-[#111]">Rezervasyon Takvimi</h3>
+                <p className="mt-0.5 text-xs text-muted-foreground">Bu ay dolu günler; tıklayınca rezervasyonlara gidin</p>
               </div>
-              <Button variant="outline" className="h-9 rounded-xl border-[#0F3D3E]/20 text-[#0F3D3E] font-bold">Tümünü Gör</Button>
+              <Button asChild variant="outline" size="sm" className="rounded-lg border-[#e5e7eb] text-[#0d9488] hover:bg-[#f0fdfa]">
+                <Link href="/dashboard/bookings">Tümünü Gör</Link>
+              </Button>
             </div>
-            {/* Calendar UI Placeholder based on image */}
-            <div className="h-[260px] w-full bg-[#F4F7F6] rounded-2xl flex items-center justify-center border border-dashed border-[#0F3D3E]/10">
-               <div className="text-center">
-                 <Calendar className="h-10 w-10 text-[#0F3D3E]/30 mx-auto mb-2" />
-                 <p className="text-sm font-medium text-muted-foreground">Takvim Görünümü Yükleniyor...</p>
-               </div>
-            </div>
-         </Card>
-
-         <Card className="border-none bg-[#0F3D3E] shadow-2xl rounded-[24px] overflow-hidden p-6 text-white relative">
-            <div className="relative z-10">
-               <h3 className="text-lg font-extrabold mb-2">Hızlı İşlemler</h3>
-               <p className="text-[13px] text-white/60 mb-6">İşlemlerinizi hızlıca gerçekleştirin</p>
-               <div className="space-y-4">
-                  {links.map((link) => (
-                    <Link key={link.href} href={link.href} className="flex items-center justify-between p-3 bg-white/10 rounded-2xl hover:bg-white/20 transition-colors border border-white/5">
-                       <span className="font-bold">{link.title}</span>
-                       <span className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center">→</span>
-                    </Link>
+            {role === 'host' && hostStats ? (
+              <div className="rounded-xl border border-[#e5e7eb] bg-[#fafafa] p-3">
+                <div className="mb-2 text-center text-xs font-medium text-[#6b7280]">
+                  {calendarMonth.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}
+                </div>
+                <div className="grid grid-cols-7 gap-0.5">
+                  {WEEKDAYS.map((w) => (
+                    <div key={w} className="py-1 text-center text-[10px] font-medium text-[#6b7280]">
+                      {w}
+                    </div>
                   ))}
-               </div>
+                  {getDaysInMonth(calendarMonth).map((d, i) => {
+                    if (!d) return <div key={`pad-${i}`} />;
+                    const dateStr = d.toISOString().slice(0, 10);
+                    const hasBooking = daysWithBookings.has(dateStr);
+                    return (
+                      <Link
+                        key={dateStr}
+                        href="/dashboard/bookings"
+                        className={`flex min-h-8 items-center justify-center rounded text-xs transition-colors ${
+                          hasBooking
+                            ? 'bg-[#0d9488] text-white hover:bg-[#0f766e]'
+                            : 'text-[#6b7280] hover:bg-[#e5e7eb]'
+                        }`}
+                      >
+                        {d.getDate()}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="flex h-[200px] w-full items-center justify-center rounded-xl border border-dashed border-[#e5e7eb] bg-[#f9fafb]">
+                <p className="text-sm text-muted-foreground">Takvim ev sahibi panelinde görünür.</p>
+              </div>
+            )}
+          </div>
+          {role === 'host' && upcomingBookings.length > 0 && (
+            <div className="rounded-xl border border-[#e5e7eb] bg-white/90 p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)]">
+              <h3 className="text-sm font-semibold text-[#111]">Yaklaşan rezervasyonlar</h3>
+              <ul className="mt-3 space-y-2">
+                {upcomingBookings.map((b) => (
+                  <li key={b.id}>
+                    <Link
+                      href={`/dashboard/bookings/${b.id}`}
+                      className="flex items-center justify-between rounded-lg border border-[#e5e7eb] px-3 py-2 text-sm transition-colors hover:bg-[#f0fdfa]"
+                    >
+                      <span className="font-medium">{b.listingTitle ?? 'İlan'}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(b.checkIn).toLocaleDateString('tr-TR')} · {b.guestName ?? 'Misafir'}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <Button asChild variant="ghost" size="sm" className="mt-2 w-full rounded-lg text-[#0d9488]">
+                <Link href="/dashboard/bookings">Tüm rezervasyonlar</Link>
+              </Button>
             </div>
-            <div className="absolute top-0 right-0 h-32 w-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 h-48 w-48 bg-white/5 rounded-full -ml-24 -mb-24 blur-3xl"></div>
-         </Card>
+          )}
+        </div>
+
+        <div className="relative overflow-hidden rounded-xl border border-[#0d9488]/20 bg-linear-to-br from-[#0f766e] to-[#134e4a] p-5 text-white shadow-[0_4px_14px_-4px_rgba(13,148,136,0.25)] sm:p-6">
+          <div className="relative z-10">
+            <h3 className="text-sm font-semibold">Hızlı İşlemler</h3>
+            <p className="mt-0.5 text-xs text-white/70">İşlemlerinizi hızlıca gerçekleştirin</p>
+            <div className="mt-4 space-y-2">
+              {links.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="flex items-center justify-between rounded-lg bg-white/10 px-3 py-2.5 transition-colors hover:bg-white/15"
+                >
+                  <span className="text-sm font-medium">{link.title}</span>
+                  <ArrowRight className="h-4 w-4 opacity-80" />
+                </Link>
+              ))}
+            </div>
+          </div>
+          <div className="absolute -right-12 -top-12 h-24 w-24 rounded-full bg-white/5 blur-2xl" />
+          <div className="absolute -bottom-12 -left-12 h-32 w-32 rounded-full bg-white/5 blur-2xl" />
+        </div>
       </div>
     </div>
   );

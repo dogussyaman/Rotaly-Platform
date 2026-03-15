@@ -5,25 +5,8 @@ import Link from 'next/link';
 import { SearchHeader } from '@/components/header/search-header';
 import { MainFooter } from '@/components/footer/main-footer';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
-import { clearUser } from '@/lib/store/slices/user-slice';
+import { clearUser, fetchUserProfile } from '@/lib/store/slices/user-slice';
 import { useLocale } from '@/lib/i18n/locale-context';
 import {
   fetchUserBookings,
@@ -52,6 +35,7 @@ import { WishlistSection } from './components/WishlistSection';
 import { LoyaltySection } from './components/LoyaltySection';
 import { AccountSection } from './components/AccountSection';
 import { ProfileSkeleton } from './components/ProfileSkeletons';
+import { ProfileDialogs } from './components/ProfileDialogs';
 
 export default function ProfilePage() {
   const dispatch = useAppDispatch();
@@ -84,6 +68,12 @@ export default function ProfilePage() {
   const [detailBooking, setDetailBooking] = useState<BookingWithListing | null>(null);
   const [cancelBookingTarget, setCancelBookingTarget] = useState<BookingWithListing | null>(null);
   const [deleteBookingTarget, setDeleteBookingTarget] = useState<BookingWithListing | null>(null);
+
+  useEffect(() => {
+    if (!initialized && !authLoading) {
+      void dispatch(fetchUserProfile());
+    }
+  }, [dispatch, initialized, authLoading]);
 
   useEffect(() => {
     if (authLoading || !initialized) return;
@@ -246,64 +236,17 @@ export default function ProfilePage() {
         </div>
       </main>
 
-      {/* Dialogs */}
-      <Dialog open={!!detailBooking} onOpenChange={() => setDetailBooking(null)}>
-        <DialogContent className="rounded-3xl max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{t.profileBookingDetailTitle as string}</DialogTitle>
-          </DialogHeader>
-          <div className="text-sm space-y-4">
-            {detailBooking && (
-              <>
-                <div className="p-4 bg-muted/40 rounded-2xl space-y-2">
-                  <p><strong>{t.profileFieldListing as string}:</strong> {detailBooking.listing?.title}</p>
-                  <p><strong>{t.profileFieldCheckIn as string}:</strong> {detailBooking.checkIn}</p>
-                  <p><strong>{t.profileFieldCheckOut as string}:</strong> {detailBooking.checkOut}</p>
-                  <p><strong>{t.profileFieldStatus as string}:</strong> {detailBooking.status}</p>
-                  <p><strong>{t.profileFieldGuests as string}:</strong> {detailBooking.guestsCount} {t.profilePeopleSuffix as string}</p>
-                </div>
-              </>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <AlertDialog open={!!cancelBookingTarget} onOpenChange={() => setCancelBookingTarget(null)}>
-        <AlertDialogContent className="rounded-3xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t.profileCancelDialogTitle as string}</AlertDialogTitle>
-            <AlertDialogDescription>{t.profileCancelDialogDesc as string}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-2xl">{t.profileBack as string}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => cancelBookingTarget && handleCancelBooking(cancelBookingTarget)}
-              className="rounded-2xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {t.profileCancel as string}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={!!deleteBookingTarget} onOpenChange={() => setDeleteBookingTarget(null)}>
-        <AlertDialogContent className="rounded-3xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t.profileDeleteDialogTitle as string}</AlertDialogTitle>
-            <AlertDialogDescription>{t.profileDeleteDialogDesc as string}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="rounded-2xl">{t.profileClose as string}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => deleteBookingTarget && handleDeleteBooking(deleteBookingTarget)}
-              className="rounded-2xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {t.profileConfirmDelete as string}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
+      <ProfileDialogs
+        detailBooking={detailBooking}
+        setDetailBooking={setDetailBooking}
+        cancelBookingTarget={cancelBookingTarget}
+        setCancelBookingTarget={setCancelBookingTarget}
+        deleteBookingTarget={deleteBookingTarget}
+        setDeleteBookingTarget={setDeleteBookingTarget}
+        onConfirmCancel={() => cancelBookingTarget && handleCancelBooking(cancelBookingTarget)}
+        onConfirmDelete={() => deleteBookingTarget && handleDeleteBooking(deleteBookingTarget)}
+        t={t}
+      />
       <MainFooter />
     </div>
   );

@@ -1,97 +1,102 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, MessageCircle } from 'lucide-react';
-import { BooleanBadge, ContentCard, Section } from '@/components/dashboard/dashboard-ui';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { useSearchParams } from 'next/navigation';
+import { Section } from '@/components/dashboard/dashboard-ui';
 import { useAppSelector } from '@/lib/store/hooks';
-import { fetchConversations, ConversationSummary } from '@/lib/supabase/messages';
+import { fetchConversations, fetchMessages, sendMessage, type ChatMessage, type ConversationSummary } from '@/lib/supabase/messages';
+import { useMessagesRealtime } from '@/lib/supabase/use-messages-realtime';
+import { ConversationList } from './_components/ConversationList';
+import { ConversationThread } from './_components/ConversationThread';
 
-export default function MessagesPage() {
+export default function DashboardMessagesPage() {
   const { profile } = useAppSelector((s) => s.user);
+  const searchParams = useSearchParams();
+  const conversationIdFromUrl = searchParams.get('conversation');
+
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [selectedConversation, setSelectedConversation] = useState<ConversationSummary | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [loadingConversations, setLoadingConversations] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
-    async function loadConversations() {
-      if (profile?.id) {
-        const data = await fetchConversations(profile.id);
-        setConversations(data);
-      }
-      setLoading(false);
+    async function load() {
+      if (!profile?.id) return;
+      setLoadingConversations(true);
+      const data = await fetchConversations(profile.id);
+      setConversations(data);
+      setLoadingConversations(false);
+      const conv =
+        conversationIdFromUrl && data.length > 0
+          ? data.find((c) => c.id === conversationIdFromUrl) ?? data[0]
+          : data.length > 0
+            ? data[0]
+            : null;
+      setSelectedConversation(conv);
     }
-    loadConversations();
-  }, [profile?.id]);
+    void load();
+  }, [profile?.id, conversationIdFromUrl]);
 
-  if (loading) {
-    return (
-      <div className="flex h-[400px] w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (!selectedConversation || !profile?.id) {
+      setMessages([]);
+      return;
+    }
+    setLoadingMessages(true);
+    fetchMessages(selectedConversation.id, profile.id).then((msgs) => {
+      setMessages(msgs);
+      setLoadingMessages(false);
+    });
+  }, [selectedConversation?.id, profile?.id]);
+
+  useMessagesRealtime(selectedConversation?.id ?? null, profile?.id ?? null, (msg) => {
+    setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
+  });
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const content = replyText.trim();
+    if (!content || !profile || !selectedConversation || sending) return;
+    setSending(true);
+    const saved = await sendMessage({
+      conversationId: selectedConversation.id,
+      senderId: profile.id,
+      receiverId: selectedConversation.otherUserId,
+      content,
+    });
+    setSending(false);
+    setReplyText('');
+    if (saved) setMessages((prev) => (prev.some((m) => m.id === saved.id) ? prev : [...prev, saved]));
+    const fresh = await fetchMessages(selectedConversation.id, profile.id);
+    setMessages(fresh);
+  };
+
+  if (!profile?.id) return null;
 
   return (
-    <div className="flex flex-1 flex-col gap-8 px-5 py-6 lg:px-7">
-      <Section title="Mesajlar" description="Misafirlerinizle olan tüm iletişiminiz.">
-        <div className="grid gap-4 xl:grid-cols-1">
-          <ContentCard title="Konuşmalar" description="Gelen mesajlar ve aktif görüşmeler">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Misafir</TableHead>
-                  <TableHead>Son Mesaj Tarihi</TableHead>
-                  <TableHead>Durum</TableHead>
-                  <TableHead className="text-right">İşlem</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {conversations.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                      Henüz mesaj bulunmuyor.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  conversations.map((conv) => (
-                    <TableRow key={conv.id}>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                            {conv.otherUserAvatar ? (
-                              <img src={conv.otherUserAvatar} alt="" className="h-full w-full rounded-full object-cover" />
-                            ) : (
-                              <MessageCircle className="h-4 w-4" />
-                            )}
-                          </div>
-                          <div>
-                            <p>{conv.otherUserName ?? 'Misafir'}</p>
-                            <p className="text-[10px] text-muted-foreground font-normal">ID: {conv.id}</p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-xs">
-                        {conv.lastMessageTime ? new Date(conv.lastMessageTime).toLocaleString('tr-TR') : '—'}
-                      </TableCell>
-                      <TableCell>
-                        {conv.unreadCount > 0 ? (
-                          <Badge variant="destructive">{conv.unreadCount} Yeni</Badge>
-                        ) : (
-                          <Badge variant="outline">Okundu</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <button className="text-xs text-primary hover:underline font-medium">Görüntüle</button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </ContentCard>
+    <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+      <Section title="Mesajlar" description="Gelen mesajları görüntüleyin ve cevap yazın." />
+      <div className="grid gap-4 lg:grid-cols-[320px_1fr] rounded-2xl border border-[#e5e7eb] bg-white shadow-sm overflow-hidden">
+        <ConversationList
+          conversations={conversations}
+          selectedId={selectedConversation?.id ?? null}
+          loading={loadingConversations}
+        />
+        <div className="flex flex-col max-h-[calc(100vh-12rem)] min-h-[420px]">
+          <ConversationThread
+            conversation={selectedConversation}
+            messages={messages}
+            loadingMessages={loadingMessages}
+            replyText={replyText}
+            setReplyText={setReplyText}
+            sending={sending}
+            onSend={handleSend}
+          />
         </div>
-      </Section>
+      </div>
     </div>
   );
 }

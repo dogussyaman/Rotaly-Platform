@@ -201,3 +201,78 @@ export async function fetchListings(params: FetchListingsParams = {}): Promise<L
 
   return mapped;
 }
+
+export interface UpdateListingInput {
+  title?: string;
+  description?: string | null;
+  propertyType?: string;
+  address?: string | null;
+  city?: string | null;
+  country?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  pricePerNight?: number;
+  cleaningFee?: number;
+  serviceFee?: number;
+  maxGuests?: number;
+  bedrooms?: number;
+  beds?: number;
+  bathrooms?: number;
+  checkInTime?: string;
+  checkOutTime?: string;
+  instantBooking?: boolean;
+  isActive?: boolean;
+}
+
+export async function updateListing(
+  listingId: string,
+  input: UpdateListingInput,
+): Promise<boolean> {
+  const supabase = createClient();
+  const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };
+
+  if (input.title !== undefined) payload.title = input.title;
+  if (input.description !== undefined) payload.description = input.description;
+  if (input.propertyType !== undefined) payload.property_type = input.propertyType;
+  if (input.address !== undefined) payload.address = input.address;
+  if (input.city !== undefined) payload.city = input.city;
+  if (input.country !== undefined) payload.country = input.country;
+  if (input.latitude !== undefined) payload.latitude = input.latitude;
+  if (input.longitude !== undefined) payload.longitude = input.longitude;
+  if (input.pricePerNight !== undefined) payload.price_per_night = input.pricePerNight;
+  if (input.cleaningFee !== undefined) payload.cleaning_fee = input.cleaningFee;
+  if (input.serviceFee !== undefined) payload.service_fee = input.serviceFee;
+  if (input.maxGuests !== undefined) payload.max_guests = input.maxGuests;
+  if (input.bedrooms !== undefined) payload.bedrooms = input.bedrooms;
+  if (input.beds !== undefined) payload.beds = input.beds;
+  if (input.bathrooms !== undefined) payload.bathrooms = input.bathrooms;
+  if (input.checkInTime !== undefined) payload.check_in_time = input.checkInTime;
+  if (input.checkOutTime !== undefined) payload.check_out_time = input.checkOutTime;
+  if (input.instantBooking !== undefined) payload.instant_booking = input.instantBooking;
+  if (input.isActive !== undefined) payload.is_active = input.isActive;
+
+  if (Object.keys(payload).length <= 1) return true;
+
+  const { error } = await supabase.from('listings').update(payload).eq('id', listingId);
+  if (error) {
+    console.error('updateListing error:', error.message);
+    return false;
+  }
+  return true;
+}
+
+export async function deleteListing(listingId: string): Promise<boolean> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('listings')
+    .delete()
+    .eq('id', listingId)
+    .select('id');
+
+  if (error) {
+    console.error('deleteListing error:', error.message);
+    return false;
+  }
+  if (!data || data.length === 0) return false;
+  return true;
+}

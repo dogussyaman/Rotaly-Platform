@@ -1,28 +1,73 @@
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+'use client';
 
+import { useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
+
+import { Badge } from '@/components/ui/badge';
 import { ContentCard, Section, StatusBadge } from '@/components/dashboard/dashboard-ui';
-import { TOUR_BOOKINGS, TOUR_OPERATORS, TOUR_REVIEWS, TOUR_SCHEDULES, TOURS, formatCurrency } from '@/lib/mock/dashboard';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { formatCurrency } from '@/lib/format';
+import { createClient } from '@/lib/supabase/client';
+
+type TourRow = { id: string; title: string; city: string | null; duration_minutes: number | null; base_price: number; rating: number | null };
+type OperatorRow = { id: string; company_name: string | null; phone: string | null; website: string | null };
+type ScheduleRow = { id: string; start_time: string; available_spots: number | null; price_override: number | null; tours: { title: string } | null };
+type BookingRow = { id: string; participants_count: number; total_price: number; status: string; tours: { title: string } | null; profiles: { full_name: string | null } | null };
 
 export default function ToursPage() {
+  const [operators, setOperators] = useState<OperatorRow[]>([]);
+  const [tours, setTours] = useState<TourRow[]>([]);
+  const [schedules, setSchedules] = useState<ScheduleRow[]>([]);
+  const [bookings, setBookings] = useState<BookingRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient();
+      const [oRes, tRes, sRes, bRes] = await Promise.all([
+        supabase.from('tour_operators').select('id, company_name, phone, website'),
+        supabase.from('tours').select('id, title, city, duration_minutes, base_price, rating').eq('is_active', true).order('title'),
+        supabase.from('tour_schedules').select('id, start_time, available_spots, price_override, tours(title)').limit(50),
+        supabase.from('tour_bookings').select('id, participants_count, total_price, status, tours(title), profiles(full_name)').order('id', { ascending: false }).limit(50),
+      ]);
+      setOperators((oRes.data ?? []) as OperatorRow[]);
+      setTours((tRes.data ?? []) as TourRow[]);
+      setSchedules((sRes.data ?? []) as ScheduleRow[]);
+      setBookings((bRes.data ?? []) as BookingRow[]);
+      setLoading(false);
+    }
+    void load();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-[300px] w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-[#0d9488]" />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-1 flex-col gap-8 px-5 py-6 lg:px-7">
-      <Section title="Turlar" description="Tur operatörleri, seanslar ve rezervasyonlar.">
-        <div className="grid gap-4 xl:grid-cols-3">
-          <ContentCard title="Operatörler" description="tour_operators tablosu">
-            <div className="space-y-3 text-sm">
-              {TOUR_OPERATORS.map((operator) => (
-                <div key={operator.company} className="space-y-1">
-                  <p className="font-medium">{operator.company}</p>
-                  <p className="text-xs text-muted-foreground">{operator.phone}</p>
-                  <p className="text-xs text-muted-foreground">{operator.website}</p>
-                </div>
-              ))}
-            </div>
+    <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+      <Section title="" description="">
+        <div className="grid gap-6 xl:grid-cols-3">
+          <ContentCard title="Operatörler" description="Tur operatörleri">
+            {operators.length === 0 ? (
+              <p className="py-4 text-sm text-muted-foreground">Veri yok</p>
+            ) : (
+              <div className="space-y-3 text-sm">
+                {operators.map((o) => (
+                  <div key={o.id} className="space-y-1">
+                    <p className="font-medium">{o.company_name ?? '—'}</p>
+                    <p className="text-xs text-muted-foreground">{o.phone ?? ''}</p>
+                    <p className="text-xs text-muted-foreground">{o.website ?? ''}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </ContentCard>
 
-          <ContentCard title="Turlar" description="Fiyat ve kapasite bilgileri">
+          <ContentCard title="Turlar" description="Fiyat ve kapasite">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -34,51 +79,60 @@ export default function ToursPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {TOURS.map((tour) => (
-                  <TableRow key={tour.title}>
-                    <TableCell className="font-medium">{tour.title}</TableCell>
-                    <TableCell>{tour.city}</TableCell>
-                    <TableCell>{tour.durationMinutes} dk</TableCell>
-                    <TableCell>{formatCurrency(tour.basePrice)}</TableCell>
-                    <TableCell>{tour.rating.toFixed(1)}</TableCell>
+                {tours.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">Veri yok</TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  tours.map((t) => (
+                    <TableRow key={t.id}>
+                      <TableCell className="font-medium">{t.title}</TableCell>
+                      <TableCell>{t.city ?? '—'}</TableCell>
+                      <TableCell>{t.duration_minutes != null ? `${t.duration_minutes} dk` : '—'}</TableCell>
+                      <TableCell>{formatCurrency(t.base_price)}</TableCell>
+                      <TableCell>{(t.rating ?? 0).toFixed(1)}</TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </ContentCard>
 
-          <ContentCard title="Seanslar & Rezervasyon" description="tour_schedules ve tour_bookings">
+          <ContentCard title="Seanslar & Rezervasyon" description="Son seanslar ve rezervasyonlar">
             <div className="space-y-4 text-sm">
-              {TOUR_SCHEDULES.map((schedule) => (
-                <div key={schedule.startTime} className="space-y-1">
-                  <p className="font-medium">{schedule.tour}</p>
-                  <p className="text-xs text-muted-foreground">{schedule.startTime}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Kalan {schedule.availableSpots} •{' '}
-                    {schedule.priceOverride ? formatCurrency(schedule.priceOverride) : 'Standart fiyat'}
-                  </p>
-                </div>
-              ))}
-              <Separator />
-              {TOUR_BOOKINGS.map((booking) => (
-                <div key={`${booking.tour}-${booking.guest}`} className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{booking.tour}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {booking.guest} • {booking.participants} kişi
-                    </p>
-                  </div>
-                  <StatusBadge status={booking.status} />
-                </div>
-              ))}
-              <Separator />
-              <div className="space-y-2">
-                {TOUR_REVIEWS.map((review) => (
-                  <div key={`${review.tour}-${review.reviewer}`} className="text-xs text-muted-foreground">
-                    <span className="font-medium text-foreground">{review.tour}</span> — {review.comment}{' '}
-                    <Badge variant="outline">{review.rating}/5</Badge>
-                  </div>
-                ))}
+              <div>
+                <p className="mb-2 font-medium">Seanslar</p>
+                {schedules.length === 0 ? (
+                  <p className="text-muted-foreground">Veri yok</p>
+                ) : (
+                  schedules.slice(0, 5).map((s) => (
+                    <div key={s.id} className="space-y-1 py-1">
+                      <p className="font-medium">{(s.tours as { title: string } | null)?.title ?? '—'}</p>
+                      <p className="text-xs text-muted-foreground">{s.start_time}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Kalan {s.available_spots ?? 0} • {s.price_override != null ? formatCurrency(s.price_override) : 'Standart fiyat'}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+              <div>
+                <p className="mb-2 font-medium">Rezervasyonlar</p>
+                {bookings.length === 0 ? (
+                  <p className="text-muted-foreground">Veri yok</p>
+                ) : (
+                  bookings.slice(0, 5).map((b) => (
+                    <div key={b.id} className="flex items-center justify-between py-1">
+                      <div>
+                        <p className="font-medium">{(b.tours as { title: string } | null)?.title ?? '—'}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {(b.profiles as { full_name: string | null } | null)?.full_name ?? '—'} • {b.participants_count} kişi
+                        </p>
+                      </div>
+                      <StatusBadge status={b.status} />
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </ContentCard>

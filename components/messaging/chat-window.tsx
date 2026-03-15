@@ -10,10 +10,8 @@ import { useLocale } from '@/lib/i18n/locale-context';
 
 interface Message {
   id: string;
-  sender: string;
-  senderAvatar: string;
   content: string;
-  timestamp: Date;
+  createdAt: string;
   isCurrentUser: boolean;
 }
 
@@ -105,8 +103,8 @@ export function ChatWindow({
               >
                 {!message.isCurrentUser && (
                   <Image
-                    src={message.senderAvatar}
-                    alt={message.sender}
+                    src={otherUserAvatar}
+                    alt={otherUserName}
                     width={32}
                     height={32}
                     className="rounded-full"
@@ -127,7 +125,7 @@ export function ChatWindow({
                     <p className="text-sm">{message.content}</p>
                   </div>
                   <span className="text-xs text-muted-foreground mt-1">
-                    {formatTime(message.timestamp)}
+                    {formatTime(new Date(message.createdAt))}
                   </span>
                 </div>
               </div>

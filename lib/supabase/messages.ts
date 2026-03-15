@@ -22,26 +22,9 @@ export interface ChatMessage {
 export async function fetchConversations(currentUserId: string): Promise<ConversationSummary[]> {
   const supabase = createClient();
 
-  const { data, error } = await supabase
+  const { data: rows, error } = await supabase
     .from('conversations')
-    .select(
-      `
-        id,
-        participant_1,
-        participant_2,
-        last_message_at,
-        profiles_participant_1:profiles!conversations_participant_1_fkey (
-          id,
-          full_name,
-          avatar_url
-        ),
-        profiles_participant_2:profiles!conversations_participant_2_fkey (
-          id,
-          full_name,
-          avatar_url
-        )
-      `
-    )
+    .select('id, participant_1, participant_2, last_message_at')
     .or(`participant_1.eq.${currentUserId},participant_2.eq.${currentUserId}`)
     .order('last_message_at', { ascending: false });
 
@@ -50,10 +33,31 @@ export async function fetchConversations(currentUserId: string): Promise<Convers
     return [];
   }
 
-  // Unread counts: query messages where receiver = currentUser and is_read = false
+  if (!rows?.length) return [];
+
+  const otherUserIds = [...new Set(
+    (rows as any[]).map((r) =>
+      r.participant_1 === currentUserId ? r.participant_2 : r.participant_1
+    )
+  )].filter(Boolean);
+
+  const profileMap = new Map<string, { full_name: string | null; avatar_url: string | null }>();
+  if (otherUserIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .in('id', otherUserIds);
+    for (const p of profiles ?? []) {
+      profileMap.set((p as any).id, {
+        full_name: (p as any).full_name ?? null,
+        avatar_url: (p as any).avatar_url ?? null,
+      });
+    }
+  }
+
   const { data: unreadData, error: unreadError } = await supabase
     .from('messages')
-    .select('conversation_id, is_read')
+    .select('conversation_id')
     .eq('receiver_id', currentUserId)
     .eq('is_read', false);
 
@@ -64,19 +68,36 @@ export async function fetchConversations(currentUserId: string): Promise<Convers
     }
   }
 
-  return (data ?? []).map((row: any) => {
+  const withOther = (rows as any[]).map((row) => {
     const isParticipant1 = row.participant_1 === currentUserId;
-    const otherProfile = isParticipant1 ? row.profiles_participant_2 : row.profiles_participant_1;
+    const otherUserId = isParticipant1 ? row.participant_2 : row.participant_1;
+    const profile = otherUserId ? profileMap.get(otherUserId) : null;
 
     return {
       id: row.id,
-      otherUserId: otherProfile?.id ?? '',
-      otherUserName: otherProfile?.full_name ?? null,
-      otherUserAvatar: otherProfile?.avatar_url ?? null,
+      otherUserId: otherUserId ?? '',
+      otherUserName: profile?.full_name ?? null,
+      otherUserAvatar: profile?.avatar_url ?? null,
       lastMessage: null,
       lastMessageTime: row.last_message_at,
       unreadCount: unreadMap.get(row.id) ?? 0,
     } as ConversationSummary;
+  });
+
+  // One row per other user: keep the conversation with latest last_message_at
+  const byOther = new Map<string, ConversationSummary>();
+  for (const row of withOther) {
+    const existing = byOther.get(row.otherUserId);
+    const rowTime = row.lastMessageTime ? new Date(row.lastMessageTime).getTime() : 0;
+    const existingTime = existing?.lastMessageTime ? new Date(existing.lastMessageTime).getTime() : 0;
+    if (!existing || rowTime > existingTime) {
+      byOther.set(row.otherUserId, row);
+    }
+  }
+  return Array.from(byOther.values()).sort((a, b) => {
+    const tA = a.lastMessageTime ? new Date(a.lastMessageTime).getTime() : 0;
+    const tB = b.lastMessageTime ? new Date(b.lastMessageTime).getTime() : 0;
+    return tB - tA;
   });
 }
 
@@ -163,25 +184,34 @@ export async function getOrCreateConversation(
 ): Promise<string | null> {
   const supabase = createClient();
 
-  // Try to find existing conversation
-  // Note: Standard Supabase .or() with complex and/or might be tricky,
-  // we'll try a simpler approach if needed, but this is the logical way.
-  const { data: existing, error: findError } = await supabase
+  // Find existing conversation with two explicit lookups (same order as insert: p1 < p2)
+  const p1 = user1Id < user2Id ? user1Id : user2Id;
+  const p2 = user1Id < user2Id ? user2Id : user1Id;
+
+  const { data: existing1 } = await supabase
     .from('conversations')
     .select('id')
-    .or(`and(participant_1.eq.${user1Id},participant_2.eq.${user2Id}),and(participant_1.eq.${user2Id},participant_2.eq.${user1Id})`)
+    .eq('participant_1', p1)
+    .eq('participant_2', p2)
     .maybeSingle();
 
-  if (existing) {
-    return existing.id;
-  }
+  if (existing1) return existing1.id;
 
-  // Create new if not found
+  const { data: existing2 } = await supabase
+    .from('conversations')
+    .select('id')
+    .eq('participant_1', p2)
+    .eq('participant_2', p1)
+    .maybeSingle();
+
+  if (existing2) return existing2.id;
+
+  // Create new with canonical order (participant_1 < participant_2)
   const { data: created, error: createError } = await supabase
     .from('conversations')
     .insert({
-      participant_1: user1Id < user2Id ? user1Id : user2Id,
-      participant_2: user1Id < user2Id ? user2Id : user1Id,
+      participant_1: p1,
+      participant_2: p2,
     })
     .select('id')
     .single();

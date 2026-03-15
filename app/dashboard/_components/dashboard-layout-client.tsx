@@ -10,26 +10,34 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { fetchUserProfile } from '@/lib/store/slices/user-slice';
 
-function getHeaderTitle(pathname: string, role: 'admin' | 'host' | 'guest') {
+function getHeaderTitle(pathname: string, role: 'admin' | 'host') {
   if (pathname === '/dashboard') {
     if (role === 'admin') return { title: 'Yönetici Paneli', subtitle: 'Platform operasyonlarının merkezi yönetimi.' };
-    if (role === 'host') return { title: 'Ev Sahibi Paneli', subtitle: 'İlanlarınızı ve rezervasyonlarınızı yönetin.' };
-    return { title: 'Seyahat Paneli', subtitle: 'Rezervasyonlarınızı ve puanlarınızı takip edin.' };
+    return { title: 'Ev Sahibi Paneli', subtitle: 'İlanlarınızı ve rezervasyonlarınızı yönetin.' };
+  }
+
+  if (pathname === '/dashboard/listings') {
+    return role === 'host'
+      ? { title: 'Otel ilanlarım', subtitle: 'İlan içerikleri, görseller, imkanlar ve kurallar.' }
+      : { title: 'Otel İlanları', subtitle: 'İlan içerikleri, görseller, imkanlar ve kurallar.' };
+  }
+
+  if (pathname === '/dashboard/bookings') {
+    return { title: 'Rezervasyonlar', subtitle: 'Giriş/çıkış, ödeme ve durum takibi.' };
   }
 
   const map: Record<string, { title: string; subtitle: string }> = {
-    '/dashboard/users': { title: 'Kullanıcılar', subtitle: 'Profil doğrulamaları ve rol atamaları.' },
+    '/dashboard/search': { title: 'Arama', subtitle: 'İlan, rezervasyon ve mesaj sonuçları.' },
+    '/dashboard/users': { title: 'Kullanıcılar', subtitle: 'Profil doğrulama ve rol atamaları.' },
     '/dashboard/roles': { title: 'Roller & Partnerler', subtitle: 'Partner profilleri ve rol yönetimi.' },
     '/dashboard/hosts': { title: 'Ev Sahipleri', subtitle: 'Yanıt oranı, dil ve performans metrikleri.' },
-    '/dashboard/listings': { title: 'İlanlar', subtitle: 'İlan içerikleri, görseller, imkanlar ve kurallar.' },
     '/dashboard/availability': { title: 'Uygunluk Takvimi', subtitle: 'Müsaitlik ve özel fiyat yönetimi.' },
-    '/dashboard/bookings': { title: 'Rezervasyonlar', subtitle: 'Giriş/çıkış, ödeme ve durum takibi.' },
     '/dashboard/reviews': { title: 'Değerlendirmeler', subtitle: 'Puan kırılımı ve yorum yönetimi.' },
     '/dashboard/wishlists': { title: 'Favoriler', subtitle: 'Favori listeleri ve liste öğeleri.' },
-    '/dashboard/messages': { title: 'Mesajlar', subtitle: 'Konuşmalar, mesajlar ve okunmamışlar.' },
+    '/dashboard/messages': { title: 'Mesajlar', subtitle: 'Konuşmalar ve okunmamışlar.' },
     '/dashboard/loyalty': { title: 'Sadakat', subtitle: 'Puan bakiyeleri ve hareketleri.' },
     '/dashboard/coupons': { title: 'Kuponlar', subtitle: 'Kampanyalar ve kullanım geçmişi.' },
-    '/dashboard/tours': { title: 'Turlar', subtitle: 'Tur operatörleri, seanslar ve rezervasyonlar.' },
+    '/dashboard/tours': { title: 'Turlar', subtitle: 'Tur seansları ve rezervasyonlar.' },
     '/dashboard/reports': { title: 'Raporlar', subtitle: 'Operasyon, finans ve risk raporları.' },
     '/dashboard/earnings': { title: 'Gelirler', subtitle: 'Ev sahibi gelir ve vergi özetleri.' },
     '/dashboard/profile': { title: 'Profil', subtitle: 'Hesap bilgileriniz.' },
@@ -42,6 +50,10 @@ function getHeaderTitle(pathname: string, role: 'admin' | 'host' | 'guest') {
 
   if (pathname.startsWith('/dashboard/bookings/')) {
     return { title: 'Rezervasyon Detayı', subtitle: 'Rezervasyonun tüm detaylarını inceleyin.' };
+  }
+
+  if (pathname.startsWith('/dashboard/listings/')) {
+    return { title: 'İlan Detayı', subtitle: 'İlan bilgileri, güncelleme ve uygunluk.' };
   }
 
   return { title: 'Dashboard', subtitle: 'Panel görünümü' };
@@ -65,7 +77,14 @@ export default function DashboardLayoutClient({ children }: { children: ReactNod
     }
   }, [initialized, loading, profile, router]);
 
-  // Only block the UI on the initial auth/profile bootstrap.
+  useEffect(() => {
+    if (!initialized || loading || !profile) return;
+    const isGuest = !profile.isAdmin && !profile.isHost;
+    if (isGuest) {
+      router.replace('/profile');
+    }
+  }, [initialized, loading, profile, router]);
+
   if (!initialized) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -74,24 +93,26 @@ export default function DashboardLayoutClient({ children }: { children: ReactNod
     );
   }
 
-  if (!profile) {
+  if (!profile) return null;
+
+  const isGuest = !profile.isAdmin && !profile.isHost;
+  if (isGuest) {
     return null;
   }
 
-  const role: 'admin' | 'host' | 'guest' = profile.isAdmin ? 'admin' : profile.isHost ? 'host' : 'guest';
+  const role: 'admin' | 'host' | 'guest' = profile.isAdmin ? 'admin' : 'host';
   const header = getHeaderTitle(pathname, role);
 
   return (
     <SidebarProvider>
       <AppSidebar variant="sidebar" />
-      <SidebarInset className="bg-[#F4F7F6]">
+      <SidebarInset className="bg-[#f0f2f1] min-h-svh">
         <SiteHeader title={header.title} subtitle={header.subtitle} />
-        <div className="flex flex-1 flex-col p-3 md:p-4 @container/main overflow-auto">
-          <div className="flex min-h-full flex-1 flex-col bg-white/50 backdrop-blur-sm rounded-[28px] overflow-hidden border border-white/80 shadow-sm">
-            {children}
-          </div>
+        <div className="flex flex-1 flex-col @container/main overflow-auto min-h-0">
+          {children}
         </div>
       </SidebarInset>
     </SidebarProvider>
   );
 }
+

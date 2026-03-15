@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/client';
 // Listing detail model used by listing page & checkout
 export interface ListingDetail {
   id: string;
+  hostId: string | null;
   title: string;
   description: string | null;
   address: string | null;
@@ -64,6 +65,42 @@ export interface BookingWithListing {
   } | null;
 }
 
+export interface BookingDetail {
+  id: string;
+  checkIn: string;
+  checkOut: string;
+  guestsCount: number;
+  totalPrice: number;
+  status: string;
+  specialRequests: string | null;
+  createdAt: string;
+  checkInSlotStart: string | null;
+  checkInSlotEnd: string | null;
+  extras: Record<string, any> | null;
+  guest: {
+    id: string;
+    fullName: string | null;
+    email: string | null;
+    avatarUrl: string | null;
+  } | null;
+  listing: {
+    id: string;
+    title: string;
+    city: string | null;
+    country: string | null;
+    address: string | null;
+    imageUrl: string | null;
+    hostUserId: string | null;
+  } | null;
+}
+
+export type PagedResult<T> = {
+  rows: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
 export interface UpdateBookingInput {
   checkIn?: Date;
   checkOut?: Date;
@@ -108,6 +145,7 @@ export async function fetchListingById(id: string): Promise<ListingDetail | null
     .select(
       `
         id,
+        host_id,
         title,
         description,
         address,
@@ -121,7 +159,6 @@ export async function fetchListingById(id: string): Promise<ListingDetail | null
         bathrooms,
         latitude,
         longitude,
-        host_id,
         listing_images (
           url,
           is_primary,
@@ -162,6 +199,7 @@ export async function fetchListingById(id: string): Promise<ListingDetail | null
 
   return {
     id: data.id,
+    hostId: data.host_id ?? null,
     title: data.title,
     description: data.description ?? null,
     address: data.address ?? null,
@@ -234,6 +272,102 @@ export async function createBooking(input: CreateBookingInput): Promise<{ id: st
   }
 
   return { id: data.id as string };
+}
+
+export async function fetchBookingById(bookingId: string): Promise<BookingDetail | null> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from('bookings')
+    .select(
+      `
+        id,
+        check_in,
+        check_out,
+        guests_count,
+        total_price,
+        status,
+        special_requests,
+        created_at,
+        check_in_slot_start,
+        check_in_slot_end,
+        extras,
+        profiles:profiles!guest_id (
+          id,
+          full_name,
+          email,
+          avatar_url
+        ),
+        listings (
+          id,
+          title,
+          city,
+          country,
+          address,
+          hosts (user_id),
+          listing_images (
+            url,
+            is_primary,
+            sort_order
+          )
+        )
+      `
+    )
+    .eq('id', bookingId)
+    .single();
+
+  if (error || !data) {
+    if (error) console.error('fetchBookingById error:', error.message);
+    return null;
+  }
+
+  let imageUrl: string | null = null;
+  if ((data.listings as any)?.listing_images?.length) {
+    const sorted = [...(data.listings as any).listing_images].sort((a: any, b: any) => {
+      if (a.is_primary && !b.is_primary) return -1;
+      if (!a.is_primary && b.is_primary) return 1;
+      return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+    });
+    imageUrl = sorted[0].url;
+  }
+
+  const guest = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles;
+
+  return {
+    id: data.id,
+    checkIn: data.check_in,
+    checkOut: data.check_out,
+    guestsCount: data.guests_count,
+    totalPrice: Number(data.total_price),
+    status: data.status,
+    specialRequests: data.special_requests ?? null,
+    createdAt: data.created_at,
+    checkInSlotStart: data.check_in_slot_start ?? null,
+    checkInSlotEnd: data.check_in_slot_end ?? null,
+    extras: (data.extras as Record<string, any>) ?? null,
+    guest: guest
+      ? {
+          id: guest.id,
+          fullName: guest.full_name ?? null,
+          email: guest.email ?? null,
+          avatarUrl: guest.avatar_url ?? null,
+        }
+      : null,
+    listing: data.listings
+      ? {
+          id: (data.listings as any).id,
+          title: (data.listings as any).title,
+          city: (data.listings as any).city ?? null,
+          country: (data.listings as any).country ?? null,
+          address: (data.listings as any).address ?? null,
+          imageUrl,
+          hostUserId:
+            Array.isArray((data.listings as any).hosts) && (data.listings as any).hosts[0]
+              ? (data.listings as any).hosts[0].user_id
+              : (data.listings as any).hosts?.user_id ?? null,
+        }
+      : null,
+  };
 }
 
 export async function fetchUserBookings(userId: string): Promise<BookingWithListing[]> {
@@ -312,6 +446,109 @@ export async function fetchUserBookings(userId: string): Promise<BookingWithList
         : null,
     } as BookingWithListing;
   });
+}
+
+export async function fetchUserBookingsPage(
+  userId: string,
+  params: { page: number; pageSize: number; status?: string; query?: string },
+): Promise<PagedResult<BookingWithListing>> {
+  const supabase = createClient();
+  const page = Math.max(1, params.page);
+  const pageSize = Math.max(1, Math.min(50, params.pageSize));
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  let baseQuery = supabase
+    .from('bookings')
+    .select(
+      `
+        id,
+        listing_id,
+        check_in,
+        check_out,
+        guests_count,
+        total_price,
+        status,
+        created_at,
+        check_in_slot_start,
+        check_in_slot_end,
+        extras,
+        listings (
+          id,
+          title,
+          city,
+          country,
+          hosts (user_id),
+          listing_images (
+            url,
+            is_primary,
+            sort_order
+          )
+        )
+      `,
+      { count: 'exact' },
+    )
+    .eq('guest_id', userId)
+    .order('created_at', { ascending: false });
+
+  const status = params.status?.trim();
+  if (status && status !== 'all') {
+    baseQuery = baseQuery.eq('status', status);
+  }
+
+  const q = params.query?.trim();
+  const filteredQuery = q ? baseQuery.ilike('listings.title', `%${q}%`) : baseQuery;
+
+  let res = await filteredQuery.range(from, to);
+  if (res.error && q) {
+    console.warn('fetchUserBookingsPage: search filter failed, retrying without query. Error:', res.error.message);
+    res = await baseQuery.range(from, to);
+  }
+
+  const { data, error, count } = res;
+  if (error) {
+    console.error('fetchUserBookingsPage error:', error.message);
+    return { rows: [], total: 0, page, pageSize };
+  }
+
+  const rows = (data ?? []).map((row: any) => {
+    let imageUrl: string | null = null;
+    if (row.listings?.listing_images?.length) {
+      const sorted = [...row.listings.listing_images].sort((a, b) => {
+        if (a.is_primary && !b.is_primary) return -1;
+        if (!a.is_primary && b.is_primary) return 1;
+        return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+      });
+      imageUrl = sorted[0].url;
+    }
+
+    return {
+      id: row.id,
+      checkIn: row.check_in,
+      checkOut: row.check_out,
+      guestsCount: row.guests_count,
+      totalPrice: Number(row.total_price),
+      status: row.status,
+      createdAt: row.created_at,
+      checkInSlotStart: row.check_in_slot_start ?? null,
+      checkInSlotEnd: row.check_in_slot_end ?? null,
+      extras: (row.extras as Record<string, any> | null) ?? null,
+      listing: row.listings
+        ? {
+            id: row.listings.id,
+            title: row.listings.title,
+            city: row.listings.city ?? null,
+            country: row.listings.country ?? null,
+            imageUrl,
+            hostUserId: Array.isArray(row.listings.hosts)
+              ? row.listings.hosts[0]?.user_id
+              : row.listings.hosts?.user_id ?? null,
+          }
+        : null,
+    } as BookingWithListing;
+  });
+
+  return { rows, total: count ?? rows.length, page, pageSize };
 }
 
 export async function updateBooking(

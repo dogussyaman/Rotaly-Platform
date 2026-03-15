@@ -1,75 +1,113 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
-import { BooleanBadge, ContentCard, Section } from '@/components/dashboard/dashboard-ui';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { formatCurrency, formatDate } from '@/lib/mock/dashboard';
+import { useCallback, useEffect, useState } from 'react';
+import { Section } from '@/components/dashboard/dashboard-ui';
 import { useAppSelector } from '@/lib/store/hooks';
-import { fetchHostAvailability, fetchHostByUserId, HostAvailability } from '@/lib/supabase/host';
+import { fetchHostByUserId, fetchHostListings } from '@/lib/supabase/host';
+import {
+  fetchAvailabilityByListing,
+  fetchBookedDatesForListing,
+  setAvailabilityRange,
+  upsertAvailability,
+  type AvailabilityDay,
+} from '@/lib/supabase/availability';
+import { getMonthRange, toLocalDateString } from './_components/utils';
+import { AvailabilityCalendar } from './_components/AvailabilityCalendar';
 
 export default function AvailabilityPage() {
   const { profile } = useAppSelector((s) => s.user);
-  const [availability, setAvailability] = useState<HostAvailability[]>([]);
+  const [listings, setListings] = useState<{ id: string; title: string }[]>([]);
+  const [listingId, setListingId] = useState<string>('');
+  const [month, setMonth] = useState(() => new Date());
+  const [days, setDays] = useState<AvailabilityDay[]>([]);
+  const [bookedDates, setBookedDates] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
+  const [actionDay, setActionDay] = useState<string | null>(null);
+
+  const loadListings = useCallback(async () => {
+    if (!profile?.id) return;
+    const host = await fetchHostByUserId(profile.id);
+    if (!host) return;
+    const list = await fetchHostListings(host.hostId);
+    setListings(list.map((l) => ({ id: l.id, title: l.title })));
+    if (list.length > 0 && !listingId) setListingId(list[0].id);
+  }, [profile?.id, listingId]);
+
+  const loadAvailability = useCallback(async () => {
+    if (!listingId) return;
+    setLoading(true);
+    const { start, end } = getMonthRange(month);
+    const [data, booked] = await Promise.all([
+      fetchAvailabilityByListing(listingId, start, end),
+      fetchBookedDatesForListing(listingId, start, end),
+    ]);
+    setDays(data);
+    setBookedDates(booked);
+    setLoading(false);
+  }, [listingId, month]);
 
   useEffect(() => {
-    async function loadAvailability() {
-      if (profile?.id) {
-        const host = await fetchHostByUserId(profile.id);
-        if (host) {
-          const data = await fetchHostAvailability(host.hostId);
-          setAvailability(data);
-        }
-      }
-      setLoading(false);
-    }
-    loadAvailability();
-  }, [profile?.id]);
+    void loadListings();
+  }, [loadListings]);
 
-  if (loading) {
-    return (
-      <div className="flex h-[400px] w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  useEffect(() => {
+    void loadAvailability();
+  }, [loadAvailability]);
+
+  const todayStr = toLocalDateString(new Date());
+
+  const handleDayClick = async (date: Date) => {
+    if (!listingId || updating) return;
+    const dateStr = toLocalDateString(date);
+    if (dateStr < todayStr) return;
+    if (bookedDates.has(dateStr)) return;
+    const dayMap = new Map(days.map((d) => [d.date, d]));
+    const current = dayMap.get(dateStr);
+    const nextAvailable = current ? !current.isAvailable : false;
+    setActionDay(dateStr);
+    setUpdating(true);
+    const ok = await upsertAvailability(listingId, dateStr, { isAvailable: nextAvailable });
+    setUpdating(false);
+    setActionDay(null);
+    if (ok) void loadAvailability();
+  };
+
+  const handleMonthOpen = async (open: boolean) => {
+    if (!listingId || updating) return;
+    const { start, end } = getMonthRange(month);
+    const effectiveStart = start < todayStr ? todayStr : start;
+    if (effectiveStart > end) {
+      setUpdating(false);
+      return;
+    }
+    setActionDay('month');
+    setUpdating(true);
+    const ok = await setAvailabilityRange(listingId, effectiveStart, end, open);
+    setUpdating(false);
+    setActionDay(null);
+    if (ok) void loadAvailability();
+  };
+
+  if (!profile?.id) return null;
 
   return (
-    <div className="flex flex-1 flex-col gap-8 px-5 py-6 lg:px-7">
-      <Section title="Uygunluk Takvimi" description="Müsaitlik ve özel fiyat yönetimi.">
-        <ContentCard title="Takvim Görünümü" description="Yakın tarihli müsaitlik kayıtları">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>İlan</TableHead>
-                <TableHead>Tarih</TableHead>
-                <TableHead>Uygun</TableHead>
-                <TableHead>Özel Fiyat</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {availability.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                    Kayıtlı müsaitlik bilgisi bulunamadı.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                availability.map((item) => (
-                  <TableRow key={`${item.listingTitle}-${item.date}`}>
-                    <TableCell className="font-medium">{item.listingTitle}</TableCell>
-                    <TableCell>{formatDate(item.date)}</TableCell>
-                    <TableCell>
-                      <BooleanBadge value={item.isAvailable} />
-                    </TableCell>
-                    <TableCell>{item.customPrice ? formatCurrency(item.customPrice) : '—'}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </ContentCard>
+    <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
+      <Section title="" description="">
+        <AvailabilityCalendar
+          listings={listings}
+          listingId={listingId}
+          setListingId={setListingId}
+          month={month}
+          setMonth={setMonth}
+          days={days}
+          bookedDates={bookedDates}
+          loading={loading}
+          updating={updating}
+          actionDay={actionDay}
+          onDayClick={handleDayClick}
+          onMonthOpen={handleMonthOpen}
+        />
       </Section>
     </div>
   );
