@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, use, useEffect, useState } from 'react';
+import { Suspense, use, useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from '@/lib/i18n/locale-context';
@@ -14,6 +14,7 @@ import {
   isListingAvailable,
   type ListingDetail,
 } from '@/lib/supabase/bookings';
+import { getPriceBreakdown } from '@/lib/supabase/price-breakdown';
 import { useAppSelector } from '@/lib/store/hooks';
 import { CheckoutTripSection } from './_components/CheckoutTripSection';
 import { CheckoutPaymentSection } from './_components/CheckoutPaymentSection';
@@ -61,10 +62,20 @@ function CheckoutPageContent({ id }: { id: string }) {
 
   const guests = guestsParam ? Number.parseInt(guestsParam, 10) || 2 : 2;
 
-  const subtotal = listing ? listing.pricePerNight * nights : 0;
-  const cleaningFee = 850;
-  const serviceFee = Math.round(subtotal * 0.12);
-  const total = subtotal + cleaningFee + serviceFee;
+  const [priceBreakdown, setPriceBreakdown] = useState<{
+    subtotal: number;
+    cleaningFee: number;
+    serviceFee: number;
+    extraGuestFee: number;
+    total: number;
+  } | null>(null);
+
+  const priceRequestIdRef = useRef(0);
+
+  const subtotal = priceBreakdown?.subtotal ?? (listing ? listing.pricePerNight * nights : 0);
+  const cleaningFee = priceBreakdown?.cleaningFee ?? (listing?.cleaningFee ?? 850);
+  const serviceFee = priceBreakdown?.serviceFee ?? Math.round(subtotal * 0.12);
+  const total = priceBreakdown?.total ?? subtotal + cleaningFee + serviceFee;
 
   useEffect(() => {
     let cancelled = false;
@@ -78,6 +89,29 @@ function CheckoutPageContent({ id }: { id: string }) {
       cancelled = true;
     };
   }, [id]);
+
+  useEffect(() => {
+    if (!listing || !fromParam || !toParam) {
+      setPriceBreakdown(null);
+      return;
+    }
+    const requestId = ++priceRequestIdRef.current;
+    getPriceBreakdown(listing, fromParam, toParam, guests)
+      .then((b) => {
+        if (requestId !== priceRequestIdRef.current || !b) return;
+        setPriceBreakdown({
+          subtotal: b.subtotal,
+          cleaningFee: b.cleaningFee,
+          serviceFee: b.serviceFee,
+          extraGuestFee: b.extraGuestFee,
+          total: b.total,
+        });
+      })
+      .catch(() => {
+        if (requestId !== priceRequestIdRef.current) return;
+        setPriceBreakdown(null);
+      });
+  }, [listing?.id, fromParam, toParam, guests]);
 
   const selectedSlot = CHECK_IN_SLOTS.find((s) => s.key === checkInSlotKey) ?? null;
 
@@ -189,7 +223,12 @@ function CheckoutPageContent({ id }: { id: string }) {
                   <div className="pt-8 border-t space-y-4">
                     <Button
                       type="submit"
-                      disabled={submitting || !profile || success}
+                      disabled={
+                        submitting ||
+                        !profile ||
+                        success ||
+                        (!!fromParam && !!toParam && !priceBreakdown)
+                      }
                       className="w-full h-16 rounded-3xl bg-foreground text-background font-black text-xl hover:bg-foreground/85 transition-transform active:scale-95 shadow-2xl shadow-foreground/10"
                     >
                       {submitting ? (
@@ -206,6 +245,11 @@ function CheckoutPageContent({ id }: { id: string }) {
                         'Rezervasyonu Tamamla ve Öde'
                       )}
                     </Button>
+                    {fromParam && toParam && !priceBreakdown && listing && (
+                      <p className="text-xs text-muted-foreground text-center">
+                        Fiyat hesaplanıyor...
+                      </p>
+                    )}
                     {errorMessage && (
                       <p className="text-xs text-red-500 text-center">{errorMessage}</p>
                     )}
@@ -229,6 +273,7 @@ function CheckoutPageContent({ id }: { id: string }) {
                   subtotal={subtotal}
                   cleaningFee={cleaningFee}
                   serviceFee={serviceFee}
+                  extraGuestFee={priceBreakdown?.extraGuestFee ?? 0}
                   total={total}
                   totalLabel={t.listingTotal as string}
                 />

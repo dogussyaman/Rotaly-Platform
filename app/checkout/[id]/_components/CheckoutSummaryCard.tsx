@@ -11,6 +11,7 @@ interface CheckoutSummaryCardProps {
   subtotal: number;
   cleaningFee: number;
   serviceFee: number;
+  extraGuestFee?: number;
   total: number;
   totalLabel: string;
 }
@@ -21,6 +22,7 @@ export function CheckoutSummaryCard({
   subtotal,
   cleaningFee,
   serviceFee,
+  extraGuestFee = 0,
   total,
   totalLabel,
 }: CheckoutSummaryCardProps) {
@@ -68,6 +70,14 @@ export function CheckoutSummaryCard({
               ₺{subtotal.toLocaleString('tr-TR')}
             </span>
           </div>
+          {extraGuestFee > 0 && (
+            <div className="flex justify-between items-center text-muted-foreground">
+              <span className="font-medium">Ek misafir ücreti</span>
+              <span className="font-bold text-foreground">
+                ₺{extraGuestFee.toLocaleString('tr-TR')}
+              </span>
+            </div>
+          )}
           <div className="flex justify-between items-center text-muted-foreground">
             <span className="font-medium">Temizlik ücreti</span>
             <span className="font-bold text-foreground">

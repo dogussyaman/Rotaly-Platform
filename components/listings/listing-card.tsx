@@ -10,6 +10,8 @@ interface ListingCardProps {
   title: string;
   location: string;
   pricePerNight: number;
+  /** İndirim oranı (örn. 10 = %10). Gösterildiğinde kartta rozet çıkar. */
+  discountPercent?: number;
   rating: number;
   totalReviews: number;
   images: string[];
@@ -25,6 +27,7 @@ export function ListingCard({
   title,
   location,
   pricePerNight,
+  discountPercent,
   rating,
   totalReviews,
   images,
@@ -137,9 +140,17 @@ export function ListingCard({
           />
         </button>
 
-        {/* Guest favorite badge */}
+        {/* İndirim + Guest favorite rozetleri */}
+        {discountPercent != null && discountPercent > 0 && (
+          <div className="absolute top-3 left-3 z-10 bg-rose-500 text-white text-xs font-black px-2.5 py-1 rounded-lg shadow-md">
+            %{Math.round(discountPercent)} İndirim
+          </div>
+        )}
         {isFavorite && (
-          <div className="absolute top-3 left-3 z-10 bg-card text-foreground text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm">
+          <div
+            className="absolute left-3 z-10 bg-card text-foreground text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm"
+            style={{ top: discountPercent != null && discountPercent > 0 ? 40 : 12 }}
+          >
             {guestFavoriteLabel}
           </div>
         )}

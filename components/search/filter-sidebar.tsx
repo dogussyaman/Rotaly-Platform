@@ -40,11 +40,13 @@ export function FilterSidebar() {
     setPriceRange,
     setPropertyType,
     setAmenities,
+    setDiscountOnly,
   } = useSearchStore();
   const { t } = useLocale();
 
   const [expandedSections, setExpandedSections] = useState({
     price: true,
+    discount: true,
     propertyType: true,
     amenities: true,
   });
@@ -131,6 +133,46 @@ export function FilterSidebar() {
             <div className="text-sm text-muted-foreground">
               ${filters.priceMin} - ${filters.priceMax}{' '}
               {t.filterPerNightSuffix as string}
+            </div>
+          </motion.div>
+        )}
+      </div>
+
+      {/* İndirimli */}
+      <div className="border border-border rounded-xl p-4 space-y-4">
+        <button
+          onClick={() => toggleSection('discount')}
+          className="flex items-center justify-between w-full font-semibold text-foreground hover:text-primary transition"
+        >
+          <span>{t.filterDiscount as string}</span>
+          <motion.div
+            animate={{ rotate: expandedSections.discount ? 180 : 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <ChevronDown className="w-4 h-4" />
+          </motion.div>
+        </button>
+        {expandedSections.discount && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-3"
+          >
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="filter-discount"
+                checked={filters.discountOnly}
+                onCheckedChange={(checked) => setDiscountOnly(!!checked)}
+                className="border-border"
+              />
+              <Label
+                htmlFor="filter-discount"
+                className="text-sm font-normal cursor-pointer text-foreground hover:text-primary transition"
+              >
+                {t.filterDiscountOnly as string}
+              </Label>
             </div>
           </motion.div>
         )}
@@ -231,6 +273,7 @@ export function FilterSidebar() {
           setPriceRange(0, 10000);
           setPropertyType([]);
           setAmenities([]);
+          setDiscountOnly(false);
         }}
       >
         {t.filterClearAll as string}

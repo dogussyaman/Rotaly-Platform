@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState, useMemo, useEffect } from 'react';
+import { use, useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { SearchHeader } from '@/components/header/search-header';
 import { MainFooter } from '@/components/footer/main-footer';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/locale-context';
 import { fetchListingById, type ListingDetail } from '@/lib/supabase/bookings';
+import { getPriceBreakdown } from '@/lib/supabase/price-breakdown';
 import { ListingGallery } from './_components/ListingGallery';
 import { ListingHeader } from './_components/ListingHeader';
 import { ListingKeyFacts } from './_components/ListingKeyFacts';
@@ -59,15 +60,70 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }, [dateRange]);
 
-  const priceCalc = useMemo(() => {
-    if (!listing) return { subtotal: 0, serviceFee: 0, cleaningFee: 0, total: 0 };
-    const subtotal = listing.pricePerNight * totalNights;
-    const serviceFee = Math.round(subtotal * 0.12);
-    const cleaningFee = Number.isFinite((listing as { cleaningFee?: number }).cleaningFee)
-      ? Number((listing as { cleaningFee?: number }).cleaningFee)
-      : 850;
-    return { subtotal, serviceFee, cleaningFee, total: subtotal + serviceFee + cleaningFee };
-  }, [listing, totalNights]);
+  const [priceCalc, setPriceCalc] = useState({
+    subtotal: 0,
+    serviceFee: 0,
+    cleaningFee: 0,
+    extraGuestFee: 0,
+    total: 0,
+  });
+  const [priceLoading, setPriceLoading] = useState(false);
+  const priceRequestIdRef = useRef(0);
+
+  const checkInStr = dateRange.from ? dateRange.from.toISOString().slice(0, 10) : '';
+  const checkOutStr = dateRange.to ? dateRange.to.toISOString().slice(0, 10) : '';
+
+  useEffect(() => {
+    if (!listing) return;
+
+    const hasDates = checkInStr && checkOutStr;
+    if (!hasDates) {
+      const nights = totalNights;
+      const simpleSubtotal = listing.pricePerNight * nights;
+      const simpleServiceFee = Math.round(simpleSubtotal * 0.12);
+      const simpleCleaningFee = listing.cleaningFee ?? 850;
+      setPriceCalc({
+        subtotal: simpleSubtotal,
+        serviceFee: simpleServiceFee,
+        cleaningFee: simpleCleaningFee,
+        extraGuestFee: 0,
+        total: simpleSubtotal + simpleServiceFee + simpleCleaningFee,
+      });
+      return;
+    }
+
+    const requestId = ++priceRequestIdRef.current;
+    setPriceLoading(true);
+
+    getPriceBreakdown(listing, checkInStr, checkOutStr, guestCount)
+      .then((breakdown) => {
+        if (requestId !== priceRequestIdRef.current || !breakdown) return;
+        setPriceCalc({
+          subtotal: breakdown.subtotal,
+          serviceFee: breakdown.serviceFee,
+          cleaningFee: breakdown.cleaningFee,
+          extraGuestFee: breakdown.extraGuestFee,
+          total: breakdown.total,
+        });
+      })
+      .catch(() => {
+        if (requestId !== priceRequestIdRef.current) return;
+        const nights = totalNights;
+        const subtotal = listing.pricePerNight * nights;
+        const serviceFee = Math.round(subtotal * 0.12);
+        const cleaningFee = listing.cleaningFee ?? 850;
+        setPriceCalc({
+          subtotal,
+          serviceFee,
+          cleaningFee,
+          extraGuestFee: 0,
+          total: subtotal + serviceFee + cleaningFee,
+        });
+      })
+      .finally(() => {
+        if (requestId === priceRequestIdRef.current) setPriceLoading(false);
+      });
+  }, [listing?.id, checkInStr, checkOutStr, guestCount, totalNights]);
 
   return (
     <div className="min-h-screen bg-background font-sans">
@@ -144,6 +200,7 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
                   setGuestCount={setGuestCount}
                   totalNights={totalNights}
                   priceCalc={priceCalc}
+                  priceLoading={priceLoading}
                   locale={locale}
                   t={{
                     checkin: t.checkin as string,

@@ -9,6 +9,7 @@ export interface SearchFilters {
   priceMax: number;
   propertyType: string[];
   amenities: string[];
+  discountOnly: boolean;
 }
 
 interface SearchStore {
@@ -20,6 +21,7 @@ interface SearchStore {
   setPriceRange: (min: number, max: number) => void;
   setPropertyType: (types: string[]) => void;
   setAmenities: (amenities: string[]) => void;
+  setDiscountOnly: (value: boolean) => void;
   resetFilters: () => void;
 }
 
@@ -32,6 +34,7 @@ const initialFilters: SearchFilters = {
   priceMax: 10000,
   propertyType: [],
   amenities: [],
+  discountOnly: false,
 };
 
 export const useSearchStore = create<SearchStore>((set) => ({
@@ -63,6 +66,10 @@ export const useSearchStore = create<SearchStore>((set) => ({
   setAmenities: (amenities) =>
     set((state) => ({
       filters: { ...state.filters, amenities },
+    })),
+  setDiscountOnly: (discountOnly) =>
+    set((state) => ({
+      filters: { ...state.filters, discountOnly },
     })),
   resetFilters: () =>
     set({

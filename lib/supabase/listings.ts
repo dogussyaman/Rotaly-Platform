@@ -74,6 +74,8 @@ export interface ListingRow {
   title: string;
   location: string;
   pricePerNight: number;
+  /** Liste/kartta gösterilecek indirim oranı (örn. 10 = %10). 0 veya undefined = rozet yok. */
+  discountPercent?: number;
   rating: number;
   totalReviews: number;
   images: string[];
@@ -92,6 +94,8 @@ export interface FetchListingsParams {
   guests?: number;
   checkIn?: Date | null;
   checkOut?: Date | null;
+  /** true ise sadece discount_percent > 0 olan ilanlar döner */
+  discountOnly?: boolean;
 }
 
 export async function fetchListings(params: FetchListingsParams = {}): Promise<ListingRow[]> {
@@ -105,6 +109,7 @@ export async function fetchListings(params: FetchListingsParams = {}): Promise<L
       city,
       country,
       price_per_night,
+      discount_percent,
       rating,
       total_reviews,
       property_type,
@@ -120,6 +125,10 @@ export async function fetchListings(params: FetchListingsParams = {}): Promise<L
     `)
     .eq('is_active', true)
     .order('created_at', { ascending: false });
+
+  if (params.discountOnly) {
+    query = query.not('discount_percent', 'is', null).gt('discount_percent', 0);
+  }
 
   if (params.location && params.location.trim() !== '') {
     const parts = params.location.trim().split(',').map((p) => p.trim()).filter(Boolean);
@@ -169,11 +178,13 @@ export async function fetchListings(params: FetchListingsParams = {}): Promise<L
       })
       .map((img) => img.url);
 
+    const discountPercent = row.discount_percent != null ? Number(row.discount_percent) : undefined;
     return {
       id: row.id,
       title: row.title,
       location: [row.city, row.country].filter(Boolean).join(', '),
       pricePerNight: Number(row.price_per_night),
+      discountPercent: discountPercent && discountPercent > 0 ? discountPercent : undefined,
       rating: Number(row.rating) || 0,
       totalReviews: row.total_reviews || 0,
       images: images.length > 0 ? images : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'],
@@ -214,6 +225,9 @@ export interface UpdateListingInput {
   pricePerNight?: number;
   cleaningFee?: number;
   serviceFee?: number;
+  baseGuests?: number;
+  extraGuestFee?: number;
+  discountPercent?: number | null;
   maxGuests?: number;
   bedrooms?: number;
   beds?: number;
@@ -242,6 +256,9 @@ export async function updateListing(
   if (input.pricePerNight !== undefined) payload.price_per_night = input.pricePerNight;
   if (input.cleaningFee !== undefined) payload.cleaning_fee = input.cleaningFee;
   if (input.serviceFee !== undefined) payload.service_fee = input.serviceFee;
+  if (input.baseGuests !== undefined) payload.base_guests = input.baseGuests;
+  if (input.extraGuestFee !== undefined) payload.extra_guest_fee = input.extraGuestFee;
+  if (input.discountPercent !== undefined) payload.discount_percent = input.discountPercent;
   if (input.maxGuests !== undefined) payload.max_guests = input.maxGuests;
   if (input.bedrooms !== undefined) payload.bedrooms = input.bedrooms;
   if (input.beds !== undefined) payload.beds = input.beds;

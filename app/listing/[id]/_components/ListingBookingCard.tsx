@@ -19,7 +19,14 @@ interface ListingBookingCardProps {
   guestCount: number;
   setGuestCount: (n: number) => void;
   totalNights: number;
-  priceCalc: { subtotal: number; serviceFee: number; cleaningFee: number; total: number };
+  priceCalc: {
+    subtotal: number;
+    serviceFee: number;
+    cleaningFee: number;
+    extraGuestFee?: number;
+    total: number;
+  };
+  priceLoading?: boolean;
   locale: string;
   t: {
     checkin: string;
@@ -43,6 +50,7 @@ export function ListingBookingCard({
   setGuestCount,
   totalNights,
   priceCalc,
+  priceLoading,
   locale,
   t,
 }: ListingBookingCardProps) {
@@ -173,10 +181,18 @@ export function ListingBookingCard({
         <div className="mt-8 space-y-4 pt-8 border-t border-border/60">
           <div className="flex justify-between items-center text-lg">
             <span className="text-muted-foreground underline underline-offset-4 decoration-muted-foreground/30">
-              ₺{listing.pricePerNight.toLocaleString('tr-TR')} x {totalNights} gece
+              {priceLoading ? '...' : `₺${listing.pricePerNight.toLocaleString('tr-TR')} x ${totalNights} gece`}
             </span>
             <span className="font-bold">₺{priceCalc.subtotal.toLocaleString('tr-TR')}</span>
           </div>
+          {(priceCalc.extraGuestFee ?? 0) > 0 && (
+            <div className="flex justify-between items-center text-lg">
+              <span className="text-muted-foreground underline underline-offset-4 decoration-muted-foreground/30">
+                Ek misafir ücreti
+              </span>
+              <span className="font-bold">₺{priceCalc.extraGuestFee!.toLocaleString('tr-TR')}</span>
+            </div>
+          )}
           <div className="flex justify-between items-center text-lg">
             <span className="text-muted-foreground underline underline-offset-4 decoration-muted-foreground/30">
               {t.listingCleaningFee}

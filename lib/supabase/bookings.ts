@@ -10,6 +10,11 @@ export interface ListingDetail {
   city: string | null;
   country: string | null;
   pricePerNight: number;
+  cleaningFee: number;
+  serviceFee: number;
+  baseGuests: number;
+  extraGuestFee: number;
+  discountPercent?: number | null;
   rating: number;
   totalReviews: number;
   maxGuests: number;
@@ -152,6 +157,11 @@ export async function fetchListingById(id: string): Promise<ListingDetail | null
         city,
         country,
         price_per_night,
+        cleaning_fee,
+        service_fee,
+        base_guests,
+        extra_guest_fee,
+        discount_percent,
         rating,
         total_reviews,
         max_guests,
@@ -206,6 +216,11 @@ export async function fetchListingById(id: string): Promise<ListingDetail | null
     city: data.city ?? null,
     country: data.country ?? null,
     pricePerNight: Number(data.price_per_night),
+    cleaningFee: Number(data.cleaning_fee ?? 0),
+    serviceFee: Number(data.service_fee ?? 0),
+    baseGuests: Math.max(1, data.base_guests ?? 1),
+    extraGuestFee: Number(data.extra_guest_fee ?? 0),
+    discountPercent: data.discount_percent != null ? Number(data.discount_percent) : null,
     rating: Number(data.rating ?? 0),
     totalReviews: data.total_reviews ?? 0,
     maxGuests: data.max_guests ?? 1,

@@ -15,6 +15,18 @@ export function ListingDetailSummary({ listing }: ListingDetailSummaryProps) {
           <span className="text-muted-foreground">Gecelik fiyat</span>
           <span className="font-semibold">₺{listing.pricePerNight.toLocaleString('tr-TR')}</span>
         </div>
+        {(listing.cleaningFee ?? 0) > 0 && (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Temizlik ücreti</span>
+            <span className="font-medium">₺{listing.cleaningFee!.toLocaleString('tr-TR')}</span>
+          </div>
+        )}
+        {(listing.extraGuestFee ?? 0) > 0 && (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Ek misafir (₺/gece)</span>
+            <span className="font-medium">₺{listing.extraGuestFee!.toLocaleString('tr-TR')} ({(listing.baseGuests ?? 1)}+ kişi)</span>
+          </div>
+        )}
         <div className="flex justify-between">
           <span className="text-muted-foreground">Misafir</span>
           <span className="font-medium">{listing.maxGuests} kişi</span>

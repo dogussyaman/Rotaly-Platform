@@ -50,6 +50,7 @@ function SearchPageContent() {
       guests: filters.guests,
       checkIn: filters.checkIn,
       checkOut: filters.checkOut,
+      discountOnly: filters.discountOnly || undefined,
     });
     setListings(data);
     setLoading(false);

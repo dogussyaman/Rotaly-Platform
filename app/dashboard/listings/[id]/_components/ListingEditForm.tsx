@@ -52,6 +52,81 @@ export function ListingEditForm({
             }
           />
         </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-muted-foreground">
+            Temizlik ücreti (₺)
+          </label>
+          <Input
+            type="number"
+            min={0}
+            value={editForm.cleaningFee ?? ''}
+            onChange={(e) =>
+              setEditForm((f) => ({
+                ...f,
+                cleaningFee: parseFloat(e.target.value) || undefined,
+              }))
+            }
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-muted-foreground">
+            Fiyata dahil misafir sayısı
+          </label>
+          <Input
+            type="number"
+            min={1}
+            value={editForm.baseGuests ?? ''}
+            onChange={(e) =>
+              setEditForm((f) => ({
+                ...f,
+                baseGuests: parseInt(e.target.value, 10) || undefined,
+              }))
+            }
+            placeholder="1"
+          />
+          <p className="mt-0.5 text-[10px] text-muted-foreground">
+            Bu sayıdan fazla misafir için ek ücret uygulanır.
+          </p>
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-muted-foreground">
+            Ek misafir ücreti (₺/gece)
+          </label>
+          <Input
+            type="number"
+            min={0}
+            value={editForm.extraGuestFee ?? ''}
+            onChange={(e) =>
+              setEditForm((f) => ({
+                ...f,
+                extraGuestFee: parseFloat(e.target.value) || undefined,
+              }))
+            }
+            placeholder="0"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-xs font-medium text-muted-foreground">
+            İndirim oranı (%)
+          </label>
+          <Input
+            type="number"
+            min={0}
+            max={100}
+            value={editForm.discountPercent ?? ''}
+            onChange={(e) => {
+              const v = e.target.value === '' ? undefined : parseFloat(e.target.value);
+              setEditForm((f) => ({
+                ...f,
+                discountPercent: v == null || Number.isNaN(v) ? undefined : v,
+              }));
+            }}
+            placeholder="Boş = indirim yok"
+          />
+          <p className="mt-0.5 text-[10px] text-muted-foreground">
+            Liste ve kartta &quot;%X İndirim&quot; rozeti gösterilir (0 veya boş = gösterme).
+          </p>
+        </div>
         <div className="sm:col-span-2">
           <label className="mb-1 block text-xs font-medium text-muted-foreground">Açıklama</label>
           <textarea

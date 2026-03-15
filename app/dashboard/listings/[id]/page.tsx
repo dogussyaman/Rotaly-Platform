@@ -33,6 +33,7 @@ import { ListingDetailSummary } from './_components/ListingDetailSummary';
 import { ListingDetailDescription } from './_components/ListingDetailDescription';
 import { ListingDetailLocation } from './_components/ListingDetailLocation';
 import { ListingEditForm } from './_components/ListingEditForm';
+import { ListingSeasonalPricing } from './_components/ListingSeasonalPricing';
 
 export default function ListingDetailPage({
   params,
@@ -143,6 +144,11 @@ export default function ListingDetailPage({
       city: listing.city ?? undefined,
       country: listing.country ?? undefined,
       pricePerNight: listing.pricePerNight,
+      cleaningFee: listing.cleaningFee,
+      serviceFee: listing.serviceFee,
+      baseGuests: listing.baseGuests ?? 1,
+      extraGuestFee: listing.extraGuestFee ?? 0,
+      discountPercent: listing.discountPercent ?? undefined,
       maxGuests: listing.maxGuests,
       bedrooms: listing.bedrooms,
       bathrooms: listing.bathrooms,
@@ -248,6 +254,12 @@ export default function ListingDetailPage({
           <ListingDetailDescription description={listing.description} />
           <ListingDetailLocation listing={listing} />
         </div>
+
+        {isOwner && (
+          <div className="mt-6">
+            <ListingSeasonalPricing listingId={id} />
+          </div>
+        )}
 
         {editOpen && (
           <ListingEditForm
