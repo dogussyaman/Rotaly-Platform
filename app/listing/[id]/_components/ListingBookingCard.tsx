@@ -56,11 +56,22 @@ export function ListingBookingCard({
 }: ListingBookingCardProps) {
   const router = useRouter();
   const dateLocale: Locale = locale === 'tr' ? tr : enUS;
-  const effectiveNightly =
-    totalNights > 0 && priceCalc.subtotal > 0
-      ? Math.round(priceCalc.subtotal / totalNights)
+  const baseNightly = listing.pricePerNight;
+  const discountedNightly =
+    listing.discountPercent && listing.discountPercent > 0
+      ? listing.pricePerNight * (1 - listing.discountPercent / 100)
       : listing.pricePerNight;
-  const hasDiscount = effectiveNightly < listing.pricePerNight - 1;
+
+  // API'den gelen gerçek ortalama gecelik fiyat (sezon, özel fiyat vs. dahil)
+  const calculatedNightly =
+    totalNights > 0 && priceCalc.subtotal > 0
+      ? priceCalc.subtotal / totalNights
+      : discountedNightly;
+
+  const effectiveNightly = Math.round(calculatedNightly);
+  const discountPercent =
+    Math.round(100 - (effectiveNightly / Math.max(1, baseNightly)) * 100);
+  const hasDiscount = discountPercent > 0;
 
   const handleReserveClick = () => {
     const params = new URLSearchParams();
@@ -73,39 +84,27 @@ export function ListingBookingCard({
 
   return (
     <aside className="sticky top-28">
-      <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-500 to-amber-500" />
+      <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group min-h-[520px]">
+        <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-rose-500 to-amber-500" />
 
-        <div className="flex items-baseline justify-between mb-8">
+        <div className="flex items-baseline justify-between mb-8 min-h-[96px]">
           <div className="space-y-1">
-            {hasDiscount ? (
-              <>
-                <div className="text-sm text-muted-foreground line-through">
-                  ₺{listing.pricePerNight.toLocaleString('tr-TR')} / {t.listingPerNight}
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-3xl font-black text-emerald-700">
-                    ₺{effectiveNightly.toLocaleString('tr-TR')}
-                  </span>
-                  <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700">
-                    %{Math.round(
-                      100 - (effectiveNightly / Math.max(1, listing.pricePerNight)) * 100,
-                    )}{' '}
-                    indirim
-                  </span>
-                </div>
-                <span className="text-xs text-muted-foreground">
-                  İndirim, seçtiğiniz tarih ve misafir sayısına göre uygulanmıştır.
+            <div className="text-sm text-muted-foreground line-through opacity-80">
+              ₺{baseNightly.toLocaleString('tr-TR')} / {t.listingPerNight}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-3xl font-black text-emerald-700">
+                ₺{effectiveNightly.toLocaleString('tr-TR')}
+              </span>
+              {hasDiscount && (
+                <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700">
+                  %{discountPercent} indirim
                 </span>
-              </>
-            ) : (
-              <>
-                <span className="text-3xl font-black text-foreground">
-                  ₺{listing.pricePerNight.toLocaleString('tr-TR')}
-                </span>
-                <span className="text-muted-foreground font-medium ml-1">/{t.listingPerNight}</span>
-              </>
-            )}
+              )}
+            </div>
+            <span className="text-xs text-muted-foreground">
+              İndirim, seçtiğiniz tarih ve misafir sayısına göre uygulanmıştır.
+            </span>
           </div>
           <div className="flex items-center gap-1 text-sm font-bold">
             <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
@@ -133,8 +132,8 @@ export function ListingBookingCard({
                 mode="range"
                 defaultMonth={dateRange.from}
                 selected={{ from: dateRange.from, to: dateRange.to }}
-                onSelect={(range: { from?: Date; to?: Date } | undefined) =>
-                  setDateRange(range ?? { from: undefined, to: undefined })
+                onSelect={(range) =>
+                  setDateRange({ from: range?.from, to: range?.to })
                 }
                 numberOfMonths={1}
               />
@@ -160,8 +159,8 @@ export function ListingBookingCard({
                 mode="range"
                 defaultMonth={dateRange.to || dateRange.from}
                 selected={{ from: dateRange.from, to: dateRange.to }}
-                onSelect={(range: { from?: Date; to?: Date } | undefined) =>
-                  setDateRange(range ?? { from: undefined, to: undefined })
+                onSelect={(range) =>
+                  setDateRange({ from: range?.from, to: range?.to })
                 }
                 numberOfMonths={1}
               />

@@ -71,25 +71,29 @@ export async function fetchHostByUserId(userId: string): Promise<HostProfile | n
       `
     )
     .eq('user_id', userId)
-    .single();
+    .order('created_at', { ascending: false })
+    .limit(1);
 
   if (error) {
     console.error('fetchHostByUserId error:', error.message);
     return null;
   }
 
-  const profile = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles;
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return null;
+
+  const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles;
 
   return {
-    hostId: data.id,
-    userId: data.user_id,
+    hostId: row.id,
+    userId: row.user_id,
     fullName: profile?.full_name ?? null,
     avatarUrl: profile?.avatar_url ?? null,
-    responseRate: Number(data.response_rate ?? 0),
-    responseTime: data.response_time ?? null,
-    superhost: !!data.superhost,
-    totalReviews: data.total_reviews ?? 0,
-    languages: data.languages ?? [],
+    responseRate: Number(row.response_rate ?? 0),
+    responseTime: row.response_time ?? null,
+    superhost: !!row.superhost,
+    totalReviews: row.total_reviews ?? 0,
+    languages: row.languages ?? [],
   };
 }
 

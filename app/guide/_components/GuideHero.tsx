@@ -40,12 +40,12 @@ export function GuideHero({ searchQuery, setSearchQuery, t }: GuideHeroProps) {
             {t.guideHeroSubtitle as string}
           </p>
         </motion.div>
-        <div className="relative max-w-2xl mx-auto mt-8">
+        <div className="relative max-w-2xl mx-auto mt-8 mb-4">
           <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-foreground/40" />
           <input
             type="text"
             placeholder={t.guideSearchPlaceholder as string}
-            className="w-full h-16 pl-16 pr-6 rounded-[2rem] bg-white/60 border border-black/5 text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all text-base md:text-lg font-bold shadow-xl backdrop-blur-md"
+            className="w-full h-16 pl-16 pr-6 rounded-2xl bg-white/60 border border-black/5 text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all text-base md:text-lg font-bold shadow-xl backdrop-blur-md"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />

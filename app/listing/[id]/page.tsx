@@ -27,7 +27,7 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
   const { t, locale } = useLocale();
   const searchParams = useSearchParams();
   const [listing, setListing] = useState<ListingDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
@@ -35,7 +35,7 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
     to: new Date(new Date().getTime() + 5 * 24 * 60 * 60 * 1000),
   });
   const [guestCount, setGuestCount] = useState(2);
-  const didInitFromQueryRef = useRef(false);
+  const initializationRef = useRef(false);
 
   function parseYmd(ymd: string): Date | null {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
@@ -48,45 +48,26 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
   }
 
   useEffect(() => {
-    if (didInitFromQueryRef.current) return;
-
+    if (initializationRef.current) return;
+    
+    // We only initialize once when the component mounts
     const fromParam = searchParams.get('from');
     const toParam = searchParams.get('to');
     const guestsParam = searchParams.get('guests');
 
-    const from = fromParam ? parseYmd(fromParam) : null;
-    const to = toParam ? parseYmd(toParam) : null;
-
-    if (from && to) {
-      setDateRange({ from, to });
-      didInitFromQueryRef.current = true;
+    if (fromParam && toParam) {
+      const from = parseYmd(fromParam);
+      const to = parseYmd(toParam);
+      if (from && to) setDateRange({ from, to });
     }
 
     if (guestsParam) {
       const g = Number.parseInt(guestsParam, 10);
       if (Number.isFinite(g) && g > 0) setGuestCount(g);
     }
+    
+    initializationRef.current = true;
   }, [searchParams]);
-
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const data = await fetchListingById(id);
-      setListing(data);
-      setLoading(false);
-    })();
-  }, [id]);
-
-  const handlePrevImage = () => {
-    setSelectedImageIndex((prev) =>
-      !listing || !listing.images?.length ? 0 : prev === 0 ? listing.images.length - 1 : prev - 1
-    );
-  };
-  const handleNextImage = () => {
-    setSelectedImageIndex((prev) =>
-      !listing || !listing.images?.length ? 0 : prev === listing.images.length - 1 ? 0 : prev + 1
-    );
-  };
 
   const totalNights = useMemo(() => {
     if (!dateRange.from || !dateRange.to) return 5;
@@ -107,49 +88,53 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
   const checkInStr = dateRange.from ? dateRange.from.toISOString().slice(0, 10) : '';
   const checkOutStr = dateRange.to ? dateRange.to.toISOString().slice(0, 10) : '';
 
-  const computeFallbackPrice = (
-    currentListing: ListingDetail,
-    nights: number,
-    guests: number,
-  ) => {
-    const safeNights = Math.max(1, nights);
-    const baseNightly = currentListing.pricePerNight;
-    const discountedNightly =
-      currentListing.discountPercent && currentListing.discountPercent > 0
-        ? baseNightly * (1 - currentListing.discountPercent / 100)
-        : baseNightly;
-    const subtotal = discountedNightly * safeNights;
-    const baseGuests = currentListing.baseGuests ?? 1;
-    const extraGuests = Math.max(0, guests - baseGuests);
-    const extraGuestFeeRate = currentListing.extraGuestFee ?? 0;
-    const extraGuestFee =
-      extraGuestFeeRate > 0 && extraGuests > 0
-        ? Math.round(extraGuestFeeRate * extraGuests * safeNights * 100) / 100
-        : 0;
-    const cleaningFee = Math.round((currentListing.cleaningFee ?? 850) * 100) / 100;
-    const serviceFeeFixed = currentListing.serviceFee ?? 0;
-    const serviceFee =
-      serviceFeeFixed > 0
-        ? Math.round(serviceFeeFixed * 100) / 100
-        : Math.round(subtotal * 0.12 * 100) / 100;
-    const total = Math.round((subtotal + extraGuestFee + cleaningFee + serviceFee) * 100) / 100;
-
-    return {
-      subtotal,
-      serviceFee,
-      cleaningFee,
-      extraGuestFee,
-      total,
+  useEffect(() => {
+    let active = true;
+    const loadListing = async () => {
+      // Only show loader if we don't have a listing yet
+      if (!listing) setIsInitialLoading(true);
+      
+      try {
+        const data = await fetchListingById(id);
+        if (active) {
+          setListing(data);
+        }
+      } catch (err) {
+        console.error('Failed to load listing:', err);
+      } finally {
+        if (active) setIsInitialLoading(false);
+      }
     };
+
+    loadListing();
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  const handlePrevImage = () => {
+    setSelectedImageIndex((prev) =>
+      !listing || !listing.images?.length ? 0 : prev === 0 ? listing.images.length - 1 : prev - 1
+    );
+  };
+  const handleNextImage = () => {
+    setSelectedImageIndex((prev) =>
+      !listing || !listing.images?.length ? 0 : prev === listing.images.length - 1 ? 0 : prev + 1
+    );
   };
 
   useEffect(() => {
     if (!listing) return;
 
     const hasDates = checkInStr && checkOutStr;
-    setPriceCalc(computeFallbackPrice(listing, totalNights, guestCount));
-
     if (!hasDates) {
+      setPriceCalc({
+        subtotal: 0,
+        serviceFee: 0,
+        cleaningFee: listing.cleaningFee ?? 0,
+        extraGuestFee: 0,
+        total: 0,
+      });
       setPriceLoading(false);
       return;
     }
@@ -159,7 +144,19 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
 
     getPriceBreakdown(listing, checkInStr, checkOutStr, guestCount)
       .then((breakdown) => {
-        if (requestId !== priceRequestIdRef.current || !breakdown) return;
+        if (requestId !== priceRequestIdRef.current) return;
+
+        if (!breakdown) {
+          setPriceCalc({
+            subtotal: 0,
+            serviceFee: 0,
+            cleaningFee: listing.cleaningFee ?? 0,
+            extraGuestFee: 0,
+            total: 0,
+          });
+          return;
+        }
+
         setPriceCalc({
           subtotal: breakdown.subtotal,
           serviceFee: breakdown.serviceFee,
@@ -168,26 +165,22 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
           total: breakdown.total,
         });
       })
-      .catch(() => {
-        if (requestId !== priceRequestIdRef.current) return;
-        setPriceCalc(computeFallbackPrice(listing, totalNights, guestCount));
-      })
       .finally(() => {
         if (requestId === priceRequestIdRef.current) setPriceLoading(false);
       });
-  }, [listing, checkInStr, checkOutStr, guestCount, totalNights]);
+  }, [listing?.id, checkInStr, checkOutStr, guestCount, totalNights]);
 
   return (
     <div className="min-h-screen bg-background font-sans">
       <SearchHeader />
       <main className="pt-20 pb-20">
-        {loading && (
+        {isInitialLoading && !listing && (
           <div className="flex items-center justify-center py-32">
             <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           </div>
         )}
 
-        {!loading && !listing && (
+        {!isInitialLoading && !listing && (
           <div className="max-w-3xl mx-auto px-6 py-24 text-center">
             <h1 className="text-2xl font-bold mb-2">İlan bulunamadı</h1>
             <p className="text-muted-foreground mb-6">

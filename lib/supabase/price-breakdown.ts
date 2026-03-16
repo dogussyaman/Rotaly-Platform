@@ -17,20 +17,22 @@ export async function getPriceBreakdown(
   checkOut: string,
   guestsCount: number,
 ): Promise<PriceBreakdown | null> {
-  const availability = await fetchAvailabilityByListing(
-    listing.id,
-    checkIn,
-    checkOut,
-  );
-  const seasonalRules = await fetchSeasonalPricingForListing(listing.id);
+  const [availability, seasonalRules] = await Promise.all([
+    fetchAvailabilityByListing(listing.id, checkIn, checkOut),
+    fetchSeasonalPricingForListing(listing.id),
+  ]);
 
   const availabilityByDate = new Map<string, number | null>();
   for (const day of availability) {
     availabilityByDate.set(day.date, day.customPrice);
   }
 
+  const basePrice = (listing.discountPercent && listing.discountPercent > 0)
+    ? listing.pricePerNight * (1 - listing.discountPercent / 100)
+    : listing.pricePerNight;
+
   const params: ListingPricingParams = {
-    pricePerNight: listing.pricePerNight,
+    pricePerNight: basePrice,
     cleaningFee: listing.cleaningFee ?? 0,
     serviceFeeFixed: listing.serviceFee ?? 0,
     serviceFeePercent: 12,
