@@ -1,15 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Loader2, Sparkles } from 'lucide-react';
 import { ListingCard } from '@/components/listings/listing-card';
 import { fetchListingsByIds, type ListingRow } from '@/lib/supabase/listings';
 import {
   fetchUpcomingDiscountOffers,
   type SeasonalDiscountHit,
 } from '@/lib/supabase/seasonal-pricing';
+import { OffersHeader, OffersSkeletonGrid } from '@/components/home/offers-skeleton';
 
 interface OffersSectionProps {
   t: any;
@@ -104,30 +104,13 @@ export function OffersSection({ t }: OffersSectionProps) {
   const subtitle =
     (t.offersSubtitle as string) || 'Belirli tarihlerde indirimli konaklamalar';
 
-  const headerNode = useMemo(() => {
-    return (
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card px-3 py-1.5 text-xs font-black text-foreground/80 shadow-sm">
-            <Sparkles className="w-3.5 h-3.5" />
-            {title}
-          </div>
-          <p className="mt-3 text-2xl font-bold text-foreground tracking-tight">{title}</p>
-          <p className="text-sm text-muted-foreground mt-1">{subtitle}</p>
-        </div>
-      </div>
-    );
-  }, [subtitle, title]);
-
   return (
     <section className="bg-background py-8">
       <div className="max-w-7xl mx-auto px-6">
-        {headerNode}
+        <OffersHeader title={title} subtitle={subtitle} />
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-7 h-7 animate-spin text-muted-foreground" />
-          </div>
+          <OffersSkeletonGrid />
         ) : hasItems ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-5 gap-y-8">
             {items.map((item, i) => (
@@ -166,4 +149,3 @@ export function OffersSection({ t }: OffersSectionProps) {
     </section>
   );
 }
-

@@ -13,6 +13,7 @@ import {
   type HostBooking,
 } from '@/lib/supabase/host';
 import { cancelBooking, fetchUserBookingsPage, type BookingWithListing } from '@/lib/supabase/bookings';
+import { createClient } from '@/lib/supabase/client';
 import { getOrCreateConversation } from '@/lib/supabase/messages';
 import { BookingsTableCard } from './_components/BookingsTableCard';
 
@@ -34,6 +35,7 @@ export default function BookingsPage() {
   const [loading, setLoading] = useState(true);
   const [hostId, setHostId] = useState<string | null>(null);
   const [hostBookings, setHostBookings] = useState<{ rows: HostBooking[]; total: number }>({ rows: [], total: 0 });
+  const [adminBookings, setAdminBookings] = useState<{ rows: HostBooking[]; total: number }>({ rows: [], total: 0 });
   const [guestBookings, setGuestBookings] = useState<{ rows: BookingWithListing[]; total: number }>({ rows: [], total: 0 });
   const [messagingBookingId, setMessagingBookingId] = useState<string | null>(null);
 
@@ -43,6 +45,79 @@ export default function BookingsPage() {
     if (!profile?.id) return;
     setLoading(true);
     try {
+      if (role === 'admin') {
+        const supabase = createClient();
+        const from = (page - 1) * PAGE_SIZE;
+        const to = from + PAGE_SIZE - 1;
+
+        let baseQuery = supabase
+          .from('bookings')
+          .select(
+            `
+              id,
+              guest_id,
+              check_in,
+              check_out,
+              guests_count,
+              total_price,
+              final_price,
+              status,
+              listings!inner (
+                id,
+                title
+              ),
+              profiles:profiles!guest_id (
+                full_name
+              )
+            `,
+            { count: 'exact' },
+          )
+          .order('check_in', { ascending: true });
+
+        if (status && status !== 'all') {
+          baseQuery = baseQuery.eq('status', status);
+        }
+
+        const qValue = q.trim();
+        const filteredQuery = qValue ? baseQuery.ilike('listings.title', `%${qValue}%`) : baseQuery;
+
+        let res = await filteredQuery.range(from, to);
+        if (res.error && qValue) {
+          console.warn('fetchAdminBookingsPage: search filter failed, retrying without query. Error:', res.error.message);
+          res = await baseQuery.range(from, to);
+        }
+
+        const { data, error, count } = res;
+        if (error) {
+          console.error('fetchAdminBookingsPage error:', error.message);
+          setAdminBookings({ rows: [], total: 0 });
+          return;
+        }
+
+        const rows = (data ?? []).map((row: any) => {
+          const checkIn = new Date(row.check_in);
+          const checkOut = new Date(row.check_out);
+          const diffMs = Math.abs(checkOut.getTime() - checkIn.getTime());
+          const nights = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+
+          return {
+            id: row.id,
+            guestId: row.guest_id ?? null,
+            guestName: row.profiles?.full_name ?? null,
+            listingTitle: row.listings?.title ?? null,
+            checkIn: row.check_in,
+            checkOut: row.check_out,
+            nights,
+            totalPrice: Number(row.final_price ?? row.total_price),
+            status: row.status,
+          } as HostBooking;
+        });
+
+        setAdminBookings({ rows, total: count ?? rows.length });
+        setHostId(null);
+        return;
+      }
+
       if (role === 'host') {
         const host = await fetchHostByUserId(profile.id);
         setHostId(host?.hostId ?? null);
@@ -119,6 +194,7 @@ export default function BookingsPage() {
             status={status}
             setStatus={setStatus}
             hostBookings={hostBookings}
+            adminBookings={adminBookings}
             guestBookings={guestBookings}
             loading={loading}
             page={page}

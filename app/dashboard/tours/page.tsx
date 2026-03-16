@@ -8,6 +8,7 @@ import { ContentCard, Section, StatusBadge } from '@/components/dashboard/dashbo
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatCurrency } from '@/lib/format';
 import { createClient } from '@/lib/supabase/client';
+import { useAppSelector } from '@/lib/store/hooks';
 
 type TourRow = { id: string; title: string; city: string | null; duration_minutes: number | null; base_price: number; rating: number | null };
 type OperatorRow = { id: string; company_name: string | null; phone: string | null; website: string | null };
@@ -20,24 +21,85 @@ export default function ToursPage() {
   const [schedules, setSchedules] = useState<ScheduleRow[]>([]);
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [canView, setCanView] = useState(true);
+  const { profile } = useAppSelector((s) => s.user);
 
   useEffect(() => {
     async function load() {
+      if (!profile?.id) return;
       const supabase = createClient();
-      const [oRes, tRes, sRes, bRes] = await Promise.all([
-        supabase.from('tour_operators').select('id, company_name, phone, website'),
-        supabase.from('tours').select('id, title, city, duration_minutes, base_price, rating').eq('is_active', true).order('title'),
-        supabase.from('tour_schedules').select('id, start_time, available_spots, price_override, tours(title)').limit(50),
-        supabase.from('tour_bookings').select('id, participants_count, total_price, status, tours(title), profiles(full_name)').order('id', { ascending: false }).limit(50),
+      const isAdmin = !!profile.isAdmin;
+      const isTourOperator = !!profile.isTourOperator;
+
+      if (!isAdmin && !isTourOperator) {
+        setCanView(false);
+        setOperators([]);
+        setTours([]);
+        setSchedules([]);
+        setBookings([]);
+        setLoading(false);
+        return;
+      }
+
+      if (isAdmin) {
+        const [oRes, tRes, sRes, bRes] = await Promise.all([
+          supabase.from('tour_operators').select('id, company_name, phone, website'),
+          supabase.from('tours').select('id, title, city, duration_minutes, base_price, rating').eq('is_active', true).order('title'),
+          supabase.from('tour_schedules').select('id, start_time, available_spots, price_override, tours(title)').limit(50),
+          supabase.from('tour_bookings').select('id, participants_count, total_price, status, tours(title), profiles(full_name)').order('id', { ascending: false }).limit(50),
+        ]);
+        setOperators((oRes.data ?? []) as OperatorRow[]);
+        setTours((tRes.data ?? []) as TourRow[]);
+        setSchedules((sRes.data ?? []) as ScheduleRow[]);
+        setBookings((bRes.data ?? []) as BookingRow[]);
+        setLoading(false);
+        return;
+      }
+
+      const { data: operator } = await supabase
+        .from('tour_operators')
+        .select('id, company_name, phone, website')
+        .eq('user_id', profile.id)
+        .maybeSingle();
+
+      if (!operator) {
+        setOperators([]);
+        setTours([]);
+        setSchedules([]);
+        setBookings([]);
+        setLoading(false);
+        return;
+      }
+
+      const operatorId = operator.id as string;
+
+      const [tRes, sRes, bRes] = await Promise.all([
+        supabase
+          .from('tours')
+          .select('id, title, city, duration_minutes, base_price, rating')
+          .eq('operator_id', operatorId)
+          .order('title'),
+        supabase
+          .from('tour_schedules')
+          .select('id, start_time, available_spots, price_override, tours!inner(title, operator_id)')
+          .eq('tours.operator_id', operatorId)
+          .limit(50),
+        supabase
+          .from('tour_bookings')
+          .select('id, participants_count, total_price, status, tours!inner(title, operator_id), profiles(full_name)')
+          .eq('tours.operator_id', operatorId)
+          .order('id', { ascending: false })
+          .limit(50),
       ]);
-      setOperators((oRes.data ?? []) as OperatorRow[]);
+
+      setOperators([operator as OperatorRow]);
       setTours((tRes.data ?? []) as TourRow[]);
       setSchedules((sRes.data ?? []) as ScheduleRow[]);
       setBookings((bRes.data ?? []) as BookingRow[]);
       setLoading(false);
     }
     void load();
-  }, []);
+  }, [profile?.id, profile?.isAdmin, profile?.isTourOperator]);
 
   if (loading) {
     return (
@@ -50,7 +112,14 @@ export default function ToursPage() {
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
       <Section title="" description="">
-        <div className="grid gap-6 xl:grid-cols-3">
+        {!canView ? (
+          <ContentCard title="Bilgi" description="Bu sayfa tur operatörleri için hazırlanmıştır.">
+            <p className="text-sm text-muted-foreground">
+              Tur operatörü rolünüz yok. Devam etmek için tur operatörü kaydınızı tamamlayın.
+            </p>
+          </ContentCard>
+        ) : (
+          <div className="grid gap-6 xl:grid-cols-3">
           <ContentCard title="Operatörler" description="Tur operatörleri">
             {operators.length === 0 ? (
               <p className="py-4 text-sm text-muted-foreground">Veri yok</p>
@@ -136,7 +205,8 @@ export default function ToursPage() {
               </div>
             </div>
           </ContentCard>
-        </div>
+          </div>
+        )}
       </Section>
     </div>
   );

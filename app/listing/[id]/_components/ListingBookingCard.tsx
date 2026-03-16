@@ -56,6 +56,11 @@ export function ListingBookingCard({
 }: ListingBookingCardProps) {
   const router = useRouter();
   const dateLocale: Locale = locale === 'tr' ? tr : enUS;
+  const effectiveNightly =
+    totalNights > 0 && priceCalc.subtotal > 0
+      ? Math.round(priceCalc.subtotal / totalNights)
+      : listing.pricePerNight;
+  const hasDiscount = effectiveNightly < listing.pricePerNight - 1;
 
   const handleReserveClick = () => {
     const params = new URLSearchParams();
@@ -72,11 +77,35 @@ export function ListingBookingCard({
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-500 to-amber-500" />
 
         <div className="flex items-baseline justify-between mb-8">
-          <div>
-            <span className="text-3xl font-black text-foreground">
-              ₺{listing.pricePerNight.toLocaleString('tr-TR')}
-            </span>
-            <span className="text-muted-foreground font-medium ml-1">/{t.listingPerNight}</span>
+          <div className="space-y-1">
+            {hasDiscount ? (
+              <>
+                <div className="text-sm text-muted-foreground line-through">
+                  ₺{listing.pricePerNight.toLocaleString('tr-TR')} / {t.listingPerNight}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-3xl font-black text-emerald-700">
+                    ₺{effectiveNightly.toLocaleString('tr-TR')}
+                  </span>
+                  <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700">
+                    %{Math.round(
+                      100 - (effectiveNightly / Math.max(1, listing.pricePerNight)) * 100,
+                    )}{' '}
+                    indirim
+                  </span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  İndirim, seçtiğiniz tarih ve misafir sayısına göre uygulanmıştır.
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="text-3xl font-black text-foreground">
+                  ₺{listing.pricePerNight.toLocaleString('tr-TR')}
+                </span>
+                <span className="text-muted-foreground font-medium ml-1">/{t.listingPerNight}</span>
+              </>
+            )}
           </div>
           <div className="flex items-center gap-1 text-sm font-bold">
             <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
@@ -181,7 +210,9 @@ export function ListingBookingCard({
         <div className="mt-8 space-y-4 pt-8 border-t border-border/60">
           <div className="flex justify-between items-center text-lg">
             <span className="text-muted-foreground underline underline-offset-4 decoration-muted-foreground/30">
-              {priceLoading ? '...' : `₺${listing.pricePerNight.toLocaleString('tr-TR')} x ${totalNights} gece`}
+              {priceLoading
+                ? '...'
+                : `₺${effectiveNightly.toLocaleString('tr-TR')} x ${totalNights} gece`}
             </span>
             <span className="font-bold">₺{priceCalc.subtotal.toLocaleString('tr-TR')}</span>
           </div>

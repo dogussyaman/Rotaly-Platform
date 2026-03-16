@@ -107,22 +107,50 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
   const checkInStr = dateRange.from ? dateRange.from.toISOString().slice(0, 10) : '';
   const checkOutStr = dateRange.to ? dateRange.to.toISOString().slice(0, 10) : '';
 
+  const computeFallbackPrice = (
+    currentListing: ListingDetail,
+    nights: number,
+    guests: number,
+  ) => {
+    const safeNights = Math.max(1, nights);
+    const baseNightly = currentListing.pricePerNight;
+    const discountedNightly =
+      currentListing.discountPercent && currentListing.discountPercent > 0
+        ? baseNightly * (1 - currentListing.discountPercent / 100)
+        : baseNightly;
+    const subtotal = discountedNightly * safeNights;
+    const baseGuests = currentListing.baseGuests ?? 1;
+    const extraGuests = Math.max(0, guests - baseGuests);
+    const extraGuestFeeRate = currentListing.extraGuestFee ?? 0;
+    const extraGuestFee =
+      extraGuestFeeRate > 0 && extraGuests > 0
+        ? Math.round(extraGuestFeeRate * extraGuests * safeNights * 100) / 100
+        : 0;
+    const cleaningFee = Math.round((currentListing.cleaningFee ?? 850) * 100) / 100;
+    const serviceFeeFixed = currentListing.serviceFee ?? 0;
+    const serviceFee =
+      serviceFeeFixed > 0
+        ? Math.round(serviceFeeFixed * 100) / 100
+        : Math.round(subtotal * 0.12 * 100) / 100;
+    const total = Math.round((subtotal + extraGuestFee + cleaningFee + serviceFee) * 100) / 100;
+
+    return {
+      subtotal,
+      serviceFee,
+      cleaningFee,
+      extraGuestFee,
+      total,
+    };
+  };
+
   useEffect(() => {
     if (!listing) return;
 
     const hasDates = checkInStr && checkOutStr;
+    setPriceCalc(computeFallbackPrice(listing, totalNights, guestCount));
+
     if (!hasDates) {
-      const nights = totalNights;
-      const simpleSubtotal = listing.pricePerNight * nights;
-      const simpleServiceFee = Math.round(simpleSubtotal * 0.12);
-      const simpleCleaningFee = listing.cleaningFee ?? 850;
-      setPriceCalc({
-        subtotal: simpleSubtotal,
-        serviceFee: simpleServiceFee,
-        cleaningFee: simpleCleaningFee,
-        extraGuestFee: 0,
-        total: simpleSubtotal + simpleServiceFee + simpleCleaningFee,
-      });
+      setPriceLoading(false);
       return;
     }
 
@@ -142,22 +170,12 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
       })
       .catch(() => {
         if (requestId !== priceRequestIdRef.current) return;
-        const nights = totalNights;
-        const subtotal = listing.pricePerNight * nights;
-        const serviceFee = Math.round(subtotal * 0.12);
-        const cleaningFee = listing.cleaningFee ?? 850;
-        setPriceCalc({
-          subtotal,
-          serviceFee,
-          cleaningFee,
-          extraGuestFee: 0,
-          total: subtotal + serviceFee + cleaningFee,
-        });
+        setPriceCalc(computeFallbackPrice(listing, totalNights, guestCount));
       })
       .finally(() => {
         if (requestId === priceRequestIdRef.current) setPriceLoading(false);
       });
-  }, [listing?.id, checkInStr, checkOutStr, guestCount, totalNights]);
+  }, [listing, checkInStr, checkOutStr, guestCount, totalNights]);
 
   return (
     <div className="min-h-screen bg-background font-sans">

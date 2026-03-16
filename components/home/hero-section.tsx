@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { SearchHeader } from '@/components/header/search-header';
 import { HeroSearchBar } from '@/components/search/hero-search-bar';
@@ -178,7 +179,13 @@ export function HeroSection({ t }: HeroSectionProps) {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3, duration: 0.5 }}
                     >
-                        <HeroSearchBar />
+                        <Suspense
+                            fallback={
+                                <div className="w-full h-20 rounded-2xl bg-white/70 border border-white/80 shadow-lg" />
+                            }
+                        >
+                            <HeroSearchBar />
+                        </Suspense>
                     </motion.div>
                 </div>
             </div>

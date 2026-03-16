@@ -12,6 +12,7 @@ import { ContentCard, Section } from '@/components/dashboard/dashboard-ui';
 import { PaginationControls } from '@/components/dashboard/pagination-controls';
 import { useAppSelector } from '@/lib/store/hooks';
 import { fetchHostByUserId, fetchHostListingsPage, type HostListingCard } from '@/lib/supabase/host';
+import { createClient } from '@/lib/supabase/client';
 
 const PAGE_SIZE = 10;
 
@@ -41,6 +42,80 @@ export default function ListingsPage() {
       if (!profile?.id) return;
       setLoading(true);
       try {
+        if (role === 'admin') {
+          const supabase = createClient();
+          const from = (page - 1) * PAGE_SIZE;
+          const to = from + PAGE_SIZE - 1;
+          let query = supabase
+            .from('listings')
+            .select(
+              `
+                id,
+                title,
+                city,
+                country,
+                price_per_night,
+                rating,
+                total_reviews,
+                property_type,
+                max_guests,
+                is_active,
+                listing_images (
+                  url,
+                  is_primary,
+                  sort_order
+                )
+              `,
+              { count: 'exact' },
+            )
+            .order('created_at', { ascending: false });
+
+          if (q) {
+            query = query.ilike('title', `%${q}%`);
+          }
+
+          const { data, count, error } = await query.range(from, to);
+          if (error) {
+            console.error('fetchAdminListingsPage error:', error.message);
+            setRows([]);
+            setTotal(0);
+            setHostId(null);
+            return;
+          }
+
+          const mapped = (data ?? []).map((row: any) => {
+            let imageUrl: string | null = null;
+            if (row.listing_images?.length) {
+              const sorted = [...row.listing_images].sort((a, b) => {
+                if (a.is_primary && !b.is_primary) return -1;
+                if (!a.is_primary && b.is_primary) return 1;
+                return (a.sort_order ?? 0) - (b.sort_order ?? 0);
+              });
+              imageUrl = sorted[0].url;
+            }
+
+            return {
+              id: row.id,
+              title: row.title,
+              location: [row.city, row.country].filter(Boolean).join(', '),
+              pricePerNight: Number(row.price_per_night),
+              rating: Number(row.rating ?? 0),
+              totalReviews: row.total_reviews ?? 0,
+              imageUrl,
+              propertyType: row.property_type ?? null,
+              maxGuests: row.max_guests ?? null,
+              isActive: row.is_active ?? true,
+              bookingsCount: 0,
+              earnings: 0,
+            } as HostListingCard;
+          });
+
+          setRows(mapped);
+          setTotal(count ?? mapped.length);
+          setHostId(null);
+          return;
+        }
+
         const host = await fetchHostByUserId(profile.id);
         setHostId(host?.hostId ?? null);
         if (!host) {
@@ -57,7 +132,7 @@ export default function ListingsPage() {
       }
     }
     void load();
-  }, [profile?.id, page, q]);
+  }, [profile?.id, role, page, q]);
 
   if (loading) {
     return (
@@ -67,7 +142,7 @@ export default function ListingsPage() {
     );
   }
 
-  if (role !== 'host') {
+  if (role === 'guest') {
     return (
       <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
         <Section title="" description="">
@@ -113,7 +188,11 @@ export default function ListingsPage() {
                 {rows.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                      {q ? 'Filtreyle eşleşen ilan bulunamadı.' : 'Henüz bir ilanınız bulunmuyor.'}
+                      {q
+                        ? 'Filtreyle eşleşen ilan bulunamadı.'
+                        : role === 'admin'
+                          ? 'Henüz ilan bulunmuyor.'
+                          : 'Henüz bir ilanınız bulunmuyor.'}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -223,4 +302,3 @@ export default function ListingsPage() {
     </div>
   );
 }
-

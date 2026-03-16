@@ -245,6 +245,7 @@ export async function fetchHostStats(hostId: string, userId: string): Promise<Ho
     .select(
       `
         total_price,
+        final_price,
         status,
         check_in,
         listings!inner (
@@ -270,7 +271,7 @@ export async function fetchHostStats(hostId: string, userId: string): Promise<Ho
     nextWeek.setHours(23, 59, 59, 999); // End of the 7th day
 
     for (const row of bookingAgg as any[]) {
-      const amount = Number(row.total_price ?? 0);
+      const amount = Number(row.final_price ?? row.total_price ?? 0);
       const checkInDate = new Date(row.check_in);
 
       if (row.status === 'confirmed' || row.status === 'completed') {
@@ -351,6 +352,7 @@ export async function fetchHostBookings(hostId: string): Promise<HostBooking[]> 
         check_out,
         guests_count,
         total_price,
+        final_price,
         status,
         listings!inner (
           id,
@@ -384,7 +386,7 @@ export async function fetchHostBookings(hostId: string): Promise<HostBooking[]> 
       checkIn: row.check_in,
       checkOut: row.check_out,
       nights,
-      totalPrice: Number(row.total_price),
+      totalPrice: Number(row.final_price ?? row.total_price),
       status: row.status,
     } as HostBooking;
   });
@@ -410,6 +412,7 @@ export async function fetchHostBookingsPage(
         check_out,
         guests_count,
         total_price,
+        final_price,
         status,
         listings!inner (
           id,
@@ -459,7 +462,7 @@ export async function fetchHostBookingsPage(
       checkIn: row.check_in,
       checkOut: row.check_out,
       nights,
-      totalPrice: Number(row.total_price),
+      totalPrice: Number(row.final_price ?? row.total_price),
       status: row.status,
     } as HostBooking;
   });

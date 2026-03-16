@@ -272,6 +272,7 @@ export async function createBooking(input: CreateBookingInput): Promise<{ id: st
       check_out: input.checkOut.toISOString().slice(0, 10),
       guests_count: input.guestsCount,
       total_price: input.totalPrice,
+      final_price: input.totalPrice,
       special_requests: input.specialRequests ?? null,
       check_in_slot_start: input.checkInSlotStart ?? null,
       check_in_slot_end: input.checkInSlotEnd ?? null,
@@ -301,6 +302,7 @@ export async function fetchBookingById(bookingId: string): Promise<BookingDetail
         check_out,
         guests_count,
         total_price,
+        final_price,
         status,
         special_requests,
         created_at,
@@ -353,7 +355,7 @@ export async function fetchBookingById(bookingId: string): Promise<BookingDetail
     checkIn: data.check_in,
     checkOut: data.check_out,
     guestsCount: data.guests_count,
-    totalPrice: Number(data.total_price),
+    totalPrice: Number(data.final_price ?? data.total_price),
     status: data.status,
     specialRequests: data.special_requests ?? null,
     createdAt: data.created_at,
@@ -398,6 +400,7 @@ export async function fetchUserBookings(userId: string): Promise<BookingWithList
         check_out,
         guests_count,
         total_price,
+        final_price,
         status,
         created_at,
         check_in_slot_start,
@@ -441,7 +444,7 @@ export async function fetchUserBookings(userId: string): Promise<BookingWithList
       checkIn: row.check_in,
       checkOut: row.check_out,
       guestsCount: row.guests_count,
-      totalPrice: Number(row.total_price),
+      totalPrice: Number(row.final_price ?? row.total_price),
       status: row.status,
       createdAt: row.created_at,
       checkInSlotStart: row.check_in_slot_start ?? null,
@@ -483,6 +486,7 @@ export async function fetchUserBookingsPage(
         check_out,
         guests_count,
         total_price,
+        final_price,
         status,
         created_at,
         check_in_slot_start,
@@ -542,7 +546,7 @@ export async function fetchUserBookingsPage(
       checkIn: row.check_in,
       checkOut: row.check_out,
       guestsCount: row.guests_count,
-      totalPrice: Number(row.total_price),
+      totalPrice: Number(row.final_price ?? row.total_price),
       status: row.status,
       createdAt: row.created_at,
       checkInSlotStart: row.check_in_slot_start ?? null,
@@ -653,4 +657,3 @@ export async function deleteBooking(bookingId: string): Promise<boolean> {
 
   return true;
 }
-

@@ -10,6 +10,15 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { fetchUserProfile } from '@/lib/store/slices/user-slice';
 
+const ADMIN_ONLY_PREFIXES = [
+  '/dashboard/users',
+  '/dashboard/roles',
+  '/dashboard/hosts',
+  '/dashboard/wishlists',
+  '/dashboard/reports',
+  '/dashboard/documents',
+];
+
 function getHeaderTitle(pathname: string, role: 'admin' | 'host') {
   if (pathname === '/dashboard') {
     if (role === 'admin') return { title: 'Yönetici Paneli', subtitle: 'Platform operasyonlarının merkezi yönetimi.' };
@@ -85,6 +94,13 @@ export default function DashboardLayoutClient({ children }: { children: ReactNod
     }
   }, [initialized, loading, profile, router]);
 
+  useEffect(() => {
+    if (!initialized || loading || !profile) return;
+    if (!profile.isAdmin && ADMIN_ONLY_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
+      router.replace('/dashboard');
+    }
+  }, [initialized, loading, profile, pathname, router]);
+
   if (!initialized) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -115,4 +131,3 @@ export default function DashboardLayoutClient({ children }: { children: ReactNod
     </SidebarProvider>
   );
 }
-

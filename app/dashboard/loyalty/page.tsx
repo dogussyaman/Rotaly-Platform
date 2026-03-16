@@ -7,6 +7,7 @@ import { ContentCard, Section } from '@/components/dashboard/dashboard-ui';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatDate } from '@/lib/format';
 import { createClient } from '@/lib/supabase/client';
+import { useAppSelector } from '@/lib/store/hooks';
 
 type AccountRow = { id: string; points_balance: number; lifetime_points_earned: number; profiles: { full_name: string | null } | null };
 type TxRow = { id: string; type: string; points: number; description: string | null; created_at: string; loyalty_accounts: { user_id: string } | null };
@@ -15,20 +16,44 @@ export default function LoyaltyPage() {
   const [accounts, setAccounts] = useState<AccountRow[]>([]);
   const [transactions, setTransactions] = useState<TxRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const { profile } = useAppSelector((s) => s.user);
 
   useEffect(() => {
     async function load() {
+      if (!profile?.id) return;
       const supabase = createClient();
-      const [aRes, tRes] = await Promise.all([
-        supabase.from('loyalty_accounts').select('id, points_balance, lifetime_points_earned, profiles(full_name)').order('points_balance', { ascending: false }),
-        supabase.from('loyalty_point_transactions').select('id, type, points, description, created_at, loyalty_accounts(user_id)').order('created_at', { ascending: false }).limit(100),
-      ]);
+      const isAdmin = !!profile.isAdmin;
+      const accountsQuery = isAdmin
+        ? supabase
+            .from('loyalty_accounts')
+            .select('id, points_balance, lifetime_points_earned, profiles(full_name)')
+            .order('points_balance', { ascending: false })
+        : supabase
+            .from('loyalty_accounts')
+            .select('id, points_balance, lifetime_points_earned, profiles(full_name)')
+            .eq('user_id', profile.id)
+            .order('points_balance', { ascending: false });
+
+      const txQuery = isAdmin
+        ? supabase
+            .from('loyalty_point_transactions')
+            .select('id, type, points, description, created_at, loyalty_accounts(user_id)')
+            .order('created_at', { ascending: false })
+            .limit(100)
+        : supabase
+            .from('loyalty_point_transactions')
+            .select('id, type, points, description, created_at, loyalty_accounts!inner(user_id)')
+            .eq('loyalty_accounts.user_id', profile.id)
+            .order('created_at', { ascending: false })
+            .limit(100);
+
+      const [aRes, tRes] = await Promise.all([accountsQuery, txQuery]);
       setAccounts((aRes.data ?? []) as AccountRow[]);
       setTransactions((tRes.data ?? []) as TxRow[]);
       setLoading(false);
     }
     void load();
-  }, []);
+  }, [profile?.id, profile?.isAdmin]);
 
   if (loading) {
     return (

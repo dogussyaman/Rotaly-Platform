@@ -26,6 +26,10 @@ export function CheckoutSummaryCard({
   total,
   totalLabel,
 }: CheckoutSummaryCardProps) {
+  const effectiveNightly =
+    nights > 0 && subtotal > 0 ? Math.round(subtotal / nights) : listing.pricePerNight;
+  const hasDiscount = effectiveNightly < listing.pricePerNight - 1;
+
   return (
     <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-2xl space-y-8 relative overflow-hidden group">
       <div className="absolute top-0 right-0 p-4">
@@ -59,17 +63,30 @@ export function CheckoutSummaryCard({
         </div>
       </div>
 
-      <div className="space-y-6">
-        <h2 className="text-xl font-bold">Fiyat Özeti</h2>
-        <div className="space-y-4">
-          <div className="flex justify-between items-center text-muted-foreground">
-            <span className="font-medium">
-              ₺{listing.pricePerNight.toLocaleString('tr-TR')} x {nights} gece
-            </span>
-            <span className="font-bold text-foreground">
-              ₺{subtotal.toLocaleString('tr-TR')}
-            </span>
-          </div>
+        <div className="space-y-6">
+          <h2 className="text-xl font-bold">Fiyat Özeti</h2>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center text-muted-foreground">
+              <div className="flex flex-col">
+                {hasDiscount ? (
+                  <>
+                    <span className="font-medium line-through">
+                      ₺{listing.pricePerNight.toLocaleString('tr-TR')} x {nights} gece
+                    </span>
+                    <span className="font-medium text-emerald-700">
+                      ₺{effectiveNightly.toLocaleString('tr-TR')} x {nights} gece
+                    </span>
+                  </>
+                ) : (
+                  <span className="font-medium">
+                    ₺{listing.pricePerNight.toLocaleString('tr-TR')} x {nights} gece
+                  </span>
+                )}
+              </div>
+              <span className="font-bold text-foreground">
+                ₺{subtotal.toLocaleString('tr-TR')}
+              </span>
+            </div>
           {extraGuestFee > 0 && (
             <div className="flex justify-between items-center text-muted-foreground">
               <span className="font-medium">Ek misafir ücreti</span>

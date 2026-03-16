@@ -20,6 +20,7 @@ interface BookingsTableCardProps {
   status: string;
   setStatus: (v: 'all' | 'pending' | 'confirmed' | 'cancelled' | 'completed') => void;
   hostBookings: { rows: HostBooking[]; total: number };
+  adminBookings?: { rows: HostBooking[]; total: number };
   guestBookings: { rows: BookingWithListing[]; total: number };
   loading: boolean;
   page: number;
@@ -49,8 +50,10 @@ export function BookingsTableCard({
   hasQuery,
 }: BookingsTableCardProps) {
   const emptyMessage = hasQuery ? 'Filtreyle eşleşen rezervasyon bulunamadı.' : 'Henüz rezervasyon bulunmuyor.';
-  const total = role === 'host' ? hostBookings.total : guestBookings.total;
-  const rowsCount = role === 'host' ? hostBookings.rows.length : guestBookings.rows.length;
+  const isHostView = role === 'host' || role === 'admin';
+  const effectiveHostBookings = role === 'admin' ? (adminBookings ?? hostBookings) : hostBookings;
+  const total = isHostView ? effectiveHostBookings.total : guestBookings.total;
+  const rowsCount = isHostView ? effectiveHostBookings.rows.length : guestBookings.rows.length;
   const showListLoading = loading && rowsCount === 0;
   const showListRefreshing = loading && rowsCount > 0;
 
@@ -70,12 +73,12 @@ export function BookingsTableCard({
           <TableRow className="border-[#e5e7eb] hover:bg-transparent">
             <TableHead className="font-semibold text-[#374151]">İlan</TableHead>
             <TableHead className="font-semibold text-[#374151]">Tarih</TableHead>
-            {role === 'host' ? (
+            {isHostView ? (
               <TableHead className="font-semibold text-[#374151]">Misafir</TableHead>
             ) : (
               <TableHead className="font-semibold text-[#374151]">Durum</TableHead>
             )}
-            {role === 'host' ? <TableHead className="font-semibold text-[#374151]">Durum</TableHead> : null}
+            {isHostView ? <TableHead className="font-semibold text-[#374151]">Durum</TableHead> : null}
             <TableHead className="font-semibold text-[#374151]">Toplam</TableHead>
             <TableHead className="text-right font-semibold text-[#374151]">İşlem</TableHead>
           </TableRow>
@@ -83,20 +86,20 @@ export function BookingsTableCard({
         <TableBody>
           {showListLoading ? (
             <TableRow>
-              <TableCell colSpan={role === 'host' ? 6 : 5} className="h-32 text-center">
+              <TableCell colSpan={isHostView ? 6 : 5} className="h-32 text-center">
                 <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#0d9488]" />
                 <p className="mt-2 text-sm text-muted-foreground">Yükleniyor…</p>
               </TableCell>
             </TableRow>
-          ) : role === 'host' ? (
-            hostBookings.rows.length === 0 ? (
+          ) : isHostView ? (
+            effectiveHostBookings.rows.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                   Henüz rezervasyon bulunmuyor.
                 </TableCell>
               </TableRow>
             ) : (
-              hostBookings.rows.map((b) => (
+              effectiveHostBookings.rows.map((b) => (
                 <TableRow key={b.id} className="border-[#e5e7eb] transition-colors hover:bg-[#f0fdfa]/60">
                   <TableCell className="font-medium text-[#111]">{b.listingTitle ?? 'İlan'}</TableCell>
                   <TableCell>
@@ -117,7 +120,7 @@ export function BookingsTableCard({
                       <Button asChild variant="ghost" size="sm" className="rounded-lg text-[#0d9488] hover:bg-[#f0fdfa] h-8">
                         <Link href={`/dashboard/bookings/${b.id}`}>Detay</Link>
                       </Button>
-                      {b.guestId && (
+                      {role === 'host' && b.guestId && (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -133,7 +136,7 @@ export function BookingsTableCard({
                           Mesaj
                         </Button>
                       )}
-                      {b.status === 'pending' ? (
+                      {role === 'host' && b.status === 'pending' ? (
                         <ConfirmAction
                           label="Onayla"
                           title="Rezervasyonu onayla"
@@ -141,7 +144,7 @@ export function BookingsTableCard({
                           onConfirm={() => onConfirmHost(b.id)}
                         />
                       ) : null}
-                      {b.status === 'pending' || b.status === 'confirmed' ? (
+                      {role === 'host' && (b.status === 'pending' || b.status === 'confirmed') ? (
                         <ConfirmAction
                           label="İptal"
                           title="Rezervasyonu iptal et"

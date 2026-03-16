@@ -47,15 +47,25 @@ export function getPriceForNight(
   if (customPrice != null && customPrice > 0) {
     return Math.round(customPrice * 100) / 100;
   }
+
+  let bestSeasonalPrice: number | null = null;
   for (const rule of seasonalRules) {
-    if (date >= rule.startDate && date <= rule.endDate) {
-      if (rule.modifierType === 'percent') {
-        const p = basePrice * (1 + rule.modifierValue / 100);
-        return Math.round(Math.max(0, p) * 100) / 100;
-      }
-      return Math.round(Math.max(0, basePrice + rule.modifierValue) * 100) / 100;
+    if (date < rule.startDate || date > rule.endDate) continue;
+
+    const rawPrice =
+      rule.modifierType === 'percent'
+        ? basePrice * (1 + rule.modifierValue / 100)
+        : basePrice + rule.modifierValue;
+    const normalizedPrice = Math.round(Math.max(0, rawPrice) * 100) / 100;
+    if (bestSeasonalPrice == null || normalizedPrice < bestSeasonalPrice) {
+      bestSeasonalPrice = normalizedPrice;
     }
   }
+
+  if (bestSeasonalPrice != null) {
+    return bestSeasonalPrice;
+  }
+
   return Math.round(basePrice * 100) / 100;
 }
 

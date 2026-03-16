@@ -7,6 +7,22 @@ export type NotificationSummary = {
   upcomingTrips: number;
 };
 
+export type NotificationItem = {
+  id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  metadata: Record<string, any> | null;
+  isRead: boolean;
+  createdAt: string;
+  actionUrl: string | null;
+  bookingId: string | null;
+  listingId: string | null;
+  conversationId: string | null;
+  actorId: string | null;
+  priority: number | null;
+};
+
 function toDateOnlyISO(d: Date) {
   return d.toISOString().slice(0, 10);
 }
@@ -84,3 +100,71 @@ export async function fetchNotificationSummary(
   };
 }
 
+export async function fetchNotifications(params: {
+  userId: string;
+  limit?: number;
+  offset?: number;
+}): Promise<NotificationItem[]> {
+  const supabase = createClient();
+  const limit = params.limit ?? 30;
+  const offset = params.offset ?? 0;
+
+  const { data, error } = await supabase
+    .from('notifications')
+    .select(
+      'id, type, title, body, metadata, is_read, created_at, action_url, booking_id, listing_id, conversation_id, actor_id, priority',
+    )
+    .eq('user_id', params.userId)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) {
+    console.error('fetchNotifications error:', error.message);
+    return [];
+  }
+
+  return (data ?? []).map((row: any) => ({
+    id: row.id,
+    type: row.type,
+    title: row.title,
+    body: row.body ?? null,
+    metadata: row.metadata ?? null,
+    isRead: !!row.is_read,
+    createdAt: row.created_at,
+    actionUrl: row.action_url ?? null,
+    bookingId: row.booking_id ?? null,
+    listingId: row.listing_id ?? null,
+    conversationId: row.conversation_id ?? null,
+    actorId: row.actor_id ?? null,
+    priority: row.priority ?? null,
+  }));
+}
+
+export async function markNotificationRead(notificationId: string): Promise<boolean> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('notifications')
+    .update({ is_read: true, read_at: new Date().toISOString() })
+    .eq('id', notificationId);
+
+  if (error) {
+    console.error('markNotificationRead error:', error.message);
+    return false;
+  }
+  return true;
+}
+
+export async function markAllNotificationsRead(userId: string): Promise<boolean> {
+  const supabase = createClient();
+  const { error } = await supabase
+    .from('notifications')
+    .update({ is_read: true, read_at: new Date().toISOString() })
+    .eq('user_id', userId)
+    .eq('is_read', false);
+
+  if (error) {
+    console.error('markAllNotificationsRead error:', error.message);
+    return false;
+  }
+  return true;
+}

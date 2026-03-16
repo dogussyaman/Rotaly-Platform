@@ -8,6 +8,8 @@ import { ContentCard, Section } from '@/components/dashboard/dashboard-ui';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { createClient } from '@/lib/supabase/client';
+import { fetchHostByUserId } from '@/lib/supabase/host';
+import { useAppSelector } from '@/lib/store/hooks';
 
 type CouponRow = { id: string; code: string; discount_type: string; discount_value: number; min_booking_total: number | null; expires_at: string | null; is_active: boolean };
 type UsageRow = { id: string; discount_applied: number; coupons: { code: string } | null; profiles: { full_name: string | null } | null; booking_id: string | null };
@@ -16,20 +18,50 @@ export default function CouponsPage() {
   const [coupons, setCoupons] = useState<CouponRow[]>([]);
   const [usages, setUsages] = useState<UsageRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const { profile } = useAppSelector((s) => s.user);
 
   useEffect(() => {
     async function load() {
+      if (!profile?.id) return;
       const supabase = createClient();
-      const [cRes, uRes] = await Promise.all([
-        supabase.from('coupons').select('id, code, discount_type, discount_value, min_booking_total, expires_at, is_active').order('code'),
-        supabase.from('coupon_usages').select('id, discount_applied, booking_id, coupons(code), profiles(full_name)').order('id', { ascending: false }).limit(50),
-      ]);
+      const isAdmin = !!profile.isAdmin;
+      const isHost = !!profile.isHost;
+      let hostId: string | null = null;
+
+      if (!isAdmin && isHost) {
+        const host = await fetchHostByUserId(profile.id);
+        hostId = host?.hostId ?? null;
+        if (!hostId) {
+          setCoupons([]);
+          setUsages([]);
+          setLoading(false);
+          return;
+        }
+      }
+
+      let couponsQuery = supabase
+        .from('coupons')
+        .select('id, code, discount_type, discount_value, min_booking_total, expires_at, is_active')
+        .order('code');
+
+      let usagesQuery = supabase
+        .from('coupon_usages')
+        .select('id, discount_applied, booking_id, coupons!inner(code, host_id), profiles(full_name)')
+        .order('id', { ascending: false })
+        .limit(50);
+
+      if (!isAdmin && hostId) {
+        couponsQuery = couponsQuery.eq('host_id', hostId);
+        usagesQuery = usagesQuery.eq('coupons.host_id', hostId);
+      }
+
+      const [cRes, uRes] = await Promise.all([couponsQuery, usagesQuery]);
       setCoupons((cRes.data ?? []) as CouponRow[]);
       setUsages((uRes.data ?? []) as UsageRow[]);
       setLoading(false);
     }
     void load();
-  }, []);
+  }, [profile?.id, profile?.isAdmin, profile?.isHost]);
 
   if (loading) {
     return (

@@ -5,6 +5,8 @@ import { Loader2 } from 'lucide-react';
 
 import { ContentCard, Section } from '@/components/dashboard/dashboard-ui';
 import { createClient } from '@/lib/supabase/client';
+import { fetchHostByUserId } from '@/lib/supabase/host';
+import { useAppSelector } from '@/lib/store/hooks';
 import type { ReviewRow } from '@/lib/mock/dashboard';
 import { formatDate } from '@/lib/format';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,11 +14,34 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [canView, setCanView] = useState(true);
+  const { profile } = useAppSelector((s) => s.user);
 
   useEffect(() => {
     async function load() {
+      if (!profile?.id) return;
       const supabase = createClient();
-      const { data } = await supabase
+      const isAdmin = !!profile.isAdmin;
+      const isHost = !!profile.isHost;
+      let hostId: string | null = null;
+
+      if (!isAdmin && !isHost) {
+        setCanView(false);
+        setReviews([]);
+        setLoading(false);
+        return;
+      }
+
+      if (!isAdmin && isHost) {
+        const host = await fetchHostByUserId(profile.id);
+        hostId = host?.hostId ?? null;
+        if (!hostId) {
+          setReviews([]);
+          setLoading(false);
+          return;
+        }
+      }
+      let query = supabase
         .from('reviews')
         .select(`
           id,
@@ -27,11 +52,15 @@ export default function ReviewsPage() {
           value_rating,
           comment,
           created_at,
-          listings(title),
+          listings!inner(title, host_id),
           profiles!reviewer_id(full_name)
         `)
         .order('created_at', { ascending: false })
         .limit(100);
+      if (hostId) {
+        query = query.eq('listings.host_id', hostId);
+      }
+      const { data } = await query;
       const list: ReviewRow[] = (data ?? []).map((r: any) => ({
         listing: r.listings?.title ?? '—',
         reviewer: r.profiles?.full_name ?? '—',
@@ -46,7 +75,7 @@ export default function ReviewsPage() {
       setLoading(false);
     }
     void load();
-  }, []);
+  }, [profile?.id, profile?.isAdmin, profile?.isHost]);
 
   if (loading) {
     return (
@@ -60,7 +89,9 @@ export default function ReviewsPage() {
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
       <Section title="" description="">
         <ContentCard title="Yorumlar" description="Temizlik, iletişim ve değer puanları">
-          {reviews.length === 0 ? (
+          {!canView ? (
+            <p className="py-8 text-center text-muted-foreground">Bu sayfayı görüntülemek için yetkiniz bulunmuyor.</p>
+          ) : reviews.length === 0 ? (
             <p className="py-8 text-center text-muted-foreground">Henüz yorum yok.</p>
           ) : (
             <Table>
