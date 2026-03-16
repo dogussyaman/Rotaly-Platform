@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Search, ChevronLeft, ChevronRight, Minus, Plus, X, Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { useLocale } from '@/lib/i18n/locale-context';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { setSearch } from '@/lib/store/slices/search-slice';
@@ -112,6 +113,7 @@ function MiniCalendar({
 
 export function HeroSearchBar() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLocale();
   const wrapperRef = useRef<HTMLDivElement>(null);
   const dispatch = useAppDispatch();
@@ -131,6 +133,53 @@ export function HeroSearchBar() {
   });
   const [calYear, setCalYear] = useState(new Date().getFullYear());
   const [calMonth, setCalMonth] = useState(new Date().getMonth());
+  const lastSyncedQueryRef = useRef<string>('');
+
+  const parseDateParam = useCallback((raw: string): Date | null => {
+    if (!raw) return null;
+    const ymd = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+    if (ymd) {
+      const y = Number(ymd[1]);
+      const m = Number(ymd[2]) - 1;
+      const d = Number(ymd[3]);
+      return new Date(Date.UTC(y, m, d, 12, 0, 0));
+    }
+    const dt = new Date(raw);
+    if (Number.isNaN(dt.getTime())) return null;
+    return dt;
+  }, []);
+
+  // URL'den (örn. /search?location=...&checkin=...&checkout=...) gelince barı doldur.
+  useEffect(() => {
+    if (activePanel) return;
+
+    const loc = searchParams.get('location') ?? '';
+    const cin = searchParams.get('checkin');
+    const cout = searchParams.get('checkout');
+    const gst = searchParams.get('guests');
+
+    const queryKey = `${loc}__${cin ?? ''}__${cout ?? ''}__${gst ?? ''}`;
+    if (!loc && !cin && !cout && !gst) return;
+    if (lastSyncedQueryRef.current === queryKey) return;
+    lastSyncedQueryRef.current = queryKey;
+
+    const nextStart = cin ? parseDateParam(cin) : null;
+    const nextEnd = cout ? parseDateParam(cout) : null;
+    const totalGuests = gst ? Number.parseInt(gst, 10) : NaN;
+
+    setLocation(loc);
+    setDateRange({ start: nextStart, end: nextEnd });
+    if (Number.isFinite(totalGuests) && totalGuests > 0) {
+      setGuests((prev) => ({ ...prev, adults: Math.max(1, totalGuests), children: 0, infants: prev.infants }));
+    }
+
+    dispatch(setSearch({
+      location: loc,
+      checkIn: nextStart ? nextStart.toISOString() : null,
+      checkOut: nextEnd ? nextEnd.toISOString() : null,
+      guests: Number.isFinite(totalGuests) && totalGuests > 0 ? totalGuests : reduxSearch.guests,
+    }));
+  }, [activePanel, dispatch, parseDateParam, reduxSearch.guests, searchParams]);
 
   // Canlı lokasyon arama
   const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([]);
@@ -198,6 +247,22 @@ export function HeroSearchBar() {
   const nextCalYear = calMonth === 11 ? calYear + 1 : calYear;
 
   const handleSearch = () => {
+    if (!location || location.trim().length === 0) {
+      toast.error('Konum seçmeden arama yapamazsınız.');
+      setActivePanel('location');
+      return;
+    }
+    if (!dateRange.start) {
+      toast.error('Giriş tarihini seçin.');
+      setActivePanel('checkin');
+      return;
+    }
+    if (!dateRange.end) {
+      toast.error('Çıkış tarihini seçin.');
+      setActivePanel('checkout');
+      return;
+    }
+
     // Redux'a kaydet (search sayfasında tekrar okumak için)
     dispatch(setSearch({
       location,

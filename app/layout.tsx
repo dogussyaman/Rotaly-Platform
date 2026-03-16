@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { LocaleProvider } from '@/lib/i18n/locale-context'
 import { ReduxProvider } from '@/components/providers/redux-provider'
+import { ThemeProvider } from '@/components/theme-provider'
+import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -37,11 +39,14 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="tr">
+    <html lang="tr" suppressHydrationWarning>
       <body className="font-sans antialiased">
         <ReduxProvider>
           <LocaleProvider>
-            {children}
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+              {children}
+              <Toaster richColors closeButton />
+            </ThemeProvider>
           </LocaleProvider>
         </ReduxProvider>
         <Analytics />

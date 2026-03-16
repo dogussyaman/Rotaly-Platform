@@ -1,9 +1,7 @@
 'use client';
 
 import type { JSX } from 'react';
-import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
 
 const CategoryIcon = ({ id }: { id: string }) => {
     const icons: Record<string, JSX.Element> = {
@@ -80,7 +78,8 @@ const CATEGORY_COUNTS: Record<string, string> = {
     mountain: '183',
 };
 
-const CATEGORY_IDS = ['beachfront', 'lakefront', 'tropical', 'castles', 'farmhouse', 'city', 'mountain'];
+// Ana sayfada sadece 6 kategori kartı göster
+const CATEGORY_IDS = ['beachfront', 'lakefront', 'tropical', 'castles', 'farmhouse', 'city'];
 
 interface CategoriesSectionProps {
     t: any;
@@ -95,30 +94,6 @@ export function CategoriesSection({
     setActiveCategory,
     catScrollRef,
 }: CategoriesSectionProps) {
-    const [showLeftFade, setShowLeftFade] = useState(false);
-    const [showRightFade, setShowRightFade] = useState(false);
-
-    const updateEdgeFades = useCallback(() => {
-        const el = catScrollRef.current;
-        if (!el) return;
-
-        const maxScrollLeft = el.scrollWidth - el.clientWidth;
-        setShowLeftFade(el.scrollLeft > 0);
-        setShowRightFade(el.scrollLeft < maxScrollLeft - 1);
-    }, [catScrollRef]);
-
-    useEffect(() => {
-        updateEdgeFades();
-
-        const onResize = () => updateEdgeFades();
-        window.addEventListener('resize', onResize);
-        return () => window.removeEventListener('resize', onResize);
-    }, [updateEdgeFades]);
-
-    const scrollCats = (dir: 'left' | 'right') => {
-        catScrollRef.current?.scrollBy({ left: dir === 'left' ? -320 : 320, behavior: 'smooth' });
-    };
-
     const categoryLabels: Record<string, string> = {
         beachfront: t.beachfront as string,
         lakefront: t.lakefront as string,
@@ -137,37 +112,14 @@ export function CategoriesSection({
     return (
         <section className="bg-background pt-24 pb-8">
             <div className="max-w-7xl mx-auto px-6">
-                <div className="flex items-end justify-between mb-6">
-                    <div>
-                        <h2 className="text-2xl font-bold text-foreground">{t.selectCategory as string}</h2>
-                        <p className="text-sm text-muted-foreground mt-1">{t.categorySubtitle as string}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <button className="flex items-center gap-2 px-4 py-2 border border-border rounded-full text-sm font-medium text-foreground hover:bg-muted transition-colors">
-                            <SlidersHorizontal className="w-4 h-4" />
-                            {t.filters as string}
-                        </button>
-                        <button
-                            onClick={() => scrollCats('left')}
-                            className="w-9 h-9 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
-                            aria-label="Geri"
-                        >
-                            <ChevronLeft className="w-4 h-4 text-foreground" />
-                        </button>
-                        <button
-                            onClick={() => scrollCats('right')}
-                            className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
-                            aria-label="İleri"
-                        >
-                            <ChevronRight className="w-4 h-4 text-foreground" />
-                        </button>
-                    </div>
+                <div className="mb-6">
+                    <h2 className="text-2xl font-bold text-foreground">{t.selectCategory as string}</h2>
+                    <p className="text-sm text-muted-foreground mt-1">{t.categorySubtitle as string}</p>
                 </div>
 
-                <div className="relative py-4">
+                <div className="py-4">
                     <div
                         ref={catScrollRef}
-                        onScroll={updateEdgeFades}
                         className="flex gap-4 overflow-x-auto pb-2 pr-6 py-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                     >
                         {CATEGORY_IDS.map(id => {
@@ -179,15 +131,17 @@ export function CategoriesSection({
                                     whileHover={{ y: -2 }}
                                     whileTap={{ scale: 0.97 }}
                                     onClick={() => setActiveCategory(id)}
-                                    className={`flex-shrink-0 w-44 p-4 rounded-2xl border text-left transition-all duration-200 ${isActive
-                                        ? 'border-foreground bg-card shadow-md'
-                                        : 'border-border bg-card hover:border-foreground/40 hover:shadow-sm'
-                                        }`}
+                                    className={`flex-shrink-0 w-44 p-4 rounded-2xl border text-left transition-all duration-200 ${
+                                        isActive
+                                            ? 'border-foreground bg-card shadow-md'
+                                            : 'border-border bg-card hover:border-foreground/40 hover:shadow-sm'
+                                    }`}
                                 >
                                     <div className="flex items-start justify-between mb-3">
                                         <div
-                                            className={`text-foreground transition-opacity ${isActive ? 'opacity-100' : 'opacity-55'
-                                                }`}
+                                            className={`text-foreground transition-opacity ${
+                                                isActive ? 'opacity-100' : 'opacity-55'
+                                            }`}
                                         >
                                             <CategoryIcon id={id} />
                                         </div>
@@ -203,17 +157,6 @@ export function CategoriesSection({
                             );
                         })}
                     </div>
-
-                    <div
-                        aria-hidden="true"
-                        className={`pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-background/90 via-background/50 to-transparent backdrop-blur-sm transition-opacity duration-200 ${showLeftFade ? 'opacity-100' : 'opacity-0'
-                            }`}
-                    />
-                    <div
-                        aria-hidden="true"
-                        className={`pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background/90 via-background/50 to-transparent backdrop-blur-sm transition-opacity duration-200 ${showRightFade ? 'opacity-100' : 'opacity-0'
-                            }`}
-                    />
                 </div>
             </div>
         </section>

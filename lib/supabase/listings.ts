@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client';
 import { isListingAvailable } from '@/lib/supabase/bookings';
+import { fetchSeasonalDiscountsForListings, type SeasonalDiscountHit } from '@/lib/supabase/seasonal-pricing';
 
 export interface LocationSuggestion {
   label: string;  // "İstanbul, Türkiye"
@@ -76,6 +77,8 @@ export interface ListingRow {
   pricePerNight: number;
   /** Liste/kartta gösterilecek indirim oranı (örn. 10 = %10). 0 veya undefined = rozet yok. */
   discountPercent?: number;
+  /** İndirim rozetini metin olarak göstermek için (örn. "₺250 indirim / gece"). */
+  discountLabel?: string;
   rating: number;
   totalReviews: number;
   images: string[];
@@ -84,6 +87,9 @@ export interface ListingRow {
   bedrooms: number;
   lat: number;
   lng: number;
+  /** Arama sonuçlarında kart üzerinde tarih aralığı göstermek için. */
+  checkIn?: Date | null;
+  checkOut?: Date | null;
 }
 
 export interface FetchListingsParams {
@@ -94,7 +100,7 @@ export interface FetchListingsParams {
   guests?: number;
   checkIn?: Date | null;
   checkOut?: Date | null;
-  /** true ise sadece discount_percent > 0 olan ilanlar döner */
+  /** true ise sadece indirimli ilanlar döner (listing.discount_percent veya sezonluk indirim). */
   discountOnly?: boolean;
 }
 
@@ -125,10 +131,6 @@ export async function fetchListings(params: FetchListingsParams = {}): Promise<L
     `)
     .eq('is_active', true)
     .order('created_at', { ascending: false });
-
-  if (params.discountOnly) {
-    query = query.not('discount_percent', 'is', null).gt('discount_percent', 0);
-  }
 
   if (params.location && params.location.trim() !== '') {
     const parts = params.location.trim().split(',').map((p) => p.trim()).filter(Boolean);
@@ -169,7 +171,7 @@ export async function fetchListings(params: FetchListingsParams = {}): Promise<L
     return [];
   }
 
-  let mapped = (data ?? []).map((row) => {
+  let mapped: ListingRow[] = (data ?? []).map((row: any) => {
     const images = (row.listing_images as { url: string; is_primary: boolean; sort_order: number }[])
       .sort((a, b) => {
         if (a.is_primary && !b.is_primary) return -1;
@@ -185,6 +187,7 @@ export async function fetchListings(params: FetchListingsParams = {}): Promise<L
       location: [row.city, row.country].filter(Boolean).join(', '),
       pricePerNight: Number(row.price_per_night),
       discountPercent: discountPercent && discountPercent > 0 ? discountPercent : undefined,
+      discountLabel: undefined,
       rating: Number(row.rating) || 0,
       totalReviews: row.total_reviews || 0,
       images: images.length > 0 ? images : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'],
@@ -193,7 +196,7 @@ export async function fetchListings(params: FetchListingsParams = {}): Promise<L
       bedrooms: row.bedrooms ?? 1,
       lat: Number(row.latitude) || 0,
       lng: Number(row.longitude) || 0,
-    };
+    } satisfies ListingRow;
   });
 
   if (params.checkIn && params.checkOut) {
@@ -201,14 +204,149 @@ export async function fetchListings(params: FetchListingsParams = {}): Promise<L
     const checkOut = params.checkOut;
 
     const availabilityResults = await Promise.all(
-      mapped.map(async (listing) => ({
+      mapped.map(async (listing: ListingRow) => ({
         listing,
         available: await isListingAvailable(listing.id, checkIn, checkOut),
       }))
     );
 
-    mapped = availabilityResults.filter((r) => r.available).map((r) => r.listing);
+    mapped = availabilityResults
+      .filter((r: { listing: ListingRow; available: boolean }) => r.available)
+      .map((r: { listing: ListingRow; available: boolean }) => r.listing);
+
+    const checkInStr = checkIn.toISOString().slice(0, 10);
+    const checkOutStr = checkOut.toISOString().slice(0, 10);
+
+    // Kartlar tarih aralığını gösterebilsin
+    mapped = mapped.map((l) => ({ ...l, checkIn, checkOut }));
+
+    // Sezonluk indirimleri (modifier_value < 0) yakala ve kart rozetlerine yansıt
+    const seasonalDiscounts = await fetchSeasonalDiscountsForListings({
+      listingIds: mapped.map((l) => l.id),
+      checkIn: checkInStr,
+      checkOut: checkOutStr,
+    });
+
+    if (seasonalDiscounts.length > 0) {
+      const byListing = new Map<string, SeasonalDiscountHit[]>();
+      for (const hit of seasonalDiscounts) {
+        const prev = byListing.get(hit.listingId);
+        if (prev) prev.push(hit);
+        else byListing.set(hit.listingId, [hit]);
+      }
+
+      mapped = mapped.map((listing: ListingRow) => {
+        const hits = byListing.get(listing.id);
+        if (!hits || hits.length === 0) return listing;
+
+        let bestPercent = 0;
+        let bestLabel: string | undefined = undefined;
+
+        for (const hit of hits) {
+          const absVal = Math.abs(hit.modifierValue);
+          const percent =
+            hit.modifierType === 'percent'
+              ? absVal
+              : listing.pricePerNight > 0
+                ? (absVal / listing.pricePerNight) * 100
+                : 0;
+
+          if (percent > bestPercent) {
+            bestPercent = percent;
+            bestLabel =
+              hit.modifierType === 'fixed'
+                ? `₺${Math.round(absVal).toLocaleString('tr-TR')} indirim / gece`
+                : undefined;
+          }
+        }
+
+        const currentPercent = listing.discountPercent ?? 0;
+        const nextPercent = Math.max(currentPercent, bestPercent);
+        return {
+          ...listing,
+          discountPercent: nextPercent > 0 ? nextPercent : undefined,
+          discountLabel: bestLabel && bestPercent >= currentPercent ? bestLabel : listing.discountLabel,
+        };
+      });
+    }
   }
+
+  if (params.discountOnly) {
+    mapped = mapped.filter((l: ListingRow) => {
+      const hasPercent = (l.discountPercent ?? 0) > 0;
+      const hasLabel = !!l.discountLabel && l.discountLabel.trim().length > 0;
+      return hasPercent || hasLabel;
+    });
+  }
+
+  return mapped;
+}
+
+export async function fetchListingsByIds(listingIds: string[]): Promise<ListingRow[]> {
+  const supabase = createClient();
+  if (!listingIds || listingIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('listings')
+    .select(`
+      id,
+      title,
+      city,
+      country,
+      price_per_night,
+      discount_percent,
+      rating,
+      total_reviews,
+      property_type,
+      max_guests,
+      bedrooms,
+      latitude,
+      longitude,
+      listing_images (
+        url,
+        is_primary,
+        sort_order
+      )
+    `)
+    .eq('is_active', true)
+    .in('id', listingIds);
+
+  if (error) {
+    console.error('fetchListingsByIds error:', error.message);
+    return [];
+  }
+
+  const mapped: ListingRow[] = (data ?? []).map((row: any) => {
+    const images = (row.listing_images as { url: string; is_primary: boolean; sort_order: number }[])
+      .sort((a, b) => {
+        if (a.is_primary && !b.is_primary) return -1;
+        if (!a.is_primary && b.is_primary) return 1;
+        return a.sort_order - b.sort_order;
+      })
+      .map((img) => img.url);
+
+    const discountPercent = row.discount_percent != null ? Number(row.discount_percent) : undefined;
+    return {
+      id: row.id,
+      title: row.title,
+      location: [row.city, row.country].filter(Boolean).join(', '),
+      pricePerNight: Number(row.price_per_night),
+      discountPercent: discountPercent && discountPercent > 0 ? discountPercent : undefined,
+      discountLabel: undefined,
+      rating: Number(row.rating) || 0,
+      totalReviews: row.total_reviews || 0,
+      images: images.length > 0 ? images : ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'],
+      propertyType: row.property_type ?? 'apartment',
+      maxGuests: row.max_guests ?? 2,
+      bedrooms: row.bedrooms ?? 1,
+      lat: Number(row.latitude) || 0,
+      lng: Number(row.longitude) || 0,
+    } satisfies ListingRow;
+  });
+
+  const order = new Map<string, number>();
+  for (let i = 0; i < listingIds.length; i++) order.set(listingIds[i], i);
+  mapped.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
 
   return mapped;
 }

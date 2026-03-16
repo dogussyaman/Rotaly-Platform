@@ -28,6 +28,10 @@ function SearchPageContent() {
   const { t } = useLocale();
   const searchParams = useSearchParams();
   const { filters, setLocation, setGuests, setCheckIn, setCheckOut } = useSearchStore();
+  const canSearch =
+    filters.location.trim().length > 0 &&
+    !!filters.checkIn &&
+    !!filters.checkOut;
 
   useEffect(() => {
     const loc = searchParams.get('location');
@@ -41,6 +45,11 @@ function SearchPageContent() {
   }, [searchParams, setLocation, setGuests, setCheckIn, setCheckOut]);
 
   const loadListings = useCallback(async () => {
+    if (!canSearch) {
+      setListings([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const data = await fetchListings({
       location: filters.location,
@@ -54,7 +63,7 @@ function SearchPageContent() {
     });
     setListings(data);
     setLoading(false);
-  }, [filters]);
+  }, [canSearch, filters]);
 
   useEffect(() => {
     loadListings();
@@ -132,6 +141,14 @@ function SearchPageContent() {
             showMap={showMap}
             t={t}
             mapNode={mapNode}
+            emptyState={
+              !canSearch
+                ? {
+                    title: 'Arama yapmak için önce konum ve tarih seçin',
+                    subtitle: 'Yukarıdaki arama çubuğundan destinasyon, giriş ve çıkış tarihi girin.',
+                  }
+                : undefined
+            }
           />
         </div>
       </div>

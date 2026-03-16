@@ -2,6 +2,7 @@
 
 import { use, useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { SearchHeader } from '@/components/header/search-header';
 import { MainFooter } from '@/components/footer/main-footer';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ interface ListingDetailsProps {
 export default function ListingDetailsPage({ params }: ListingDetailsProps) {
   const { id } = use(params);
   const { t, locale } = useLocale();
+  const searchParams = useSearchParams();
   const [listing, setListing] = useState<ListingDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -33,6 +35,38 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
     to: new Date(new Date().getTime() + 5 * 24 * 60 * 60 * 1000),
   });
   const [guestCount, setGuestCount] = useState(2);
+  const didInitFromQueryRef = useRef(false);
+
+  function parseYmd(ymd: string): Date | null {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+    if (!m) return null;
+    const y = Number(m[1]);
+    const mo = Number(m[2]) - 1;
+    const d = Number(m[3]);
+    if (!Number.isFinite(y) || !Number.isFinite(mo) || !Number.isFinite(d)) return null;
+    return new Date(Date.UTC(y, mo, d, 12, 0, 0));
+  }
+
+  useEffect(() => {
+    if (didInitFromQueryRef.current) return;
+
+    const fromParam = searchParams.get('from');
+    const toParam = searchParams.get('to');
+    const guestsParam = searchParams.get('guests');
+
+    const from = fromParam ? parseYmd(fromParam) : null;
+    const to = toParam ? parseYmd(toParam) : null;
+
+    if (from && to) {
+      setDateRange({ from, to });
+      didInitFromQueryRef.current = true;
+    }
+
+    if (guestsParam) {
+      const g = Number.parseInt(guestsParam, 10);
+      if (Number.isFinite(g) && g > 0) setGuestCount(g);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     (async () => {

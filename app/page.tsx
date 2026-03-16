@@ -5,6 +5,7 @@ import { useLocale } from '@/lib/i18n/locale-context';
 import { MainFooter } from '@/components/footer/main-footer';
 import { HeroSection } from '@/components/home/hero-section';
 import { CategoriesSection } from '@/components/home/categories-section';
+import { OffersSection } from '@/components/home/offers-section';
 import { ListingsSection } from '@/components/home/listings-section';
 import { HostCtaSection } from '@/components/home/host-cta-section';
 
@@ -23,6 +24,8 @@ export default function Home() {
         setActiveCategory={setActiveCategory}
         catScrollRef={catScrollRef}
       />
+
+      <OffersSection t={t} />
 
       <ListingsSection t={t} />
 

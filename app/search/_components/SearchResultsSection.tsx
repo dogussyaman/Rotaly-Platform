@@ -15,6 +15,7 @@ interface SearchResultsSectionProps {
   showMap: boolean;
   t: Record<string, unknown>;
   mapNode: React.ReactNode;
+  emptyState?: { title: string; subtitle?: string };
 }
 
 export function SearchResultsSection({
@@ -25,6 +26,7 @@ export function SearchResultsSection({
   showMap,
   t,
   mapNode,
+  emptyState,
 }: SearchResultsSectionProps) {
   return (
     <div className="flex gap-6 items-start">
@@ -87,8 +89,12 @@ export function SearchResultsSection({
               transition={{ duration: 0.4 }}
               className="text-center py-16"
             >
-              <p className="text-lg font-semibold text-foreground mb-2">{t.searchNoResultsTitle as string}</p>
-              <p className="text-muted-foreground">{t.searchNoResultsSubtitle as string}</p>
+              <p className="text-lg font-semibold text-foreground mb-2">
+                {emptyState?.title ?? (t.searchNoResultsTitle as string)}
+              </p>
+              <p className="text-muted-foreground">
+                {emptyState?.subtitle ?? (t.searchNoResultsSubtitle as string)}
+              </p>
             </motion.div>
           )}
         </motion.div>

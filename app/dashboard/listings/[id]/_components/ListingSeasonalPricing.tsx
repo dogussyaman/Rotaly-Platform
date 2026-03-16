@@ -21,6 +21,7 @@ export function ListingSeasonalPricing({ listingId }: ListingSeasonalPricingProp
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [newRule, setNewRule] = useState({
+    effect: 'discount' as 'discount' | 'surcharge',
     startDate: '',
     endDate: '',
     modifierType: 'percent' as 'percent' | 'fixed',
@@ -37,18 +38,26 @@ export function ListingSeasonalPricing({ listingId }: ListingSeasonalPricingProp
   async function handleAdd() {
     const start = newRule.startDate.trim();
     const end = newRule.endDate.trim();
-    const val = parseFloat(newRule.modifierValue);
-    if (!start || !end || !Number.isFinite(val)) return;
+    const raw = parseFloat(newRule.modifierValue);
+    if (!start || !end || !Number.isFinite(raw)) return;
+    const absVal = Math.abs(raw);
+    const signedVal = newRule.effect === 'discount' ? -absVal : absVal;
     setSaving(true);
     const ok = await upsertSeasonalPricing(listingId, {
       startDate: start,
       endDate: end,
       modifierType: newRule.modifierType,
-      modifierValue: val,
+      modifierValue: signedVal,
     });
     setSaving(false);
     if (ok) {
-      setNewRule({ startDate: '', endDate: '', modifierType: 'percent', modifierValue: '' });
+      setNewRule({
+        effect: 'discount',
+        startDate: '',
+        endDate: '',
+        modifierType: 'percent',
+        modifierValue: '',
+      });
       const data = await fetchSeasonalPricingRowsForListing(listingId);
       setRows(data);
     }
@@ -74,10 +83,10 @@ export function ListingSeasonalPricing({ listingId }: ListingSeasonalPricingProp
   return (
     <ContentCard
       title="Sezonluk fiyatlandırma"
-      description="Tarih aralığına göre yüzde artış/indirim veya gece başı sabit TL ekleyin. Örn: yaz %20 artış, kış %10 indirim."
+      description="Tarih aralığına göre yüzdelik indirim/zam veya gece başı sabit TL değişimi ekleyin. Örn: yaz %20 zam, kış %10 indirim."
     >
       <div className="space-y-6">
-        <div className="grid gap-3 rounded-lg border bg-muted/30 p-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-3 rounded-lg border bg-muted/30 p-4 sm:grid-cols-2 lg:grid-cols-6">
           <Input
             type="date"
             value={newRule.startDate}
@@ -90,6 +99,19 @@ export function ListingSeasonalPricing({ listingId }: ListingSeasonalPricingProp
             onChange={(e) => setNewRule((r) => ({ ...r, endDate: e.target.value }))}
             placeholder="Bitiş"
           />
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-medium text-muted-foreground w-14">Tür</label>
+            <select
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+              value={newRule.effect}
+              onChange={(e) =>
+                setNewRule((r) => ({ ...r, effect: e.target.value as 'discount' | 'surcharge' }))
+              }
+            >
+              <option value="discount">İndirim</option>
+              <option value="surcharge">Zam</option>
+            </select>
+          </div>
           <select
             className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
             value={newRule.modifierType}
@@ -105,7 +127,7 @@ export function ListingSeasonalPricing({ listingId }: ListingSeasonalPricingProp
             step={newRule.modifierType === 'percent' ? 1 : 0.01}
             value={newRule.modifierValue}
             onChange={(e) => setNewRule((r) => ({ ...r, modifierValue: e.target.value }))}
-            placeholder={newRule.modifierType === 'percent' ? 'Örn: 20 veya -10' : 'Örn: 50 veya -20'}
+            placeholder={newRule.modifierType === 'percent' ? 'Örn: 20' : 'Örn: 50'}
           />
           <Button
             type="button"
@@ -120,7 +142,7 @@ export function ListingSeasonalPricing({ listingId }: ListingSeasonalPricingProp
 
         {rows.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Henüz sezonluk kural yok. Yukarıdan tarih aralığı ve yüzde/sabit değer girerek ekleyin.
+            Henüz sezonluk kural yok. Yukarıdan tarih aralığı, tür (indirim/zam) ve yüzde/sabit değer girerek ekleyin.
           </p>
         ) : (
           <ul className="space-y-2">
@@ -132,10 +154,21 @@ export function ListingSeasonalPricing({ listingId }: ListingSeasonalPricingProp
                 <span className="font-medium">
                   {r.startDate} – {r.endDate}
                 </span>
-                <span className="text-muted-foreground">
-                  {r.modifierType === 'percent'
-                    ? `%${r.modifierValue >= 0 ? '+' : ''}${r.modifierValue}`
-                    : `₺${r.modifierValue >= 0 ? '+' : ''}${r.modifierValue} / gece`}
+                <span className="inline-flex items-center gap-2">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                      r.modifierValue < 0
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : 'bg-amber-100 text-amber-700'
+                    }`}
+                  >
+                    {r.modifierValue < 0 ? 'İndirim' : 'Zam'}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {r.modifierType === 'percent'
+                      ? `%${r.modifierValue}`
+                      : `₺${r.modifierValue} / gece`}
+                  </span>
                 </span>
                 <Button
                   type="button"

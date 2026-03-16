@@ -12,6 +12,8 @@ interface ListingCardProps {
   pricePerNight: number;
   /** İndirim oranı (örn. 10 = %10). Gösterildiğinde kartta rozet çıkar. */
   discountPercent?: number;
+  /** İndirim rozetini metin olarak basmak için (örn. "₺250 indirim / gece"). */
+  discountLabel?: string;
   rating: number;
   totalReviews: number;
   images: string[];
@@ -28,6 +30,7 @@ export function ListingCard({
   location,
   pricePerNight,
   discountPercent,
+  discountLabel,
   rating,
   totalReviews,
   images,
@@ -57,6 +60,9 @@ export function ListingCard({
     : null);
   const totalPrice = totalNights ? pricePerNight * totalNights : null;
   const dateRange = checkIn && checkOut ? `${fmt(checkIn)} – ${fmt(checkOut)}` : null;
+  const hasDiscountBadge =
+    (discountLabel != null && discountLabel.trim().length > 0) ||
+    (discountPercent != null && discountPercent > 0);
 
   const isList = layout === 'list';
 
@@ -141,15 +147,17 @@ export function ListingCard({
         </button>
 
         {/* İndirim + Guest favorite rozetleri */}
-        {discountPercent != null && discountPercent > 0 && (
+        {hasDiscountBadge && (
           <div className="absolute top-3 left-3 z-10 bg-rose-500 text-white text-xs font-black px-2.5 py-1 rounded-lg shadow-md">
-            %{Math.round(discountPercent)} İndirim
+            {discountLabel && discountLabel.trim().length > 0
+              ? discountLabel
+              : `%${Math.round(discountPercent ?? 0)} İndirim`}
           </div>
         )}
         {isFavorite && (
           <div
             className="absolute left-3 z-10 bg-card text-foreground text-xs font-semibold px-2.5 py-1 rounded-full shadow-sm"
-            style={{ top: discountPercent != null && discountPercent > 0 ? 40 : 12 }}
+            style={{ top: hasDiscountBadge ? 40 : 12 }}
           >
             {guestFavoriteLabel}
           </div>
