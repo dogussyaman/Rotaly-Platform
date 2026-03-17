@@ -2,12 +2,12 @@
 
 import { Suspense, lazy, useState, useRef } from 'react';
 import { useLocale } from '@/lib/i18n/locale-context';
-import { MainFooter } from '@/components/footer/main-footer';
 import { HeroSection } from '@/components/home/hero-section';
 import { CategoriesSection } from '@/components/home/categories-section';
 import { OffersSectionSkeleton } from '@/components/home/offers-skeleton';
 import { ListingsSection } from '@/components/home/listings-section';
 import { HostCtaSection } from '@/components/home/host-cta-section';
+import { LoyaltyPromoSection } from '@/components/home/loyalty-promo';
 
 const OffersSection = lazy(() =>
   import('@/components/home/offers-section').then((mod) => ({ default: mod.OffersSection })),
@@ -33,11 +33,11 @@ export default function Home() {
         <OffersSection t={t} />
       </Suspense>
 
+      <LoyaltyPromoSection />
+
       <ListingsSection t={t} />
 
       <HostCtaSection t={t} />
-
-      <MainFooter />
     </div>
   );
 }

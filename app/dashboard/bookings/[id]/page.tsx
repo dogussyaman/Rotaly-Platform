@@ -122,26 +122,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
             <Button asChild variant="outline" size="sm" className="rounded-lg">
               <Link href="/dashboard/bookings">Rezervasyonlara dön</Link>
             </Button>
-            {canEditOrCancel && isGuest && (
-              <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="rounded-lg text-amber-600 hover:bg-amber-50"
-                  onClick={() => setCancelDialogOpen(true)}
-                >
-                  <XCircle className="mr-1.5 h-4 w-4" />
-                  İptal et
-                </Button>
-                <Button asChild size="sm" className="rounded-lg bg-[#0d9488] hover:bg-[#0f766e]">
-                  <Link href={`/bookings/${id}/edit`}>
-                    <Pencil className="mr-1.5 h-4 w-4" />
-                    Rezervasyonu düzenle
-                  </Link>
-                </Button>
-              </>
-            )}
+            {/* Host view takes priority — show host actions when user is the host */}
             {isHost && (booking.status === 'pending' || booking.status === 'confirmed') && (
               <>
                 {booking.status === 'pending' && (
@@ -162,12 +143,37 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                   size="sm"
                   className="rounded-lg text-red-600 hover:bg-red-50"
                   onClick={() => setCancelDialogOpen(true)}
+                  disabled={actionPending}
                 >
                   <XCircle className="mr-1.5 h-4 w-4" />
                   İptal et
                 </Button>
               </>
             )}
+
+            {/* Guest-only view — only when user is the guest but not the host */}
+            {canEditOrCancel && isGuest && !isHost && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="rounded-lg text-amber-600 hover:bg-amber-50"
+                  onClick={() => setCancelDialogOpen(true)}
+                  disabled={actionPending}
+                >
+                  <XCircle className="mr-1.5 h-4 w-4" />
+                  İptal et
+                </Button>
+                <Button asChild size="sm" className="rounded-lg bg-[#0d9488] hover:bg-[#0f766e]">
+                  <Link href={`/bookings/${id}/edit`}>
+                    <Pencil className="mr-1.5 h-4 w-4" />
+                    Rezervasyonu düzenle
+                  </Link>
+                </Button>
+              </>
+            )}
+
             {canDelete && (
               <Button
                 type="button"
@@ -175,6 +181,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                 size="sm"
                 className="rounded-lg text-red-600 hover:bg-red-50"
                 onClick={() => setDeleteDialogOpen(true)}
+                disabled={actionPending}
               >
                 <Trash2 className="mr-1.5 h-4 w-4" />
                 Sil

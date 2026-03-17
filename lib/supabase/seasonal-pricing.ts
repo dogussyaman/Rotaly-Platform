@@ -27,6 +27,21 @@ export interface SeasonalDiscountHit {
   modifierValue: number;
 }
 
+/**
+ * Şu anki veritabanı şemasında yalnızca tarih aralığı bazlı kurallar var.
+ * İleride ay / minimum gece kolonu eklendiğinde bu fonksiyon genişletilebilir.
+ */
+function inferRuleType(_row: {
+  month_of_year?: number | null;
+  min_nights?: number | null;
+  start_date?: string | null;
+}): PricingRuleType {
+  return 'date_range';
+}
+
+const SEASONAL_COLS =
+  'id, listing_id, start_date, end_date, modifier_type, modifier_value';
+
 export async function fetchSeasonalPricingForListing(
   listingId: string,
 ): Promise<SeasonalRule[]> {
@@ -34,7 +49,7 @@ export async function fetchSeasonalPricingForListing(
 
   const { data, error } = await supabase
     .from('listing_seasonal_pricing')
-    .select('id, listing_id, rule_type, start_date, end_date, month_of_year, min_nights, modifier_type, modifier_value')
+    .select(SEASONAL_COLS)
     .eq('listing_id', listingId)
     .order('start_date', { ascending: true });
 
@@ -44,7 +59,7 @@ export async function fetchSeasonalPricingForListing(
   }
 
   return (data ?? []).map((row: any) => ({
-    ruleType: (row.rule_type as PricingRuleType) ?? 'date_range',
+    ruleType: inferRuleType(row),
     startDate: row.start_date ?? null,
     endDate: row.end_date ?? null,
     monthOfYear: row.month_of_year ?? null,
@@ -71,11 +86,8 @@ export async function upsertSeasonalPricing(
 
   const row = {
     listing_id: listingId,
-    rule_type: rule.ruleType,
     start_date: rule.startDate,
     end_date: rule.endDate,
-    month_of_year: rule.monthOfYear,
-    min_nights: rule.minNights,
     modifier_type: rule.modifierType,
     modifier_value: rule.modifierValue,
     updated_at: new Date().toISOString(),
@@ -120,7 +132,7 @@ export async function fetchSeasonalPricingRowsForListing(
 
   const { data, error } = await supabase
     .from('listing_seasonal_pricing')
-    .select('id, listing_id, rule_type, start_date, end_date, month_of_year, min_nights, modifier_type, modifier_value')
+    .select(SEASONAL_COLS)
     .eq('listing_id', listingId)
     .order('start_date', { ascending: true });
 
@@ -132,7 +144,7 @@ export async function fetchSeasonalPricingRowsForListing(
   return (data ?? []).map((row: any) => ({
     id: row.id,
     listingId: row.listing_id,
-    ruleType: (row.rule_type as PricingRuleType) ?? 'date_range',
+    ruleType: inferRuleType(row),
     startDate: row.start_date ?? null,
     endDate: row.end_date ?? null,
     monthOfYear: row.month_of_year ?? null,
@@ -153,7 +165,7 @@ export async function fetchSeasonalDiscountsForListings(params: {
 
   const { data, error } = await supabase
     .from('listing_seasonal_pricing')
-    .select('id, listing_id, rule_type, start_date, end_date, month_of_year, min_nights, modifier_type, modifier_value')
+    .select(SEASONAL_COLS)
     .in('listing_id', params.listingIds)
     .lt('modifier_value', 0)
     .order('start_date', { ascending: true });
@@ -177,7 +189,7 @@ export async function fetchSeasonalDiscountsForListings(params: {
     .map((row: any) => ({
       id: row.id,
       listingId: row.listing_id,
-      ruleType: (row.rule_type as PricingRuleType) ?? 'date_range',
+      ruleType: inferRuleType(row),
       startDate: row.start_date ?? null,
       endDate: row.end_date ?? null,
       monthOfYear: row.month_of_year ?? null,
@@ -211,7 +223,7 @@ export async function fetchUpcomingDiscountOffers(params?: {
 
   const { data, error } = await supabase
     .from('listing_seasonal_pricing')
-    .select('id, listing_id, rule_type, start_date, end_date, month_of_year, min_nights, modifier_type, modifier_value')
+    .select(SEASONAL_COLS)
     .lt('modifier_value', 0)
     .order('start_date', { ascending: true })
     .limit(limit);
@@ -232,7 +244,7 @@ export async function fetchUpcomingDiscountOffers(params?: {
     .map((row: any) => ({
       id: row.id,
       listingId: row.listing_id,
-      ruleType: (row.rule_type as PricingRuleType) ?? 'date_range',
+      ruleType: inferRuleType(row),
       startDate: row.start_date ?? null,
       endDate: row.end_date ?? null,
       monthOfYear: row.month_of_year ?? null,
