@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Calendar, Gift, Home, MessageSquare, Star, Users, Loader2, ArrowRight } from 'lucide-react';
+import { Calendar, Gift, Home, MessageSquare, Star, Users, Loader2, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useAppSelector } from '@/lib/store/hooks';
@@ -30,13 +30,13 @@ function QuickLink({ title, description, href }: { title: string; description: s
   return (
     <Link
       href={href}
-      className="flex items-center justify-between rounded-xl border border-[#e5e7eb] bg-white/90 px-4 py-3 shadow-[0_1px_2px_0_rgba(0,0,0,0.04)] transition-colors hover:border-[#99f6e4] hover:bg-[#f0fdfa]/80 hover:shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]"
+      className="flex items-center justify-between rounded-xl border border-border/70 bg-card/90 px-4 py-3 shadow-[0_1px_2px_0_rgba(0,0,0,0.04)] transition-colors hover:border-primary/30 hover:bg-accent/60 hover:shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]"
     >
       <div>
-        <span className="text-sm font-semibold text-[#111]">{title}</span>
+        <span className="text-sm font-semibold text-foreground">{title}</span>
         <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
       </div>
-      <ArrowRight className="h-4 w-4 shrink-0 text-[#0d9488]" />
+      <ArrowRight className="h-4 w-4 shrink-0 text-primary" />
     </Link>
   );
 }
@@ -146,6 +146,53 @@ export function DashboardOverview() {
           { title: 'Mesajlar', description: 'Misafir iletişimi', href: '/dashboard/messages' },
         ];
 
+  const todoItems =
+    role === 'admin'
+      ? [
+          {
+            title: 'Yeni ilanları doğrula',
+            description: 'Görsel, konum ve içerik kalite kontrolü.',
+            href: '/dashboard/listings',
+          },
+          {
+            title: 'Ev sahibi performansı',
+            description: 'Yanıt oranı ve iptal eğilimlerini gözden geçir.',
+            href: '/dashboard/hosts',
+          },
+          {
+            title: 'Fiyat ve kampanya denetimi',
+            description: 'İndirim/zam kuralları ve kupon limitleri.',
+            href: '/dashboard/coupons',
+          },
+          {
+            title: 'Operasyon raporları',
+            description: 'Gelir, risk ve doluluk özetleri.',
+            href: '/dashboard/reports',
+          },
+        ]
+      : [
+          {
+            title: 'İlan bilgilerini tamamla',
+            description: 'Oda tipleri, görseller ve kurallar.',
+            href: '/dashboard/listings',
+          },
+          {
+            title: 'Uygunluk ve özel fiyat',
+            description: 'Takvim, sezon/ay/uzun konaklama kuralları.',
+            href: '/dashboard/availability',
+          },
+          {
+            title: 'İndirim & zam kurgusu',
+            description: 'Tarih, ay veya minimum gece bazlı kural ekle.',
+            href: '/dashboard/availability',
+          },
+          {
+            title: 'Mesaj ve check-in akışı',
+            description: 'Misafir bilgilendirme ve hızlı yanıt şablonları.',
+            href: '/dashboard/messages',
+          },
+        ];
+
   if (loading) {
     return (
       <div className="flex h-[400px] w-full items-center justify-center">
@@ -166,24 +213,24 @@ export function DashboardOverview() {
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <div className="xl:col-span-2 space-y-4">
-          <div className="rounded-xl border border-[#e5e7eb] bg-white/90 p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] sm:p-6">
+          <div className="rounded-xl border border-border/70 bg-card/90 p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] sm:p-6">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-[#111]">Rezervasyon Takvimi</h3>
+                <h3 className="text-sm font-semibold text-foreground">Rezervasyon Takvimi</h3>
                 <p className="mt-0.5 text-xs text-muted-foreground">Bu ay dolu günler; tıklayınca rezervasyonlara gidin</p>
               </div>
-              <Button asChild variant="outline" size="sm" className="rounded-lg border-[#e5e7eb] text-[#0d9488] hover:bg-[#f0fdfa]">
+              <Button asChild variant="outline" size="sm" className="rounded-lg">
                 <Link href="/dashboard/bookings">Tümünü Gör</Link>
               </Button>
             </div>
             {role === 'host' && hostStats ? (
-              <div className="rounded-xl border border-[#e5e7eb] bg-[#fafafa] p-3">
-                <div className="mb-2 text-center text-xs font-medium text-[#6b7280]">
+              <div className="rounded-xl border border-border/70 bg-muted/40 p-3">
+                <div className="mb-2 text-center text-xs font-medium text-muted-foreground">
                   {calendarMonth.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}
                 </div>
                 <div className="grid grid-cols-7 gap-0.5">
                   {WEEKDAYS.map((w) => (
-                    <div key={w} className="py-1 text-center text-[10px] font-medium text-[#6b7280]">
+                    <div key={w} className="py-1 text-center text-[10px] font-medium text-muted-foreground">
                       {w}
                     </div>
                   ))}
@@ -197,8 +244,8 @@ export function DashboardOverview() {
                         href="/dashboard/bookings"
                         className={`flex min-h-8 items-center justify-center rounded text-xs transition-colors ${
                           hasBooking
-                            ? 'bg-[#0d9488] text-white hover:bg-[#0f766e]'
-                            : 'text-[#6b7280] hover:bg-[#e5e7eb]'
+                            ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                            : 'text-muted-foreground hover:bg-accent'
                         }`}
                       >
                         {d.getDate()}
@@ -208,20 +255,20 @@ export function DashboardOverview() {
                 </div>
               </div>
             ) : (
-              <div className="flex h-[200px] w-full items-center justify-center rounded-xl border border-dashed border-[#e5e7eb] bg-[#f9fafb]">
+              <div className="flex h-[200px] w-full items-center justify-center rounded-xl border border-dashed border-border/70 bg-muted/20">
                 <p className="text-sm text-muted-foreground">Takvim ev sahibi panelinde görünür.</p>
               </div>
             )}
           </div>
           {role === 'host' && upcomingBookings.length > 0 && (
-            <div className="rounded-xl border border-[#e5e7eb] bg-white/90 p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)]">
-              <h3 className="text-sm font-semibold text-[#111]">Yaklaşan rezervasyonlar</h3>
+            <div className="rounded-xl border border-border/70 bg-card/90 p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)]">
+              <h3 className="text-sm font-semibold text-foreground">Yaklaşan rezervasyonlar</h3>
               <ul className="mt-3 space-y-2">
                 {upcomingBookings.map((b) => (
                   <li key={b.id}>
                     <Link
                       href={`/dashboard/bookings/${b.id}`}
-                      className="flex items-center justify-between rounded-lg border border-[#e5e7eb] px-3 py-2 text-sm transition-colors hover:bg-[#f0fdfa]"
+                      className="flex items-center justify-between rounded-lg border border-border/70 px-3 py-2 text-sm transition-colors hover:bg-accent/60"
                     >
                       <span className="font-medium">{b.listingTitle ?? 'İlan'}</span>
                       <span className="text-xs text-muted-foreground">
@@ -231,32 +278,59 @@ export function DashboardOverview() {
                   </li>
                 ))}
               </ul>
-              <Button asChild variant="ghost" size="sm" className="mt-2 w-full rounded-lg text-[#0d9488]">
+              <Button asChild variant="ghost" size="sm" className="mt-2 w-full rounded-lg text-primary">
                 <Link href="/dashboard/bookings">Tüm rezervasyonlar</Link>
               </Button>
             </div>
           )}
         </div>
 
-        <div className="relative overflow-hidden rounded-xl border border-[#0d9488]/20 bg-linear-to-br from-[#0f766e] to-[#134e4a] p-5 text-white shadow-[0_4px_14px_-4px_rgba(13,148,136,0.25)] sm:p-6">
-          <div className="relative z-10">
-            <h3 className="text-sm font-semibold">Hızlı İşlemler</h3>
-            <p className="mt-0.5 text-xs text-white/70">İşlemlerinizi hızlıca gerçekleştirin</p>
+        <div className="space-y-4">
+          <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-br from-primary to-primary/80 p-5 text-primary-foreground shadow-[0_6px_18px_-6px_rgba(13,148,136,0.25)] sm:p-6">
+            <div className="relative z-10">
+              <h3 className="text-sm font-semibold">Hızlı İşlemler</h3>
+              <p className="mt-0.5 text-xs text-primary-foreground/70">İşlemlerinizi hızlıca gerçekleştirin</p>
+              <div className="mt-4 space-y-2">
+                {links.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="flex items-center justify-between rounded-lg bg-primary-foreground/10 px-3 py-2.5 transition-colors hover:bg-primary-foreground/15"
+                  >
+                    <span className="text-sm font-medium">{link.title}</span>
+                    <ArrowRight className="h-4 w-4 opacity-80" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+            <div className="absolute -right-12 -top-12 h-24 w-24 rounded-full bg-primary-foreground/10 blur-2xl" />
+            <div className="absolute -bottom-12 -left-12 h-32 w-32 rounded-full bg-primary-foreground/10 blur-2xl" />
+          </div>
+
+          <div className="rounded-xl border border-border/70 bg-card/90 p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Yapılacaklar</h3>
+                <p className="mt-0.5 text-xs text-muted-foreground">Operasyonu hızlandıran öneriler</p>
+              </div>
+              <CheckCircle2 className="h-4 w-4 text-primary" />
+            </div>
             <div className="mt-4 space-y-2">
-              {links.map((link) => (
+              {todoItems.map((item) => (
                 <Link
-                  key={link.href}
-                  href={link.href}
-                  className="flex items-center justify-between rounded-lg bg-white/10 px-3 py-2.5 transition-colors hover:bg-white/15"
+                  key={item.title}
+                  href={item.href}
+                  className="flex items-start justify-between gap-3 rounded-lg border border-border/70 bg-muted/40 px-3 py-2.5 text-sm transition-colors hover:bg-accent/60"
                 >
-                  <span className="text-sm font-medium">{link.title}</span>
-                  <ArrowRight className="h-4 w-4 opacity-80" />
+                  <div>
+                    <p className="font-semibold text-foreground">{item.title}</p>
+                    <p className="text-xs text-muted-foreground">{item.description}</p>
+                  </div>
+                  <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-primary" />
                 </Link>
               ))}
             </div>
           </div>
-          <div className="absolute -right-12 -top-12 h-24 w-24 rounded-full bg-white/5 blur-2xl" />
-          <div className="absolute -bottom-12 -left-12 h-32 w-32 rounded-full bg-white/5 blur-2xl" />
         </div>
       </div>
     </div>

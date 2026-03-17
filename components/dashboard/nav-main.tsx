@@ -33,8 +33,9 @@ export function NavMain({
           <SidebarMenuItem className="flex justify-center">
             {/* Expanded: full pill button */}
             <Button
+              variant="secondary"
               className={cn(
-                "w-full bg-secondary text-foreground hover:bg-white font-bold rounded-full gap-2 shadow-sm border-none h-9 px-3 text-[12px]",
+                "w-full font-semibold rounded-xl gap-2 shadow-sm h-9 px-3 text-[12px]",
                 "group-data-[collapsible=icon]:hidden",
               )}
             >
@@ -47,7 +48,7 @@ export function NavMain({
               className={cn(
                 "hidden group-data-[collapsible=icon]:flex",
                 "items-center justify-center",
-                "bg-secondary text-foreground rounded-xl hover:bg-white transition-colors",
+                "bg-sidebar-accent text-sidebar-accent-foreground rounded-xl hover:bg-sidebar-accent/80 transition-colors",
               )}
             >
               <PlusCircleIcon className="size-4" />
@@ -67,16 +68,11 @@ export function NavMain({
                 <SidebarMenuButton
                   tooltip={item.title}
                   asChild
+                  isActive={isActive}
                   className={cn(
-                    // Expanded layout
-                    "relative h-10 gap-3 px-3 rounded-2xl",
+                    "relative h-10 gap-3 px-3 rounded-xl",
                     "flex items-center group/nav-item",
                     "transition-colors duration-200",
-                    "focus-visible:ring-2 focus-visible:ring-white/30",
-                    // Active / inactive colours
-                    isActive
-                      ? "bg-white! text-[#1c1c21]! shadow-[0_8px_30px_rgba(0,0,0,0.15)] hover:bg-white!"
-                      : "text-white/70 hover:text-white! hover:bg-white/10!",
                   )}
                 >
                   <Link
@@ -105,16 +101,6 @@ export function NavMain({
                       {item.title}
                     </span>
 
-                    {/* Active left-bar indicator */}
-                    {isActive && (
-                      <div
-                        className={cn(
-                          "absolute left-[-6px] top-1/2 -translate-y-1/2 w-1.5 h-6 bg-secondary rounded-r-full",
-                          "transition-opacity duration-200",
-                          "group-data-[collapsible=icon]:opacity-0",
-                        )}
-                      />
-                    )}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

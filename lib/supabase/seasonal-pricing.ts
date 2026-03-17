@@ -1,11 +1,16 @@
 import { createClient } from '@/lib/supabase/client';
 import type { SeasonalRule } from '@/lib/supabase/pricing';
 
+export type PricingRuleType = 'date_range' | 'month' | 'min_nights';
+
 export interface SeasonalPricingRow {
   id: string;
   listingId: string;
-  startDate: string;
-  endDate: string;
+  ruleType: PricingRuleType;
+  startDate: string | null;
+  endDate: string | null;
+  monthOfYear: number | null;
+  minNights: number | null;
   modifierType: 'percent' | 'fixed';
   modifierValue: number;
 }
@@ -13,8 +18,11 @@ export interface SeasonalPricingRow {
 export interface SeasonalDiscountHit {
   id: string;
   listingId: string;
-  startDate: string;
-  endDate: string;
+  ruleType: PricingRuleType;
+  startDate: string | null;
+  endDate: string | null;
+  monthOfYear: number | null;
+  minNights: number | null;
   modifierType: 'percent' | 'fixed';
   modifierValue: number;
 }
@@ -26,7 +34,7 @@ export async function fetchSeasonalPricingForListing(
 
   const { data, error } = await supabase
     .from('listing_seasonal_pricing')
-    .select('id, listing_id, start_date, end_date, modifier_type, modifier_value')
+    .select('id, listing_id, rule_type, start_date, end_date, month_of_year, min_nights, modifier_type, modifier_value')
     .eq('listing_id', listingId)
     .order('start_date', { ascending: true });
 
@@ -36,8 +44,11 @@ export async function fetchSeasonalPricingForListing(
   }
 
   return (data ?? []).map((row: any) => ({
-    startDate: row.start_date,
-    endDate: row.end_date,
+    ruleType: (row.rule_type as PricingRuleType) ?? 'date_range',
+    startDate: row.start_date ?? null,
+    endDate: row.end_date ?? null,
+    monthOfYear: row.month_of_year ?? null,
+    minNights: row.min_nights ?? null,
     modifierType: row.modifier_type,
     modifierValue: Number(row.modifier_value),
   }));
@@ -47,8 +58,11 @@ export async function upsertSeasonalPricing(
   listingId: string,
   rule: {
     id?: string;
-    startDate: string;
-    endDate: string;
+    ruleType: PricingRuleType;
+    startDate: string | null;
+    endDate: string | null;
+    monthOfYear: number | null;
+    minNights: number | null;
     modifierType: 'percent' | 'fixed';
     modifierValue: number;
   },
@@ -57,8 +71,11 @@ export async function upsertSeasonalPricing(
 
   const row = {
     listing_id: listingId,
+    rule_type: rule.ruleType,
     start_date: rule.startDate,
     end_date: rule.endDate,
+    month_of_year: rule.monthOfYear,
+    min_nights: rule.minNights,
     modifier_type: rule.modifierType,
     modifier_value: rule.modifierValue,
     updated_at: new Date().toISOString(),
@@ -103,7 +120,7 @@ export async function fetchSeasonalPricingRowsForListing(
 
   const { data, error } = await supabase
     .from('listing_seasonal_pricing')
-    .select('id, listing_id, start_date, end_date, modifier_type, modifier_value')
+    .select('id, listing_id, rule_type, start_date, end_date, month_of_year, min_nights, modifier_type, modifier_value')
     .eq('listing_id', listingId)
     .order('start_date', { ascending: true });
 
@@ -115,8 +132,11 @@ export async function fetchSeasonalPricingRowsForListing(
   return (data ?? []).map((row: any) => ({
     id: row.id,
     listingId: row.listing_id,
-    startDate: row.start_date,
-    endDate: row.end_date,
+    ruleType: (row.rule_type as PricingRuleType) ?? 'date_range',
+    startDate: row.start_date ?? null,
+    endDate: row.end_date ?? null,
+    monthOfYear: row.month_of_year ?? null,
+    minNights: row.min_nights ?? null,
     modifierType: row.modifier_type,
     modifierValue: Number(row.modifier_value),
   }));
@@ -133,11 +153,9 @@ export async function fetchSeasonalDiscountsForListings(params: {
 
   const { data, error } = await supabase
     .from('listing_seasonal_pricing')
-    .select('id, listing_id, start_date, end_date, modifier_type, modifier_value')
+    .select('id, listing_id, rule_type, start_date, end_date, month_of_year, min_nights, modifier_type, modifier_value')
     .in('listing_id', params.listingIds)
     .lt('modifier_value', 0)
-    .lte('start_date', params.checkOut)
-    .gte('end_date', params.checkIn)
     .order('start_date', { ascending: true });
 
   if (error) {
@@ -145,14 +163,37 @@ export async function fetchSeasonalDiscountsForListings(params: {
     return [];
   }
 
-  return (data ?? []).map((row: any) => ({
-    id: row.id,
-    listingId: row.listing_id,
-    startDate: row.start_date,
-    endDate: row.end_date,
-    modifierType: row.modifier_type,
-    modifierValue: Number(row.modifier_value),
-  }));
+  const checkInDate = new Date(params.checkIn + 'T12:00:00Z');
+  const checkOutDate = new Date(params.checkOut + 'T12:00:00Z');
+
+  const hasMonthOverlap = (month: number) => {
+    for (let d = new Date(checkInDate); d < checkOutDate; d.setUTCDate(d.getUTCDate() + 1)) {
+      if (d.getUTCMonth() + 1 === month) return true;
+    }
+    return false;
+  };
+
+  return (data ?? [])
+    .map((row: any) => ({
+      id: row.id,
+      listingId: row.listing_id,
+      ruleType: (row.rule_type as PricingRuleType) ?? 'date_range',
+      startDate: row.start_date ?? null,
+      endDate: row.end_date ?? null,
+      monthOfYear: row.month_of_year ?? null,
+      minNights: row.min_nights ?? null,
+      modifierType: row.modifier_type,
+      modifierValue: Number(row.modifier_value),
+    }))
+    .filter((row: SeasonalDiscountHit) => {
+      if (row.ruleType === 'month' && row.monthOfYear) {
+        return hasMonthOverlap(row.monthOfYear);
+      }
+      if (row.ruleType === 'date_range' && row.startDate && row.endDate) {
+        return row.startDate <= params.checkOut && row.endDate >= params.checkIn;
+      }
+      return false;
+    });
 }
 
 export async function fetchUpcomingDiscountOffers(params?: {
@@ -164,16 +205,14 @@ export async function fetchUpcomingDiscountOffers(params?: {
 
   const today = new Date();
   const from = params?.from ?? today.toISOString().slice(0, 10);
-  const windowEnd = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
-  const to = params?.to ?? windowEnd.toISOString().slice(0, 10);
+  const defaultWindowEnd = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000);
+  const to = params?.to ?? defaultWindowEnd.toISOString().slice(0, 10);
   const limit = params?.limit ?? 30;
 
   const { data, error } = await supabase
     .from('listing_seasonal_pricing')
-    .select('id, listing_id, start_date, end_date, modifier_type, modifier_value')
+    .select('id, listing_id, rule_type, start_date, end_date, month_of_year, min_nights, modifier_type, modifier_value')
     .lt('modifier_value', 0)
-    .lte('start_date', to)
-    .gte('end_date', from)
     .order('start_date', { ascending: true })
     .limit(limit);
 
@@ -182,12 +221,42 @@ export async function fetchUpcomingDiscountOffers(params?: {
     return [];
   }
 
-  return (data ?? []).map((row: any) => ({
-    id: row.id,
-    listingId: row.listing_id,
-    startDate: row.start_date,
-    endDate: row.end_date,
-    modifierType: row.modifier_type,
-    modifierValue: Number(row.modifier_value),
-  }));
+  const windowStart = new Date(from + 'T12:00:00Z');
+  const windowEnd = new Date(to + 'T12:00:00Z');
+  const activeMonths = new Set<number>();
+  for (let d = new Date(windowStart); d <= windowEnd; d.setUTCDate(d.getUTCDate() + 1)) {
+    activeMonths.add(d.getUTCMonth() + 1);
+  }
+
+  return (data ?? [])
+    .map((row: any) => ({
+      id: row.id,
+      listingId: row.listing_id,
+      ruleType: (row.rule_type as PricingRuleType) ?? 'date_range',
+      startDate: row.start_date ?? null,
+      endDate: row.end_date ?? null,
+      monthOfYear: row.month_of_year ?? null,
+      minNights: row.min_nights ?? null,
+      modifierType: row.modifier_type,
+      modifierValue: Number(row.modifier_value),
+    }))
+    .flatMap((row: SeasonalDiscountHit) => {
+      if (row.ruleType === 'month' && row.monthOfYear) {
+        if (!activeMonths.has(row.monthOfYear)) return [];
+        const year = windowStart.getUTCFullYear();
+        const start = new Date(Date.UTC(year, row.monthOfYear - 1, 1));
+        const end = new Date(Date.UTC(year, row.monthOfYear, 0));
+        const startDate = start.toISOString().slice(0, 10);
+        const endDate = end.toISOString().slice(0, 10);
+        if (end < windowStart || start > windowEnd) return [];
+        return [{ ...row, startDate, endDate }];
+      }
+
+      if (row.ruleType === 'date_range' && row.startDate && row.endDate) {
+        if (row.startDate > to || row.endDate < from) return [];
+        return [row];
+      }
+
+      return [];
+    });
 }

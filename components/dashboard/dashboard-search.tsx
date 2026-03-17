@@ -80,13 +80,13 @@ export function DashboardSearch() {
               }
             }}
             placeholder="İçerik, ilan veya rezervasyon ara..."
-            className="h-9 w-full bg-[#F4F7F6] border-none rounded-xl pl-10 text-xs font-medium focus-visible:ring-secondary/30 transition-all placeholder:text-muted-foreground/40"
+            className="h-9 w-full bg-muted/60 border border-border/60 rounded-xl pl-10 text-xs font-medium focus-visible:ring-primary/30 transition-all placeholder:text-muted-foreground/40"
           />
         </div>
       </PopoverAnchor>
 
       <PopoverContent
-        className="w-[520px] max-w-[calc(100vw-2rem)] p-0 rounded-2xl shadow-2xl border border-slate-200/60 bg-white/95 backdrop-blur-xl"
+        className="w-[520px] max-w-[calc(100vw-2rem)] p-0 rounded-2xl shadow-2xl border border-border/70 bg-popover/95 backdrop-blur-xl"
         align="start"
         sideOffset={10}
         onOpenAutoFocus={(e) => e.preventDefault()}
@@ -167,4 +167,3 @@ export function DashboardSearch() {
     </Popover>
   )
 }
-

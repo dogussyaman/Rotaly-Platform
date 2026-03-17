@@ -16,14 +16,14 @@ export function SiteHeader({
   subtitle = "Tüm operasyonları tek ekranda yönetin.",
 }: SiteHeaderProps) {
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b bg-white rounded-2xl shadow-sm mx-4 my-2">
+    <header className="flex h-14 shrink-0 items-center justify-between border-b border-border/60 bg-card/80 backdrop-blur rounded-2xl shadow-sm mx-4 my-2">
       <div className="flex w-full items-center justify-between gap-4 px-4 lg:px-6">
         <div className="flex flex-1 items-center gap-3">
-          <SidebarTrigger className="h-8 w-8 rounded-lg hover:bg-[#f0fdfa] hover:text-[#0d9488] transition-colors" />
+          <SidebarTrigger className="h-8 w-8 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors" />
           <Separator orientation="vertical" className="h-4 opacity-30" />
 
           <div className="min-w-0 flex-1 text-left">
-            <h1 className="truncate text-[15px] font-semibold tracking-tight text-[#111]">
+            <h1 className="truncate text-[15px] font-semibold tracking-tight text-foreground">
               {title}
             </h1>
             <p className="truncate text-[11px] text-muted-foreground">

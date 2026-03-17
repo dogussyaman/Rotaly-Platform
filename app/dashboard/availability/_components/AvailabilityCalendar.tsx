@@ -60,13 +60,13 @@ export function AvailabilityCalendar({
               ))}
             </SelectContent>
           </Select>
-          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-[#e5e7eb] bg-[#f9fafb] px-3 py-2 text-sm">
+          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border/70 bg-muted/40 px-3 py-2 text-sm">
             <span className="flex items-center gap-1.5">
-              <Unlock className="h-4 w-4 text-[#0d9488]" />
+              <Unlock className="h-4 w-4 text-primary" />
               <span>Uygun</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <Lock className="h-4 w-4 text-[#6b7280]" />
+              <Lock className="h-4 w-4 text-muted-foreground" />
               <span>Kapalı</span>
             </span>
             <span className="flex items-center gap-1.5 text-amber-700">
@@ -102,13 +102,13 @@ export function AvailabilityCalendar({
 
             {loading ? (
               <div className="flex h-[320px] items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-[#0d9488]" />
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : (
-              <div className="rounded-xl border border-[#e5e7eb] bg-white p-4">
+              <div className="rounded-xl border border-border/70 bg-card/90 p-4">
                 <div className="grid grid-cols-7 gap-1">
                   {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map((w) => (
-                    <div key={w} className="py-1 text-center text-xs font-medium text-[#6b7280]">{w}</div>
+                    <div key={w} className="py-1 text-center text-xs font-medium text-muted-foreground">{w}</div>
                   ))}
                   {getDaysInMonth(month).map((d, i) => {
                     if (!d) return <div key={`pad-${i}`} />;
@@ -124,10 +124,10 @@ export function AvailabilityCalendar({
                         type="button"
                         className={cn(
                           'flex min-h-10 flex-col items-center justify-center rounded-lg text-sm transition-colors',
-                          isPast && 'cursor-not-allowed bg-[#f9fafb] text-[#9ca3af] opacity-70',
+                          isPast && 'cursor-not-allowed bg-muted/50 text-muted-foreground/70 opacity-70',
                           !isPast && isBooked && 'cursor-default bg-amber-100 text-amber-800 border border-amber-300',
-                          !isPast && !isBooked && available && 'bg-[#ccfbf1] text-[#0d9488] hover:bg-[#99f6e4]',
-                          !isPast && !isBooked && !available && 'bg-[#f3f4f6] text-[#6b7280] hover:bg-[#e5e7eb]',
+                          !isPast && !isBooked && available && 'bg-primary/10 text-primary hover:bg-primary/20',
+                          !isPast && !isBooked && !available && 'bg-muted text-muted-foreground hover:bg-muted/70',
                           isUpdating && 'pointer-events-none opacity-60',
                         )}
                         onClick={() => onDayClick(d)}

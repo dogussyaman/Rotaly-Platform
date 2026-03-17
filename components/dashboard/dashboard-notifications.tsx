@@ -38,7 +38,7 @@ export function DashboardNotifications({ className }: { className?: string }) {
         <button
           type="button"
           className={cn(
-            "h-9 w-9 rounded-xl bg-[#F4F7F6] flex items-center justify-center text-[#1c1c21] cursor-pointer hover:bg-secondary/30 transition-colors relative",
+            "h-9 w-9 rounded-xl bg-muted/60 flex items-center justify-center text-foreground cursor-pointer hover:bg-accent transition-colors relative",
             className,
           )}
           aria-label="Bildirimler"
@@ -52,10 +52,10 @@ export function DashboardNotifications({ className }: { className?: string }) {
       <PopoverContent
         align="end"
         sideOffset={10}
-        className="w-80 rounded-2xl p-2 shadow-2xl border-none backdrop-blur-xl bg-white/95"
+        className="w-80 rounded-2xl p-2 shadow-2xl border border-border/70 backdrop-blur-xl bg-popover/95"
       >
         <div className="px-3 py-2">
-          <div className="text-sm font-extrabold text-[#1A1A1A]">Bildirimler</div>
+          <div className="text-sm font-extrabold text-foreground">Bildirimler</div>
           <div className="text-[11px] text-muted-foreground font-medium">
             {loading ? "Güncelleniyor..." : "Özet ve hızlı aksiyonlar"}
           </div>
@@ -65,38 +65,38 @@ export function DashboardNotifications({ className }: { className?: string }) {
           <Link
             href="/dashboard/messages"
             onClick={() => setOpen(false)}
-            className="flex items-center justify-between rounded-xl px-3 py-2.5 hover:bg-[#F4F7F6] transition-colors"
+            className="flex items-center justify-between rounded-xl px-3 py-2.5 hover:bg-accent/60 transition-colors"
           >
             <div>
-              <div className="text-xs font-bold text-[#1A1A1A]">Yeni mesajlar</div>
+              <div className="text-xs font-bold text-foreground">Yeni mesajlar</div>
               <div className="text-[11px] text-muted-foreground font-medium">Okunmamış mesaj sayısı</div>
             </div>
-            <div className="text-xs font-black text-[#0F3D3E]">{unread}</div>
+            <div className="text-xs font-black text-primary">{unread}</div>
           </Link>
 
           <Link
             href="/dashboard/bookings"
             onClick={() => setOpen(false)}
-            className="flex items-center justify-between rounded-xl px-3 py-2.5 hover:bg-[#F4F7F6] transition-colors"
+            className="flex items-center justify-between rounded-xl px-3 py-2.5 hover:bg-accent/60 transition-colors"
           >
             <div>
-              <div className="text-xs font-bold text-[#1A1A1A]">
+              <div className="text-xs font-bold text-foreground">
                 {role === "host" ? "Yaklaşan girişler" : "Yaklaşan seyahatler"}
               </div>
               <div className="text-[11px] text-muted-foreground font-medium">
                 {role === "host" ? "Önümüzdeki 7 gün" : "Bugünden itibaren"}
               </div>
             </div>
-            <div className="text-xs font-black text-[#0F3D3E]">{secondaryCount}</div>
+            <div className="text-xs font-black text-primary">{secondaryCount}</div>
           </Link>
 
           <Link
             href="/dashboard/settings"
             onClick={() => setOpen(false)}
-            className="flex items-center justify-between rounded-xl px-3 py-2.5 hover:bg-[#F4F7F6] transition-colors"
+            className="flex items-center justify-between rounded-xl px-3 py-2.5 hover:bg-accent/60 transition-colors"
           >
             <div>
-              <div className="text-xs font-bold text-[#1A1A1A]">Bildirim ayarları</div>
+              <div className="text-xs font-bold text-foreground">Bildirim ayarları</div>
               <div className="text-[11px] text-muted-foreground font-medium">Tercihlerinizi yönetin</div>
             </div>
             <div className="text-xs font-bold text-muted-foreground">→</div>
@@ -106,4 +106,3 @@ export function DashboardNotifications({ className }: { className?: string }) {
     </Popover>
   )
 }
-

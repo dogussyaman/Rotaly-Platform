@@ -61,33 +61,33 @@ export function BookingsTableCard({
     <ContentCard
       title="Rezervasyon Listesi"
       description={showListRefreshing ? 'Güncelleniyor…' : `Sayfa başına ${PAGE_SIZE} kayıt`}
-      className="overflow-hidden rounded-2xl border-[#e5e7eb] shadow-sm"
+      className="overflow-hidden rounded-2xl border-border/70 shadow-sm"
     >
       {showListRefreshing && (
         <div className="flex justify-center py-2">
-          <Loader2 className="h-5 w-5 animate-spin text-[#0d9488]" />
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
         </div>
       )}
       <Table className={showListRefreshing ? 'opacity-70' : ''}>
         <TableHeader>
-          <TableRow className="border-[#e5e7eb] hover:bg-transparent">
-            <TableHead className="font-semibold text-[#374151]">İlan</TableHead>
-            <TableHead className="font-semibold text-[#374151]">Tarih</TableHead>
+          <TableRow className="border-border/60 hover:bg-transparent">
+            <TableHead className="font-semibold text-foreground/80">İlan</TableHead>
+            <TableHead className="font-semibold text-foreground/80">Tarih</TableHead>
             {isHostView ? (
-              <TableHead className="font-semibold text-[#374151]">Misafir</TableHead>
+              <TableHead className="font-semibold text-foreground/80">Misafir</TableHead>
             ) : (
-              <TableHead className="font-semibold text-[#374151]">Durum</TableHead>
+              <TableHead className="font-semibold text-foreground/80">Durum</TableHead>
             )}
-            {isHostView ? <TableHead className="font-semibold text-[#374151]">Durum</TableHead> : null}
-            <TableHead className="font-semibold text-[#374151]">Toplam</TableHead>
-            <TableHead className="text-right font-semibold text-[#374151]">İşlem</TableHead>
+            {isHostView ? <TableHead className="font-semibold text-foreground/80">Durum</TableHead> : null}
+            <TableHead className="font-semibold text-foreground/80">Toplam</TableHead>
+            <TableHead className="text-right font-semibold text-foreground/80">İşlem</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {showListLoading ? (
             <TableRow>
               <TableCell colSpan={isHostView ? 6 : 5} className="h-32 text-center">
-                <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#0d9488]" />
+                <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
                 <p className="mt-2 text-sm text-muted-foreground">Yükleniyor…</p>
               </TableCell>
             </TableRow>
@@ -100,10 +100,10 @@ export function BookingsTableCard({
               </TableRow>
             ) : (
               effectiveHostBookings.rows.map((b) => (
-                <TableRow key={b.id} className="border-[#e5e7eb] transition-colors hover:bg-[#f0fdfa]/60">
-                  <TableCell className="font-medium text-[#111]">{b.listingTitle ?? 'İlan'}</TableCell>
+                <TableRow key={b.id} className="border-border/60 transition-colors hover:bg-accent/60">
+                  <TableCell className="font-medium text-foreground">{b.listingTitle ?? 'İlan'}</TableCell>
                   <TableCell>
-                    <div className="text-sm text-[#374151]">
+                    <div className="text-sm text-foreground/80">
                       {formatDate(b.checkIn)} – {formatDate(b.checkOut)}
                     </div>
                     <div className="text-xs text-muted-foreground">{b.nights} gece</div>
@@ -114,17 +114,17 @@ export function BookingsTableCard({
                   <TableCell>
                     <StatusBadge status={b.status} />
                   </TableCell>
-                  <TableCell className="font-semibold text-[#111]">{formatCurrency(b.totalPrice)}</TableCell>
+                  <TableCell className="font-semibold text-foreground">{formatCurrency(b.totalPrice)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex flex-wrap items-center justify-end gap-1.5">
-                      <Button asChild variant="ghost" size="sm" className="rounded-lg text-[#0d9488] hover:bg-[#f0fdfa] h-8">
+                      <Button asChild variant="ghost" size="sm" className="rounded-lg text-primary hover:bg-accent h-8">
                         <Link href={`/dashboard/bookings/${b.id}`}>Detay</Link>
                       </Button>
                       {role === 'host' && b.guestId && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="rounded-lg h-8 text-[#6366f1] hover:bg-[#eef2ff]"
+                          className="rounded-lg h-8 text-primary hover:bg-accent"
                           onClick={() => onMessageGuest(b.guestId!)}
                           disabled={messagingBookingId === b.guestId}
                         >
@@ -168,18 +168,18 @@ export function BookingsTableCard({
             </TableRow>
           ) : (
             guestBookings.rows.map((b) => (
-              <TableRow key={b.id} className="border-[#e5e7eb] transition-colors hover:bg-[#f0fdfa]/60">
-                <TableCell className="font-medium text-[#111]">{b.listing?.title ?? 'İlan'}</TableCell>
-                <TableCell className="text-sm text-[#374151]">
+              <TableRow key={b.id} className="border-border/60 transition-colors hover:bg-accent/60">
+                <TableCell className="font-medium text-foreground">{b.listing?.title ?? 'İlan'}</TableCell>
+                <TableCell className="text-sm text-foreground/80">
                   {formatDate(b.checkIn)} – {formatDate(b.checkOut)}
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={b.status} />
                 </TableCell>
-                <TableCell className="font-semibold text-[#111]">{formatCurrency(b.totalPrice)}</TableCell>
+                <TableCell className="font-semibold text-foreground">{formatCurrency(b.totalPrice)}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex flex-wrap items-center justify-end gap-1.5">
-                    <Button asChild variant="ghost" size="sm" className="rounded-lg text-[#0d9488] hover:bg-[#f0fdfa] h-8">
+                    <Button asChild variant="ghost" size="sm" className="rounded-lg text-primary hover:bg-accent h-8">
                       <Link href={`/dashboard/bookings/${b.id}`}>Detay</Link>
                     </Button>
                     {b.status === 'pending' || b.status === 'confirmed' ? (

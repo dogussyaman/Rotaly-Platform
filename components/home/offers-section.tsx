@@ -48,7 +48,7 @@ export function OffersSection({ t }: OffersSectionProps) {
 
       // Bir ilan için en yakın (ve en güçlü) fırsatı seç
       const sorted = [...offers].sort((a, b) => {
-        if (a.startDate !== b.startDate) return a.startDate.localeCompare(b.startDate);
+        if (a.startDate !== b.startDate) return (a.startDate ?? '').localeCompare(b.startDate ?? '');
         return Math.abs(b.modifierValue) - Math.abs(a.modifierValue);
       });
 
@@ -67,6 +67,7 @@ export function OffersSection({ t }: OffersSectionProps) {
         const listing = listingById.get(offer.listingId);
         if (!listing) continue;
 
+        if (!offer.startDate || !offer.endDate) continue;
         const checkIn = parseYmd(offer.startDate);
         const checkOut = parseYmd(offer.endDate);
         if (!checkIn || !checkOut) continue;

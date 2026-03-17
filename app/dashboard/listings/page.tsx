@@ -197,7 +197,7 @@ export default function ListingsPage() {
                   </TableRow>
                 ) : (
                   rows.map((l) => (
-                    <TableRow key={l.id} className="transition-colors hover:bg-[#f0fdfa]/50">
+                    <TableRow key={l.id} className="transition-colors hover:bg-accent/60">
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-3">
                           <div className="h-10 w-14 shrink-0 overflow-hidden rounded-lg bg-muted">
@@ -232,7 +232,7 @@ export default function ListingsPage() {
                         {l.isActive ? <Badge>Aktif</Badge> : <Badge variant="secondary">Pasif</Badge>}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button asChild variant="ghost" size="sm" className="rounded-lg text-[#0d9488] hover:bg-[#f0fdfa]">
+                        <Button asChild variant="ghost" size="sm" className="rounded-lg text-primary hover:bg-accent">
                           <Link href={`/dashboard/listings/${l.id}`}>
                             Detay <ExternalLink className="ml-1 h-3.5 w-3.5" />
                           </Link>

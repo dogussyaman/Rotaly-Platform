@@ -93,11 +93,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const isAdmin = !!profile?.isAdmin
   const sidebarData = isAdmin ? ADMIN_DATA : HOST_DATA
   const roleLabel = isAdmin ? "Yönetici" : "Ev Sahibi"
-  const sidebarBg = "bg-[#1c1c21]"
+  const sidebarBg = "bg-sidebar"
 
   return (
     <Sidebar collapsible="icon" {...props} className="border-r-0">
-      <SidebarHeader className={cn(sidebarBg, "border-b border-white/5 px-3 py-3")}>
+      <SidebarHeader className={cn(sidebarBg, "border-b border-sidebar-border/60 px-3 py-3")}>
         <SidebarMenu>
           <SidebarMenuItem className="flex justify-center">
             <SidebarMenuButton
@@ -111,7 +111,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <Link href="/" className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0">
                 {/* Logo icon */}
                 <div className={cn(
-                  "flex shrink-0 items-center justify-center rounded-lg bg-white text-[#1c1c21]",
+                  "flex shrink-0 items-center justify-center rounded-lg bg-background text-foreground",
                   "size-8 transition-[width,height] duration-300 ease-in-out",
                   "group-data-[collapsible=icon]:size-7",
                 )}>
@@ -125,8 +125,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   "max-w-[160px] opacity-100",
                   "group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0",
                 )}>
-                  <span className="truncate text-sm font-semibold text-white whitespace-nowrap">Rotaly</span>
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-white/60 whitespace-nowrap">
+                  <span className="truncate text-sm font-semibold text-sidebar-foreground whitespace-nowrap">Rotaly</span>
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-sidebar-foreground/60 whitespace-nowrap">
                     {roleLabel}
                   </span>
                 </div>
@@ -144,7 +144,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={SECONDARY_NAV} className="mt-auto mb-2" />
       </SidebarContent>
 
-      <SidebarFooter className={cn(sidebarBg, "border-t border-white/10 p-3 group-data-[collapsible=icon]:px-1")}>
+      <SidebarFooter className={cn(sidebarBg, "border-t border-sidebar-border/60 p-3 group-data-[collapsible=icon]:px-1")}>
         <NavUser
           user={{
             name: profile?.fullName || "Guest",

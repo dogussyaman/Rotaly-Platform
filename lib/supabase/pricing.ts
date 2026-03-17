@@ -7,8 +7,11 @@
  */
 
 export interface SeasonalRule {
-  startDate: string;
-  endDate: string;
+  ruleType?: 'date_range' | 'month' | 'min_nights';
+  startDate?: string | null;
+  endDate?: string | null;
+  monthOfYear?: number | null;
+  minNights?: number | null;
   modifierType: 'percent' | 'fixed';
   modifierValue: number;
 }
@@ -50,7 +53,16 @@ export function getPriceForNight(
 
   let bestSeasonalPrice: number | null = null;
   for (const rule of seasonalRules) {
-    if (date < rule.startDate || date > rule.endDate) continue;
+    const ruleType = rule.ruleType ?? 'date_range';
+    if (ruleType === 'min_nights') continue;
+    if (ruleType === 'month') {
+      if (!rule.monthOfYear) continue;
+      const month = Number(date.slice(5, 7));
+      if (month !== rule.monthOfYear) continue;
+    } else {
+      if (!rule.startDate || !rule.endDate) continue;
+      if (date < rule.startDate || date > rule.endDate) continue;
+    }
 
     const rawPrice =
       rule.modifierType === 'percent'
@@ -67,6 +79,14 @@ export function getPriceForNight(
   }
 
   return Math.round(basePrice * 100) / 100;
+}
+
+function applyModifier(price: number, rule: SeasonalRule): number {
+  const raw =
+    rule.modifierType === 'percent'
+      ? price * (1 + rule.modifierValue / 100)
+      : price + rule.modifierValue;
+  return Math.round(Math.max(0, raw) * 100) / 100;
 }
 
 /**
@@ -118,7 +138,7 @@ export function computeBookingPrice(
   availabilityByDate: Map<string, number | null>,
   seasonalRules: SeasonalRule[],
 ): PriceBreakdown {
-  const nightlyPrices = getNightlyPrices(
+  let nightlyPrices = getNightlyPrices(
     checkIn,
     checkOut,
     params.pricePerNight,
@@ -126,7 +146,34 @@ export function computeBookingPrice(
     seasonalRules,
   );
   const nights = nightlyPrices.length;
-  const subtotal = nightlyPrices.reduce((sum, n) => sum + n.price, 0);
+  let subtotal = nightlyPrices.reduce((sum, n) => sum + n.price, 0);
+
+  const stayRules = seasonalRules.filter((rule) => {
+    const type = rule.ruleType ?? 'date_range';
+    if (type !== 'min_nights') return false;
+    if (!rule.minNights) return false;
+    return nights >= rule.minNights;
+  });
+
+  if (stayRules.length > 0 && nights > 0) {
+    let bestSubtotal = subtotal;
+    let bestPrices = nightlyPrices;
+
+    for (const rule of stayRules) {
+      const adjusted = nightlyPrices.map((n) => ({
+        ...n,
+        price: applyModifier(n.price, rule),
+      }));
+      const candidateSubtotal = adjusted.reduce((sum, n) => sum + n.price, 0);
+      if (candidateSubtotal < bestSubtotal) {
+        bestSubtotal = candidateSubtotal;
+        bestPrices = adjusted;
+      }
+    }
+
+    nightlyPrices = bestPrices;
+    subtotal = bestSubtotal;
+  }
 
   const extraGuests = Math.max(0, guestsCount - params.baseGuests);
   const extraGuestFee =
