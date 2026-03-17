@@ -44,7 +44,7 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <ReduxProvider>
           <LocaleProvider>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
               {children}
               <MainFooter />
               <Toaster richColors closeButton />
