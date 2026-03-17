@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Calendar, Gift, Home, MessageSquare, Star, Users, Loader2, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Calendar, Gift, Home, MessageSquare, Star, Users, Loader2, ArrowRight, CheckCircle2, TicketPercent } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useAppSelector } from '@/lib/store/hooks';
@@ -329,6 +329,53 @@ export function DashboardOverview() {
                   <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-primary" />
                 </Link>
               ))}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-border/70 bg-card/90 p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Kampanya performansı (örnek)</h3>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  En çok rezervasyon getiren indirim kurgularını hızlıca görün.
+                </p>
+              </div>
+              <TicketPercent className="h-4 w-4 text-primary" />
+            </div>
+            <div className="mt-4 space-y-2 text-xs">
+              <div className="flex items-center justify-between rounded-lg bg-muted/60 px-3 py-2">
+                <div>
+                  <p className="font-semibold text-foreground">ROTAYAZ20</p>
+                  <p className="text-muted-foreground">Yaz sezonu %20 indirim kuponu</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-foreground">38 rezervasyon</p>
+                  <p className="text-[11px] text-emerald-600">Toplam ciro: ₺120k</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2">
+                <div>
+                  <p className="font-semibold text-foreground">UZUNKAL15</p>
+                  <p className="text-muted-foreground">7+ gece konaklamalarda %15</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-foreground">21 rezervasyon</p>
+                  <p className="text-[11px] text-emerald-600">Doluluk artışı: +12%</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between rounded-lg bg-muted/30 px-3 py-2">
+                <div>
+                  <p className="font-semibold text-foreground">SONDKAÇIS</p>
+                  <p className="text-muted-foreground">Son dakika %10 indirim</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-foreground">14 rezervasyon</p>
+                  <p className="text-[11px] text-emerald-600">Boş gün kurtarma</p>
+                </div>
+              </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Bu blok konsept amaçlıdır; gerçek entegrasyonda veriler kupon ve rezervasyon tablolarından çekilecektir.
+              </p>
             </div>
           </div>
         </div>

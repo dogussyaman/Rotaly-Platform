@@ -126,23 +126,23 @@
 
 @layer components {
   .dashboard-theme {
-    --background: oklch(0.985 0.01 184);
-    --foreground: oklch(0.155 0.01 184);
+    --background: oklch(0.98 0.01 95);
+    --foreground: oklch(0.18 0.01 95);
     --card: oklch(1 0 0);
-    --card-foreground: oklch(0.155 0.01 184);
+    --card-foreground: oklch(0.18 0.01 95);
     --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.155 0.01 184);
-    --primary: oklch(0.62 0.12 182);
+    --popover-foreground: oklch(0.18 0.01 95);
+    --primary: oklch(0.72 0.12 182);
     --primary-foreground: oklch(0.99 0 0);
     --secondary: oklch(0.95 0.02 182);
     --secondary-foreground: oklch(0.22 0.04 182);
-    --muted: oklch(0.96 0.02 182);
-    --muted-foreground: oklch(0.48 0.02 182);
-    --accent: oklch(0.95 0.03 182);
+    --muted: oklch(0.96 0.01 95);
+    --muted-foreground: oklch(0.52 0.02 95);
+    --accent: oklch(0.96 0.02 182);
     --accent-foreground: oklch(0.22 0.04 182);
-    --border: oklch(0.91 0.01 182);
-    --input: oklch(0.91 0.01 182);
-    --ring: oklch(0.62 0.08 182);
+    --border: oklch(0.9 0.01 95);
+    --input: oklch(0.9 0.01 95);
+    --ring: oklch(0.72 0.08 182);
     --sidebar: oklch(0.2 0.02 252);
     --sidebar-foreground: oklch(0.98 0 0);
     --sidebar-primary: oklch(0.62 0.12 182);

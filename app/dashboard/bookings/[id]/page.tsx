@@ -4,7 +4,7 @@ import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { notFound } from 'next/navigation';
-import { CheckCircle, Loader2, Pencil, Trash2, XCircle } from 'lucide-react';
+import { CheckCircle, Clock3, Loader2, MapPin, Pencil, Trash2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ContentCard, Section } from '@/components/dashboard/dashboard-ui';
 import {
@@ -123,6 +123,24 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
     ? [booking.listing.city, booking.listing.country].filter(Boolean).join(', ')
     : '—';
 
+  const timelineItems = [
+    {
+      label: 'Rezervasyon oluşturuldu',
+      value: formatTime(booking.createdAt),
+      helper: new Date(booking.createdAt).toLocaleDateString('tr-TR'),
+    },
+    {
+      label: 'Giriş',
+      value: formatTime(booking.checkIn),
+      helper: new Date(booking.checkIn).toLocaleDateString('tr-TR'),
+    },
+    {
+      label: 'Çıkış',
+      value: formatTime(booking.checkOut),
+      helper: new Date(booking.checkOut).toLocaleDateString('tr-TR'),
+    },
+  ];
+
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
       <Section
@@ -213,22 +231,48 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
           </div>
         }
       >
-        <div className="grid gap-6 lg:grid-cols-2">
-          <BookingDetailSummaryCard booking={booking} location={location} />
-          <BookingDetailGuestCard booking={booking} />
-          <ContentCard title="Check-in penceresi" description="Giriş saati aralığı">
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Başlangıç</span>
-                <span>{formatTime(booking.checkInSlotStart)}</span>
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="space-y-4 lg:col-span-2">
+            <BookingDetailSummaryCard booking={booking} location={location} />
+            <ContentCard title="Zaman çizelgesi" description="Rezervasyonun temel adımları">
+              <div className="relative space-y-4">
+                {timelineItems.map((item, index) => (
+                  <div key={item.label} className="flex items-start gap-3">
+                    <div className="flex flex-col items-center">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                        {index === 0 ? <Clock3 className="h-3.5 w-3.5" /> : <MapPin className="h-3.5 w-3.5" />}
+                      </div>
+                      {index < timelineItems.length - 1 && (
+                        <div className="mt-1 h-8 w-px bg-border/60" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">{item.label}</p>
+                      <p className="text-sm font-medium">{item.helper}</p>
+                      <p className="text-xs text-muted-foreground">{item.value}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Bitiş</span>
-                <span>{formatTime(booking.checkInSlotEnd)}</span>
+            </ContentCard>
+          </div>
+
+          <div className="space-y-4">
+            <BookingDetailGuestCard booking={booking} />
+            <ContentCard title="Check-in penceresi" description="Giriş saati aralığı">
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Başlangıç</span>
+                  <span>{formatTime(booking.checkInSlotStart)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Bitiş</span>
+                  <span>{formatTime(booking.checkInSlotEnd)}</span>
+                </div>
               </div>
-            </div>
-          </ContentCard>
-          <BookingDetailExtrasCard extras={booking.extras as Record<string, unknown> | null} />
+            </ContentCard>
+            <BookingDetailExtrasCard extras={booking.extras as Record<string, unknown> | null} />
+          </div>
         </div>
       </Section>
 

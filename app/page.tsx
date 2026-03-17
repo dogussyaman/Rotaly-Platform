@@ -6,6 +6,7 @@ import { HeroSection } from '@/components/home/hero-section';
 import { CategoriesSection } from '@/components/home/categories-section';
 import { OffersSectionSkeleton } from '@/components/home/offers-skeleton';
 import { ListingsSection } from '@/components/home/listings-section';
+import { AirlineRoutesSection } from '@/components/home/airline-routes-section';
 import { HostCtaSection } from '@/components/home/host-cta-section';
 import { LoyaltyPromoSection } from '@/components/home/loyalty-promo';
 
@@ -19,7 +20,10 @@ export default function Home() {
   const catScrollRef = useRef<HTMLDivElement | null>(null);
 
   return (
-    <div className="min-h-screen font-sans" style={{ background: 'var(--background)' }}>
+    <div
+      className="min-h-screen font-sans space-y-20"
+      style={{ background: 'var(--background)' }}
+    >
       <HeroSection t={t} />
 
       <CategoriesSection
@@ -36,6 +40,8 @@ export default function Home() {
       <LoyaltyPromoSection />
 
       <ListingsSection t={t} />
+
+      <AirlineRoutesSection />
 
       <HostCtaSection t={t} />
     </div>

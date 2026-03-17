@@ -225,13 +225,15 @@ export function SearchHeader() {
           <div className="h-14 flex items-center justify-between gap-4">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-              <div className="w-8 h-8 bg-foreground rounded-xl flex items-center justify-center shadow-sm">
-                <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4" stroke="white" strokeWidth="2.5">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                  <polyline points="9 22 9 12 15 12 15 22" />
-                </svg>
+              <div className="w-9 h-9 rounded-full bg-orange-500 shadow-lg shadow-orange-500/30 flex items-center justify-center">
+                <span className="text-white font-black text-base leading-none">R</span>
               </div>
-              <span className="font-bold text-lg text-foreground tracking-tight">StayHub</span>
+              <div className="flex flex-col">
+                <span className="font-black text-[19px] leading-tight tracking-tight text-foreground">
+                  Rotaly
+                </span>
+                <span className="mt-0.5 h-[3px] w-12 rounded-full bg-orange-200" />
+              </div>
             </Link>
 
             {/* Segment tabs — center */}

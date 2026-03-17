@@ -119,10 +119,13 @@ export function BookingsTableCard({
                 </TableCell>
               </TableRow>
             ) : (
-              effectiveHostBookings.rows.map((b) => (
+              effectiveHostBookings.rows.map((b, index) => (
                 <TableRow
                   key={b.id}
-                  className="border-border/40 transition-colors hover:bg-[#f9fafb]"
+                  className={cn(
+                    'border-border/40 transition-colors hover:bg-[#f9fafb]',
+                    index % 2 === 0 ? 'bg-white' : 'bg-muted/40',
+                  )}
                 >
                   <TableCell className="font-medium text-foreground">
                     {b.listingTitle ?? 'İlan'}
@@ -199,10 +202,13 @@ export function BookingsTableCard({
               </TableCell>
             </TableRow>
           ) : (
-            guestBookings.rows.map((b) => (
+            guestBookings.rows.map((b, index) => (
               <TableRow
                 key={b.id}
-                className="border-border/40 transition-colors hover:bg-[#f9fafb]"
+                className={cn(
+                  'border-border/40 transition-colors hover:bg-[#f9fafb]',
+                  index % 2 === 0 ? 'bg-white' : 'bg-muted/40',
+                )}
               >
                 <TableCell className="font-medium text-foreground">
                   {b.listing?.title ?? 'İlan'}
