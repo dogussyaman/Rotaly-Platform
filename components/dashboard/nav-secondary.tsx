@@ -10,7 +10,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
 
@@ -24,26 +23,38 @@ export function NavSecondary({
     icon: LucideIcon
   }[]
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
-  const { state } = useSidebar()
-  const isCollapsed = state === "collapsed"
-
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
-        <SidebarMenu className={cn("gap-1", isCollapsed ? "px-0" : "px-1")}>
+        <SidebarMenu className="gap-1 px-1 group-data-[collapsible=icon]:px-0">
           {items.map((item) => (
             <SidebarMenuItem key={item.title} className="flex justify-center">
-              <SidebarMenuButton 
-                tooltip={item.title} 
+              <SidebarMenuButton
+                tooltip={item.title}
                 asChild
                 className={cn(
-                  "text-white/60 hover:text-white hover:bg-white/10 transition-colors focus-visible:ring-2 focus-visible:ring-white/30",
-                  isCollapsed ? "h-9 w-9 p-0 flex items-center justify-center rounded-xl mx-auto" : "px-3 h-9 rounded-2xl"
+                  "flex items-center gap-2 px-3 h-9 rounded-2xl",
+                  "text-white/60 hover:text-white hover:bg-white/10",
+                  "transition-colors duration-200",
+                  "focus-visible:ring-2 focus-visible:ring-white/30",
+                  "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
                 )}
               >
-                <Link href={item.url} className={cn("flex items-center", isCollapsed ? "justify-center" : "gap-2")}>
+                <Link
+                  href={item.url}
+                  className="flex items-center gap-2 w-full group-data-[collapsible=icon]:justify-center"
+                >
                   <item.icon className="size-4 shrink-0" />
-                  {!isCollapsed && <span className="text-xs font-medium tracking-wide truncate">{item.title}</span>}
+                  <span
+                    className={cn(
+                      "text-xs font-medium tracking-wide truncate overflow-hidden whitespace-nowrap",
+                      "transition-[opacity,max-width] duration-200 ease-in-out",
+                      "max-w-[160px] opacity-100",
+                      "group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0",
+                    )}
+                  >
+                    {item.title}
+                  </span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

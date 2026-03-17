@@ -32,7 +32,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar"
 import { NavDocuments } from "./nav-documents"
 import { NavMain } from "./nav-main"
@@ -90,55 +89,62 @@ const SECONDARY_NAV = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { profile } = useAppSelector((s) => s.user)
-  const { state } = useSidebar()
-  const isCollapsed = state === "collapsed"
 
   const isAdmin = !!profile?.isAdmin
-  const isHost = !!profile?.isHost
   const sidebarData = isAdmin ? ADMIN_DATA : HOST_DATA
   const roleLabel = isAdmin ? "Yönetici" : "Ev Sahibi"
-  const sidebarBg = "bg-[#1c1c21]" // Project foreground color (oklch 0.13 0.005 285)
+  const sidebarBg = "bg-[#1c1c21]"
 
   return (
     <Sidebar collapsible="icon" {...props} className="border-r-0">
-      <SidebarHeader className={cn(sidebarBg, "border-b border-white/5 px-3 py-3 transition-all", isCollapsed ? "px-2" : "px-3")}>
+      <SidebarHeader className={cn(sidebarBg, "border-b border-white/5 px-3 py-3")}>
         <SidebarMenu>
           <SidebarMenuItem className="flex justify-center">
             <SidebarMenuButton
               asChild
               className={cn(
-                "hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/20 transition-all rounded-xl w-full",
-                isCollapsed ? "h-9 w-9 p-0 flex items-center justify-center" : "h-auto py-2 px-2.5"
+                "hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/20 transition-colors rounded-xl w-full",
+                "h-auto py-2 px-2.5",
+                "group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center",
               )}
             >
-              <Link href="/" className={cn("flex items-center gap-2", isCollapsed ? "justify-center" : "")}>
+              <Link href="/" className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
+                {/* Logo icon */}
                 <div className={cn(
                   "flex shrink-0 items-center justify-center rounded-lg bg-white text-[#1c1c21]",
-                  isCollapsed ? "size-7" : "size-8"
+                  "size-8 transition-[width,height] duration-300 ease-in-out",
+                  "group-data-[collapsible=icon]:size-7",
                 )}>
-                  <ArrowUpCircleIcon className={cn(isCollapsed ? "size-4" : "size-5")} />
+                  <ArrowUpCircleIcon className="size-5 transition-[width,height] duration-300 ease-in-out group-data-[collapsible=icon]:size-4" />
                 </div>
-                {!isCollapsed && (
-                  <div className="flex min-w-0 flex-col">
-                    <span className="truncate text-sm font-semibold text-white">Rotaly</span>
-                    <span className="text-[10px] font-medium uppercase tracking-wider text-white/60">
-                      {roleLabel}
-                    </span>
-                  </div>
-                )}
+
+                {/* Brand text – always rendered, hidden via CSS */}
+                <div className={cn(
+                  "flex min-w-0 flex-col overflow-hidden",
+                  "transition-[opacity,max-width] duration-200 ease-in-out",
+                  "max-w-[160px] opacity-100",
+                  "group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0",
+                )}>
+                  <span className="truncate text-sm font-semibold text-white whitespace-nowrap">Rotaly</span>
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-white/60 whitespace-nowrap">
+                    {roleLabel}
+                  </span>
+                </div>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent className={cn(sidebarBg, "pt-3 no-scrollbar transition-all", isCollapsed ? "px-0" : "px-1")}>
+
+      <SidebarContent className={cn(sidebarBg, "pt-3 no-scrollbar px-1 group-data-[collapsible=icon]:px-0")}>
         <NavMain items={sidebarData.navMain} />
         {sidebarData.documents.length > 0 && (
           <NavDocuments items={sidebarData.documents} />
         )}
         <NavSecondary items={SECONDARY_NAV} className="mt-auto mb-2" />
       </SidebarContent>
-      <SidebarFooter className={cn(sidebarBg, "p-3 border-t border-white/10 transition-all", isCollapsed ? "px-1" : "p-3")}>
+
+      <SidebarFooter className={cn(sidebarBg, "border-t border-white/10 p-3 group-data-[collapsible=icon]:px-1")}>
         <NavUser
           user={{
             name: profile?.fullName || "Guest",

@@ -16,7 +16,7 @@ export function SiteHeader({
   subtitle = "Tüm operasyonları tek ekranda yönetin.",
 }: SiteHeaderProps) {
   return (
-    <header className="sticky top-0 z-0 flex h-14 shrink-0 items-center justify-between border-b border-[#e5e7eb] bg-white/80 backdrop-blur-md">
+    <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#e2e4e3] bg-[#f0f2f1]">
       <div className="flex w-full items-center justify-between gap-4 px-4 lg:px-6">
         <div className="flex flex-1 items-center gap-3">
           <SidebarTrigger className="h-8 w-8 rounded-lg hover:bg-[#f0fdfa] hover:text-[#0d9488] transition-colors" />
