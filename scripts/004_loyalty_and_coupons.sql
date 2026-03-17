@@ -36,6 +36,10 @@ CREATE TABLE IF NOT EXISTS public.loyalty_point_transactions (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Prevent duplicate earn/redeem records for the same booking & type
+CREATE UNIQUE INDEX IF NOT EXISTS loyalty_tx_unique_booking_type
+  ON public.loyalty_point_transactions (booking_id, type);
+
 -- Coupons and usages
 CREATE TABLE IF NOT EXISTS public.coupons (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -158,4 +162,85 @@ CREATE POLICY "coupon_usages_select_own" ON public.coupon_usages
 DROP POLICY IF EXISTS "coupon_usages_insert_own" ON public.coupon_usages;
 CREATE POLICY "coupon_usages_insert_own" ON public.coupon_usages
   FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- -----------------------------------------------------------------------------
+-- Loyalty: automatic earn / redeem from bookings
+-- -----------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION public.apply_loyalty_for_booking()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_account_id UUID;
+  v_points_to_earn INTEGER := 0;
+  v_points_to_redeem INTEGER := 0;
+  v_effective_price NUMERIC(10,2);
+BEGIN
+  -- We only care about rows that have a guest and some price info
+  IF NEW.guest_id IS NULL THEN
+    RETURN NEW;
+  END IF;
+
+  -- Ensure loyalty account exists for guest
+  SELECT id INTO v_account_id
+  FROM public.loyalty_accounts
+  WHERE user_id = NEW.guest_id;
+
+  IF v_account_id IS NULL THEN
+    INSERT INTO public.loyalty_accounts (user_id)
+    VALUES (NEW.guest_id)
+    RETURNING id INTO v_account_id;
+  END IF;
+
+  -- ---------------------------------------------------------------------------
+  -- EARN: when booking moves into completed state for the first time
+  -- ---------------------------------------------------------------------------
+  IF NEW.status = 'completed'
+     AND (TG_OP = 'INSERT' OR (OLD.status IS DISTINCT FROM 'completed')) THEN
+
+    v_effective_price := COALESCE(NEW.final_price, NEW.total_price, 0);
+
+    -- Basit örnek: %5 oranında puan
+    v_points_to_earn := FLOOR(v_effective_price * 0.05);
+
+    IF v_points_to_earn > 0 THEN
+      INSERT INTO public.loyalty_point_transactions (account_id, booking_id, type, points, description)
+      VALUES (v_account_id, NEW.id, 'earn', v_points_to_earn, 'Rezervasyon tamamlandı')
+      ON CONFLICT (booking_id, type) DO NOTHING;
+
+      UPDATE public.loyalty_accounts
+      SET
+        points_balance = points_balance + v_points_to_earn,
+        lifetime_points_earned = lifetime_points_earned + v_points_to_earn
+      WHERE id = v_account_id;
+    END IF;
+  END IF;
+
+  -- ---------------------------------------------------------------------------
+  -- REDEEM: when points_redeemed is set on a booking
+  -- ---------------------------------------------------------------------------
+  v_points_to_redeem := COALESCE(NEW.points_redeemed, 0);
+
+  IF v_points_to_redeem > 0
+     AND (TG_OP = 'INSERT' OR COALESCE(OLD.points_redeemed, 0) <> v_points_to_redeem) THEN
+
+    INSERT INTO public.loyalty_point_transactions (account_id, booking_id, type, points, description)
+    VALUES (v_account_id, NEW.id, 'redeem', v_points_to_redeem, 'Rezervasyonda puan kullanımı')
+    ON CONFLICT (booking_id, type) DO NOTHING;
+
+    UPDATE public.loyalty_accounts
+    SET points_balance = GREATEST(0, points_balance - v_points_to_redeem)
+    WHERE id = v_account_id;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_apply_loyalty_for_booking ON public.bookings;
+CREATE TRIGGER trg_apply_loyalty_for_booking
+AFTER INSERT OR UPDATE ON public.bookings
+FOR EACH ROW
+EXECUTE FUNCTION public.apply_loyalty_for_booking();
 

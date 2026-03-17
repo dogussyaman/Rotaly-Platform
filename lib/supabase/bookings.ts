@@ -47,6 +47,9 @@ export interface CreateBookingInput {
   checkInSlotStart?: string | null;
   checkInSlotEnd?: string | null;
   extras?: Record<string, any> | null;
+  pointsRedeemed?: number;
+  couponId?: string | null;
+  discountTotal?: number;
 }
 
 export interface BookingWithListing {
@@ -263,6 +266,10 @@ export async function fetchListingById(id: string): Promise<ListingDetail | null
 export async function createBooking(input: CreateBookingInput): Promise<{ id: string } | null> {
   const supabase = createClient();
 
+  const pointsRedeemed = input.pointsRedeemed ?? 0;
+  const discountTotal = input.discountTotal ?? 0;
+  const finalPrice = Math.max(0, input.totalPrice - discountTotal);
+
   const { data, error } = await supabase
     .from('bookings')
     .insert({
@@ -272,7 +279,10 @@ export async function createBooking(input: CreateBookingInput): Promise<{ id: st
       check_out: input.checkOut.toISOString().slice(0, 10),
       guests_count: input.guestsCount,
       total_price: input.totalPrice,
-      final_price: input.totalPrice,
+      final_price: finalPrice,
+      points_redeemed: pointsRedeemed,
+      discount_total: discountTotal,
+      coupon_id: input.couponId ?? null,
       special_requests: input.specialRequests ?? null,
       check_in_slot_start: input.checkInSlotStart ?? null,
       check_in_slot_end: input.checkInSlotEnd ?? null,

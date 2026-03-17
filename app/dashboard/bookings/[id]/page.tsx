@@ -4,7 +4,7 @@ import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { notFound } from 'next/navigation';
-import { Loader2, Pencil, Trash2, XCircle } from 'lucide-react';
+import { CheckCircle, Loader2, Pencil, Trash2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ContentCard, Section } from '@/components/dashboard/dashboard-ui';
 import {
@@ -77,6 +77,17 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
     }
   }
 
+  async function handleHostComplete() {
+    if (!id || actionPending) return;
+    setActionPending(true);
+    const ok = await updateHostBookingStatus(id, 'completed');
+    setActionPending(false);
+    if (ok) {
+      const next = await fetchBookingById(id);
+      if (next) setBooking(next);
+    }
+  }
+
   async function handleHostCancel() {
     if (!id || actionPending) return;
     setActionPending(true);
@@ -122,7 +133,7 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
             <Button asChild variant="outline" size="sm" className="rounded-lg">
               <Link href="/dashboard/bookings">Rezervasyonlara dön</Link>
             </Button>
-            {/* Host view takes priority — show host actions when user is the host */}
+            {/* Host actions */}
             {isHost && (booking.status === 'pending' || booking.status === 'confirmed') && (
               <>
                 {booking.status === 'pending' && (
@@ -135,6 +146,18 @@ export default function BookingDetailPage({ params }: { params: Promise<{ id: st
                   >
                     {actionPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                     Onayla
+                  </Button>
+                )}
+                {booking.status === 'confirmed' && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="rounded-lg bg-emerald-600 hover:bg-emerald-700"
+                    onClick={handleHostComplete}
+                    disabled={actionPending}
+                  >
+                    {actionPending ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-1.5 h-4 w-4" />}
+                    Tamamla
                   </Button>
                 )}
                 <Button

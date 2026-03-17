@@ -476,7 +476,7 @@ export async function fetchHostBookingsPage(
 
 export async function updateHostBookingStatus(
   bookingId: string,
-  status: 'confirmed' | 'cancelled',
+  status: 'confirmed' | 'cancelled' | 'completed',
 ): Promise<boolean> {
   const supabase = createClient();
 
