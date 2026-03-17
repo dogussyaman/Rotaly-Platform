@@ -31,23 +31,23 @@ export function NavMain({
         {/* Quick Create button */}
         <SidebarMenu className="mb-3 px-2 group-data-[collapsible=icon]:px-0">
           <SidebarMenuItem className="flex justify-center">
-            {/* Expanded: full button */}
+            {/* Expanded: full pill button */}
             <Button
               className={cn(
                 "w-full bg-secondary text-foreground hover:bg-white font-bold rounded-full gap-2 shadow-sm border-none h-9 px-3 text-[12px]",
-                "transition-[opacity,max-width] duration-200 ease-in-out overflow-hidden",
-                "group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:hidden",
+                "group-data-[collapsible=icon]:hidden",
               )}
             >
               <PlusCircleIcon className="size-4 shrink-0" />
               <span>Hızlı Oluştur</span>
             </Button>
-            {/* Collapsed: icon-only button */}
+            {/* Collapsed: icon-only */}
             <SidebarMenuButton
               tooltip="Hızlı Oluştur"
               className={cn(
-                "h-9 w-9 p-0 flex items-center justify-center bg-secondary text-foreground rounded-xl hover:bg-white transition-colors",
                 "hidden group-data-[collapsible=icon]:flex",
+                "items-center justify-center",
+                "bg-secondary text-foreground rounded-xl hover:bg-white transition-colors",
               )}
             >
               <PlusCircleIcon className="size-4" />
@@ -68,19 +68,20 @@ export function NavMain({
                   tooltip={item.title}
                   asChild
                   className={cn(
-                    "relative flex items-center gap-3 px-3 h-10 rounded-2xl",
-                    "transition-colors duration-200 group/nav-item",
+                    // Expanded layout
+                    "relative h-10 gap-3 px-3 rounded-2xl",
+                    "flex items-center group/nav-item",
+                    "transition-colors duration-200",
                     "focus-visible:ring-2 focus-visible:ring-white/30",
-                    /* collapsed overrides – base class forces size-8 so we just align */
-                    "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
+                    // Active / inactive colours
                     isActive
-                      ? "bg-white text-[#1c1c21] shadow-[0_8px_30px_rgba(0,0,0,0.15)]"
-                      : "text-white/70 hover:text-white hover:bg-white/10",
+                      ? "bg-white! text-[#1c1c21]! shadow-[0_8px_30px_rgba(0,0,0,0.15)] hover:bg-white!"
+                      : "text-white/70 hover:text-white! hover:bg-white/10!",
                   )}
                 >
                   <Link
                     href={item.url}
-                    className="flex items-center gap-3 w-full group-data-[collapsible=icon]:justify-center"
+                    className="flex items-center gap-3 w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
                   >
                     {item.icon && (
                       <item.icon
@@ -91,10 +92,10 @@ export function NavMain({
                       />
                     )}
 
-                    {/* Text: always rendered, hidden via CSS during collapse */}
+                    {/* Text — always in DOM, fades + shrinks via CSS */}
                     <span
                       className={cn(
-                        "text-[13px] tracking-tight truncate overflow-hidden whitespace-nowrap",
+                        "text-[13px] tracking-tight whitespace-nowrap overflow-hidden",
                         "transition-[opacity,max-width] duration-200 ease-in-out",
                         "max-w-[160px] opacity-100",
                         "group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0",
@@ -104,7 +105,7 @@ export function NavMain({
                       {item.title}
                     </span>
 
-                    {/* Active indicator */}
+                    {/* Active left-bar indicator */}
                     {isActive && (
                       <div
                         className={cn(

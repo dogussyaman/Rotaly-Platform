@@ -42,7 +42,7 @@ export function NavSecondary({
               >
                 <Link
                   href={item.url}
-                  className="flex items-center gap-2 w-full group-data-[collapsible=icon]:justify-center"
+                  className="flex items-center gap-2 w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
                 >
                   <item.icon className="size-4 shrink-0" />
                   <span

@@ -103,12 +103,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton
               asChild
               className={cn(
-                "hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white/20 transition-colors rounded-xl w-full",
+                "hover:bg-white/10! focus-visible:ring-2 focus-visible:ring-white/20 transition-colors rounded-xl w-full",
                 "h-auto py-2 px-2.5",
-                "group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center",
+                "group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:justify-center",
               )}
             >
-              <Link href="/" className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
+              <Link href="/" className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0">
                 {/* Logo icon */}
                 <div className={cn(
                   "flex shrink-0 items-center justify-center rounded-lg bg-white text-[#1c1c21]",
