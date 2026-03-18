@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -15,16 +14,18 @@ export function GuideHero({ searchQuery, setSearchQuery, t }: GuideHeroProps) {
   const heroTitleParts = (t.guideHeroTitleParts as string[]) ?? [];
   return (
     <section
-      className="relative min-h-[420px] flex items-center justify-center overflow-hidden"
-      style={{ background: 'linear-gradient(180deg, #f4ede5 0%, #f3f3f3 40%, #ffffff 100%)' }}
+      className="relative min-h-130 flex items-center justify-center overflow-hidden"
+      style={{ background: 'linear-gradient(175deg, #b8d4e8 0%, #cfe2f0 40%, #deeaf5 70%, #eef4f9 100%)' }}
     >
-      <div className="absolute inset-0 pointer-events-none">
-        <Image
-          src="https://images.unsplash.com/photo-1542315192-1f61a6cfa1c9?w=1800&h=900&fit=crop&auto=format"
-          alt={t.guideHeroImageAlt as string}
-          fill
-          className="object-cover opacity-15"
-        />
+      <div className="absolute inset-0 pointer-events-none"
+      
+      style={{
+                    backgroundImage: `url(https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1800&h=900&fit=crop)`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center 20%',
+                    opacity: 0.25,
+                }}>
+       
       </div>
       <div className="relative z-10 text-center px-6 pt-24">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">

@@ -392,33 +392,45 @@ export function HeroSearchBar() {
               {location.trim() ? 'Eşleşen Lokasyonlar' : 'Popüler Destinasyonlar'}
             </p>
 
-            {/* Sonuçlar */}
-            <div className="space-y-0.5">
-              {locationSuggestions.length === 0 && !locationLoading && (
-                <p className="text-sm text-gray-400 text-center py-4">
-                  {location.trim() ? 'Sonuç bulunamadı' : 'Yükleniyor...'}
+            {/* Sonuçlar - fixed height with scroll */}
+            <div className="h-70 overflow-y-auto space-y-0.5">
+              {locationLoading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-xl animate-pulse">
+                    <div className="w-9 h-9 bg-gray-100 rounded-xl shrink-0" />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="h-3 bg-gray-100 rounded-full w-2/3" />
+                      <div className="h-2.5 bg-gray-100 rounded-full w-1/3" />
+                    </div>
+                    <div className="h-2.5 bg-gray-100 rounded-full w-8 shrink-0" />
+                  </div>
+                ))
+              ) : locationSuggestions.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-8">
+                  {location.trim() ? 'Sonuç bulunamadı' : 'Veri yok'}
                 </p>
+              ) : (
+                locationSuggestions.slice(0, 5).map((sug) => (
+                  <button
+                    key={sug.label}
+                    onClick={() => { setLocation(sug.label); setActivePanel('checkin'); }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <div className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center shrink-0">
+                      <MapPin className="w-4 h-4 text-gray-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-semibold text-foreground">{sug.city}</span>
+                      {sug.country && (
+                        <span className="text-xs text-gray-400 ml-1">{sug.country}</span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-gray-400 shrink-0">
+                      {sug.count} ilan
+                    </span>
+                  </button>
+                ))
               )}
-              {locationSuggestions.map((sug) => (
-                <button
-                  key={sug.label}
-                  onClick={() => { setLocation(sug.label); setActivePanel('checkin'); }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 transition-colors text-left"
-                >
-                  <div className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center shrink-0">
-                    <MapPin className="w-4 h-4 text-gray-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold text-foreground">{sug.city}</span>
-                    {sug.country && (
-                      <span className="text-xs text-gray-400 ml-1">{sug.country}</span>
-                    )}
-                  </div>
-                  <span className="text-[10px] text-gray-400 shrink-0">
-                    {sug.count} ilan
-                  </span>
-                </button>
-              ))}
             </div>
           </motion.div>
         )}

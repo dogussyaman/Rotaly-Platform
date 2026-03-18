@@ -3,12 +3,11 @@
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { LayoutGrid, LayoutList, Sliders, ChevronDown } from 'lucide-react';
+import { LayoutGrid, LayoutList, Sliders, ChevronDown, Check } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
@@ -78,13 +77,22 @@ export function SearchToolbar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 rounded-2xl p-1.5 shadow-xl border-border/60 backdrop-blur-xl">
-              <DropdownMenuRadioGroup value={sortBy} onValueChange={setSortBy}>
-                <DropdownMenuRadioItem value="relevant" className="rounded-xl px-3 py-2 font-medium">{t.searchSortRelevant as string}</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="price-asc" className="rounded-xl px-3 py-2 font-medium">{t.searchSortPriceAsc as string}</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="price-desc" className="rounded-xl px-3 py-2 font-medium">{t.searchSortPriceDesc as string}</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="rating" className="rounded-xl px-3 py-2 font-medium">{t.searchSortRating as string}</DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
+                {[
+                  { value: 'relevant', label: t.searchSortRelevant as string },
+                  { value: 'price-asc', label: t.searchSortPriceAsc as string },
+                  { value: 'price-desc', label: t.searchSortPriceDesc as string },
+                  { value: 'rating', label: t.searchSortRating as string },
+                ].map((option) => (
+                  <DropdownMenuItem
+                    key={option.value}
+                    onClick={() => setSortBy(option.value)}
+                    className={`rounded-xl px-3 py-2 font-medium flex items-center justify-between cursor-pointer ${sortBy === option.value ? 'bg-accent text-accent-foreground' : ''}`}
+                  >
+                    {option.label}
+                    {sortBy === option.value && <Check className="w-3.5 h-3.5 shrink-0 ml-2" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
           </DropdownMenu>
         </div>
         <div className="flex items-center gap-1 border border-border/60 rounded-xl p-1 bg-muted/20">

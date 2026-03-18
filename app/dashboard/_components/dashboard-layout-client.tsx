@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import { AppSidebar } from '@/components/dashboard/app-sidebar';
 import { SiteHeader } from '@/components/dashboard/site-header';
+import { DashboardFooter } from '@/components/dashboard/dashboard-footer';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { fetchUserProfile } from '@/lib/store/slices/user-slice';
@@ -124,11 +125,12 @@ export default function DashboardLayoutClient({ children }: { children: ReactNod
   return (
     <SidebarProvider className="dashboard-theme">
       <AppSidebar variant="sidebar" />
-      <SidebarInset className="bg-muted/40 min-h-svh">
+      <SidebarInset className="bg-muted/40 min-h-svh flex flex-col">
         <SiteHeader title={header.title} subtitle={header.subtitle} />
         <div className="flex flex-1 flex-col @container/main overflow-auto min-h-0">
           {children}
         </div>
+        <DashboardFooter />
       </SidebarInset>
     </SidebarProvider>
   );
