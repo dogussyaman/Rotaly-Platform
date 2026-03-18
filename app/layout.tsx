@@ -6,6 +6,7 @@ import { ReduxProvider } from '@/components/providers/redux-provider'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 import Footer from '@/components/layout/footer'
+import { CookieBanner } from '@/components/layout/cookie-banner'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -46,6 +47,7 @@ export default function RootLayout({
           <LocaleProvider>
             <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
               {children}
+              <CookieBanner />
               <Footer />
               <Toaster richColors closeButton />
             </ThemeProvider>
