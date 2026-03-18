@@ -113,6 +113,7 @@ export interface UpdateBookingInput {
   checkIn?: Date;
   checkOut?: Date;
   guestsCount?: number;
+  totalPrice?: number;
   specialRequests?: string | null;
   checkInSlotStart?: string | null;
   checkInSlotEnd?: string | null;
@@ -647,6 +648,10 @@ export async function updateBooking(
   }
   if (typeof input.guestsCount === 'number') {
     payload.guests_count = input.guestsCount;
+  }
+  if (typeof input.totalPrice === 'number' && input.totalPrice >= 0) {
+    payload.total_price = input.totalPrice;
+    payload.final_price = input.totalPrice;
   }
   if (input.specialRequests !== undefined) {
     payload.special_requests = input.specialRequests;

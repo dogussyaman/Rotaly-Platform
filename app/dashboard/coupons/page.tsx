@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, Percent, TicketPercent } from 'lucide-react';
+import { Loader2, Percent, TicketPercent, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -113,6 +113,28 @@ export default function CouponsPage() {
         .select('id, code, discount_type, discount_value, min_booking_total, expires_at, is_active')
         .order('code');
       setCoupons((data ?? []) as CouponRow[]);
+    }
+  };
+
+  const handleToggle = async (coupon: CouponRow) => {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('coupons')
+      .update({ is_active: !coupon.is_active })
+      .eq('id', coupon.id);
+    if (!error) {
+      setCoupons((prev) =>
+        prev.map((c) => (c.id === coupon.id ? { ...c, is_active: !coupon.is_active } : c))
+      );
+    }
+  };
+
+  const handleDelete = async (couponId: string) => {
+    if (!confirm('Bu kuponu silmek istediğinizden emin misiniz?')) return;
+    const supabase = createClient();
+    const { error } = await supabase.from('coupons').delete().eq('id', couponId);
+    if (!error) {
+      setCoupons((prev) => prev.filter((c) => c.id !== couponId));
     }
   };
 
@@ -237,12 +259,13 @@ export default function CouponsPage() {
                   <TableHead>Min. Tutar</TableHead>
                   <TableHead>Bitiş</TableHead>
                   <TableHead>Aktif</TableHead>
+                  <TableHead className="text-right">İşlemler</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {coupons.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">Veri yok</TableCell>
+                    <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">Veri yok</TableCell>
                   </TableRow>
                 ) : (
                   coupons.map((c) => (
@@ -253,6 +276,30 @@ export default function CouponsPage() {
                       <TableCell>{c.min_booking_total != null ? formatCurrency(c.min_booking_total) : '—'}</TableCell>
                       <TableCell>{c.expires_at ? formatDate(c.expires_at) : '—'}</TableCell>
                       <TableCell><Badge variant={c.is_active ? 'default' : 'secondary'}>{c.is_active ? 'Aktif' : 'Pasif'}</Badge></TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            title={c.is_active ? 'Pasif yap' : 'Aktif yap'}
+                            onClick={() => handleToggle(c)}
+                            className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                          >
+                            {c.is_active ? (
+                              <ToggleRight className="h-4 w-4 text-primary" />
+                            ) : (
+                              <ToggleLeft className="h-4 w-4" />
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            title="Kuponu sil"
+                            onClick={() => handleDelete(c.id)}
+                            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors text-muted-foreground hover:text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}

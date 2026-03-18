@@ -89,22 +89,27 @@ export function ListingBookingCard({
 
         <div className="flex items-baseline justify-between mb-8 min-h-24">
           <div className="space-y-1">
-            <div className="text-sm text-muted-foreground line-through opacity-80">
-              ₺{baseNightly.toLocaleString('tr-TR')} / {t.listingPerNight}
-            </div>
+            {hasDiscount && (
+              <div className="text-sm text-muted-foreground line-through opacity-80">
+                ₺{baseNightly.toLocaleString('tr-TR')} / {t.listingPerNight}
+              </div>
+            )}
             <div className="flex items-center gap-2">
-              <span className="text-3xl font-black text-emerald-700">
+              <span className={`text-3xl font-black ${hasDiscount ? 'text-emerald-700' : 'text-foreground'}`}>
                 ₺{effectiveNightly.toLocaleString('tr-TR')}
               </span>
+              <span className="text-lg text-muted-foreground">/ {t.listingPerNight}</span>
               {hasDiscount && (
                 <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700">
                   %{discountPercent} indirim
                 </span>
               )}
             </div>
-            <span className="text-xs text-muted-foreground">
-              İndirim, seçtiğiniz tarih ve misafir sayısına göre uygulanmıştır.
-            </span>
+            {hasDiscount && (
+              <span className="text-xs text-muted-foreground">
+                İndirim, seçtiğiniz tarih ve misafir sayısına göre uygulanmıştır.
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-1 text-sm font-bold">
             <Star className="w-4 h-4 fill-amber-400 text-amber-400" />

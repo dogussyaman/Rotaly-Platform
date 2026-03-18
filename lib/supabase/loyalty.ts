@@ -108,3 +108,56 @@ export async function getRedeemablePoints(userId: string): Promise<number> {
   const account = await fetchLoyaltyAccount(userId);
   return account?.pointsBalance ?? 0;
 }
+
+/**
+ * Puanları booking'e bağlı olarak harcar.
+ * loyalty_accounts.points_balance'ı düşürür ve 'redeem' transaction ekler.
+ * Booking oluşturulduktan sonra çağrılmalıdır.
+ */
+export async function redeemLoyaltyPoints(
+  userId: string,
+  bookingId: string,
+  pointsToRedeem: number,
+): Promise<boolean> {
+  if (pointsToRedeem <= 0) return true;
+
+  const supabase = createClient();
+
+  const account = await fetchLoyaltyAccount(userId);
+  if (!account) {
+    console.error('redeemLoyaltyPoints: loyalty account not found for user', userId);
+    return false;
+  }
+
+  if (account.pointsBalance < pointsToRedeem) {
+    console.error('redeemLoyaltyPoints: insufficient points balance');
+    return false;
+  }
+
+  const newBalance = account.pointsBalance - pointsToRedeem;
+
+  const { error: updateError } = await supabase
+    .from('loyalty_accounts')
+    .update({ points_balance: newBalance })
+    .eq('id', account.id);
+
+  if (updateError) {
+    console.error('redeemLoyaltyPoints update error:', updateError.message);
+    return false;
+  }
+
+  const { error: txError } = await supabase.from('loyalty_point_transactions').insert({
+    account_id: account.id,
+    booking_id: bookingId,
+    type: 'redeem',
+    points: -pointsToRedeem,
+    description: 'Rezervasyon indirimi için puan kullanıldı',
+  });
+
+  if (txError) {
+    console.error('redeemLoyaltyPoints transaction error:', txError.message);
+    // Balance güncellendi ama transaction yazılamadı — kritik değil, devam et
+  }
+
+  return true;
+}

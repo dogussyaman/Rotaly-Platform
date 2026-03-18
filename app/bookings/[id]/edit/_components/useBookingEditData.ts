@@ -51,6 +51,7 @@ export function useBookingEditData(
           check_in,
           check_out,
           guests_count,
+          total_price,
           status,
           special_requests,
           check_in_slot_start,
@@ -86,6 +87,7 @@ export function useBookingEditData(
         checkIn: data.check_in,
         checkOut: data.check_out,
         guestsCount: data.guests_count,
+        totalPrice: Number(data.total_price ?? 0),
         status: data.status,
         specialRequests: data.special_requests ?? null,
         checkInSlotStart: data.check_in_slot_start ?? null,
@@ -93,10 +95,10 @@ export function useBookingEditData(
         extras: (data.extras as Record<string, any> | null) ?? null,
         listing: data.listings
           ? {
-              id: data.listings.id,
-              title: data.listings.title,
-              city: data.listings.city ?? null,
-              country: data.listings.country ?? null,
+              id: (data.listings as any).id,
+              title: (data.listings as any).title,
+              city: (data.listings as any).city ?? null,
+              country: (data.listings as any).country ?? null,
             }
           : null,
       };

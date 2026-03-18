@@ -39,7 +39,9 @@ export async function updateSession(request: NextRequest) {
       request.nextUrl.pathname.startsWith('/host') ||
       request.nextUrl.pathname.startsWith('/messages') ||
       request.nextUrl.pathname.startsWith('/bookings') ||
-      request.nextUrl.pathname.startsWith('/wishlist')) &&
+      request.nextUrl.pathname.startsWith('/wishlist') ||
+      request.nextUrl.pathname.startsWith('/checkout') ||
+      request.nextUrl.pathname.startsWith('/profile')) &&
     !user
   ) {
     const url = request.nextUrl.clone()

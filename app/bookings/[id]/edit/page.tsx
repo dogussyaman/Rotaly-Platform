@@ -1,13 +1,14 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { use, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SearchHeader } from '@/components/header/search-header';
 import { Button } from '@/components/ui/button';
 import { Loader2, ChevronLeft } from 'lucide-react';
 import { useAppSelector } from '@/lib/store/hooks';
-import { updateBooking } from '@/lib/supabase/bookings';
+import { updateBooking, fetchListingById } from '@/lib/supabase/bookings';
+import { getPriceBreakdown } from '@/lib/supabase/price-breakdown';
 import { useBookingEditData } from './_components/useBookingEditData';
 import { BookingEditForm } from './_components/BookingEditForm';
 import { CHECK_IN_SLOTS } from './_components/check-in-slots';
@@ -40,6 +41,10 @@ export default function BookingEditPage({ params }: BookingEditPageProps) {
   const [extrasState, setExtrasState] = useState<ExtrasState>(DEFAULT_EXTRAS);
   const [extrasNote, setExtrasNote] = useState('');
 
+  // Fiyat recalculation
+  const [recalcPrice, setRecalcPrice] = useState<number | null>(null);
+  const priceRequestIdRef = useRef(0);
+
   useEffect(() => {
     if (!initialForm) return;
     setCheckInInput(initialForm.checkInInput);
@@ -50,6 +55,34 @@ export default function BookingEditPage({ params }: BookingEditPageProps) {
     setExtrasState(initialForm.extrasState);
     setExtrasNote(initialForm.extrasNote);
   }, [initialForm]);
+
+  // Tarih veya misafir sayısı değişince fiyatı yeniden hesapla
+  useEffect(() => {
+    if (!booking?.listing?.id || !checkInInput || !checkOutInput) {
+      setRecalcPrice(null);
+      return;
+    }
+    const checkInDate = new Date(checkInInput);
+    const checkOutDate = new Date(checkOutInput);
+    if (Number.isNaN(checkInDate.getTime()) || Number.isNaN(checkOutDate.getTime())) return;
+    if (checkOutDate <= checkInDate) return;
+
+    const requestId = ++priceRequestIdRef.current;
+    const listingId = booking.listing.id;
+    const checkInStr = checkInDate.toISOString().slice(0, 10);
+    const checkOutStr = checkOutDate.toISOString().slice(0, 10);
+
+    fetchListingById(listingId).then((listingData) => {
+      if (requestId !== priceRequestIdRef.current || !listingData) return;
+      return getPriceBreakdown(listingData, checkInStr, checkOutStr, guestsInput).then((b) => {
+        if (requestId !== priceRequestIdRef.current || !b) return;
+        setRecalcPrice(b.total);
+      });
+    }).catch(() => {
+      if (requestId !== priceRequestIdRef.current) return;
+      setRecalcPrice(null);
+    });
+  }, [booking?.listing?.id, checkInInput, checkOutInput, guestsInput]);
 
   const selectedSlot = CHECK_IN_SLOTS.find((s) => s.key === slotKey) ?? null;
   const canEdit =
@@ -103,6 +136,7 @@ export default function BookingEditPage({ params }: BookingEditPageProps) {
       checkIn: checkInDate,
       checkOut: checkOutDate,
       guestsCount: guestsInput,
+      totalPrice: recalcPrice ?? undefined,
       specialRequests: notesInput.trim() || null,
       checkInSlotStart: selectedSlot.start,
       checkInSlotEnd: selectedSlot.end,
@@ -158,29 +192,38 @@ export default function BookingEditPage({ params }: BookingEditPageProps) {
           )}
 
           {!loading && profile && booking && (
-            <BookingEditForm
-              booking={booking}
-              checkInInput={checkInInput}
-              setCheckInInput={setCheckInInput}
-              checkOutInput={checkOutInput}
-              setCheckOutInput={setCheckOutInput}
-              guestsInput={guestsInput}
-              setGuestsInput={setGuestsInput}
-              notesInput={notesInput}
-              setNotesInput={setNotesInput}
-              slotKey={slotKey}
-              setSlotKey={setSlotKey}
-              extrasState={extrasState}
-              setExtrasState={setExtrasState}
-              extrasNote={extrasNote}
-              setExtrasNote={setExtrasNote}
-              canEdit={!!canEdit}
-              saving={saving}
-              error={error}
-              success={success}
-              onSubmit={handleSubmit}
-              onCancel={() => router.push('/profile?tab=bookings')}
-            />
+            <>
+              {recalcPrice !== null && recalcPrice !== booking.totalPrice && (
+                <div className="px-4 py-3 bg-amber-50 border border-amber-200 rounded-2xl text-sm text-amber-800">
+                  Seçtiğiniz tarih ve misafir sayısına göre yeni toplam:{' '}
+                  <strong>₺{recalcPrice.toLocaleString('tr-TR')}</strong>
+                  {' '}(eski: ₺{booking.totalPrice.toLocaleString('tr-TR')})
+                </div>
+              )}
+              <BookingEditForm
+                booking={booking}
+                checkInInput={checkInInput}
+                setCheckInInput={setCheckInInput}
+                checkOutInput={checkOutInput}
+                setCheckOutInput={setCheckOutInput}
+                guestsInput={guestsInput}
+                setGuestsInput={setGuestsInput}
+                notesInput={notesInput}
+                setNotesInput={setNotesInput}
+                slotKey={slotKey}
+                setSlotKey={setSlotKey}
+                extrasState={extrasState}
+                setExtrasState={setExtrasState}
+                extrasNote={extrasNote}
+                setExtrasNote={setExtrasNote}
+                canEdit={!!canEdit}
+                saving={saving}
+                error={error}
+                success={success}
+                onSubmit={handleSubmit}
+                onCancel={() => router.push('/profile?tab=bookings')}
+              />
+            </>
           )}
         </div>
       </main>

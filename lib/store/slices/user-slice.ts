@@ -5,6 +5,8 @@ export interface UserProfile {
   id: string;
   email: string;
   fullName: string | null;
+  phone: string | null;
+  bio: string | null;
   avatarUrl: string | null;
   isHost: boolean;
   isAdmin: boolean;
@@ -34,7 +36,7 @@ export const fetchUserProfile = createAsyncThunk('user/fetchProfile', async () =
   const [profileRes, pointsRes, rolesRes] = await Promise.all([
     supabase
       .from('profiles')
-      .select('full_name, avatar_url, is_host')
+      .select('full_name, avatar_url, is_host, phone, bio')
       .eq('id', user.id)
       .single(),
     supabase
@@ -54,6 +56,8 @@ export const fetchUserProfile = createAsyncThunk('user/fetchProfile', async () =
     id: user.id,
     email: user.email ?? '',
     fullName: profileRes.data?.full_name ?? null,
+    phone: profileRes.data?.phone ?? null,
+    bio: profileRes.data?.bio ?? null,
     avatarUrl: profileRes.data?.avatar_url ?? null,
     isHost: profileRes.data?.is_host ?? false,
     isAdmin: roles.includes('admin'),

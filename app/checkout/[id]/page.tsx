@@ -14,6 +14,8 @@ import {
   type ListingDetail,
 } from '@/lib/supabase/bookings';
 import { getPriceBreakdown } from '@/lib/supabase/price-breakdown';
+import { validateCoupon, recordCouponUsage, type ValidCoupon } from '@/lib/supabase/coupons';
+import { getRedeemablePoints, redeemLoyaltyPoints } from '@/lib/supabase/loyalty';
 import { useAppSelector } from '@/lib/store/hooks';
 import { CheckoutTripSection } from './_components/CheckoutTripSection';
 import { CheckoutPaymentSection } from './_components/CheckoutPaymentSection';
@@ -45,6 +47,17 @@ function CheckoutPageContent({ id }: { id: string }) {
   const [checkInSlotKey, setCheckInSlotKey] = useState('');
   const [extrasState, setExtrasState] = useState(DEFAULT_EXTRAS);
   const [extrasNote, setExtrasNote] = useState('');
+
+  // Kupon state
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<ValidCoupon | null>(null);
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+
+  // Sadakat puan state
+  const [redeemablePoints, setRedeemablePoints] = useState(0);
+  const [pointsToRedeem, setPointsToRedeem] = useState(0);
 
   const fromParam = searchParams.get('from');
   const toParam = searchParams.get('to');
@@ -89,6 +102,12 @@ function CheckoutPageContent({ id }: { id: string }) {
   const serviceFee = priceBreakdown?.serviceFee ?? Math.round(subtotal * 0.12);
   const total = priceBreakdown?.total ?? subtotal + cleaningFee + serviceFee;
 
+  // Her 10 puan = ₺1
+  const loyaltyDiscount = Math.floor(pointsToRedeem / 10);
+
+  // Nihai ödenecek tutar
+  const finalTotal = Math.max(0, total - couponDiscount - loyaltyDiscount);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -97,9 +116,7 @@ function CheckoutPageContent({ id }: { id: string }) {
       if (!cancelled) setListing(data);
       setLoading(false);
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [id]);
 
   useEffect(() => {
@@ -125,7 +142,43 @@ function CheckoutPageContent({ id }: { id: string }) {
       });
   }, [listing?.id, hasValidStayDates, checkInStr, checkOutStr, guests]);
 
+  // Kullanıcının puan bakiyesini yükle
+  useEffect(() => {
+    if (!profile) return;
+    getRedeemablePoints(profile.id).then(setRedeemablePoints);
+  }, [profile?.id]);
+
+  // Sepet tutarı değişince kupon geçerliliğini kontrol et
+  useEffect(() => {
+    if (appliedCoupon?.minBookingTotal != null && total < appliedCoupon.minBookingTotal) {
+      setAppliedCoupon(null);
+      setCouponDiscount(0);
+      setCouponError('Sepet tutarı düştüğü için kupon geçersiz hale geldi.');
+    }
+  }, [total]);
+
   const selectedSlot = CHECK_IN_SLOTS.find((s) => s.key === checkInSlotKey) ?? null;
+
+  const handleApplyCoupon = async () => {
+    if (!profile || !couponCode.trim()) return;
+    setCouponLoading(true);
+    setCouponError(null);
+    const result = await validateCoupon(couponCode.trim(), profile.id, total);
+    if (result.valid) {
+      setAppliedCoupon(result.coupon);
+      setCouponDiscount(result.discountAmount);
+    } else {
+      setCouponError(result.error);
+    }
+    setCouponLoading(false);
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponDiscount(0);
+    setCouponError(null);
+    setCouponCode('');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,35 +198,63 @@ function CheckoutPageContent({ id }: { id: string }) {
       return;
     }
 
-    const checkIn = selectedCheckIn;
-    const checkOut = selectedCheckOut;
+    // Max misafir sayısı kontrolü
+    if (guests > listing.maxGuests) {
+      setErrorMessage(`Bu ilan maksimum ${listing.maxGuests} misafir kabul etmektedir.`);
+      setSubmitting(false);
+      return;
+    }
 
-    const available = await isListingAvailable(listing.id, checkIn, checkOut);
+    // Host kendi ilanına rezervasyon yapamaz
+    if (listing.hostId && listing.hostId === profile.id) {
+      setErrorMessage('Kendi ilanınıza rezervasyon oluşturamazsınız.');
+      setSubmitting(false);
+      return;
+    }
+
+    const available = await isListingAvailable(listing.id, selectedCheckIn, selectedCheckOut);
     if (!available) {
       setErrorMessage('Bu tarih aralığında bu ilan dolu, lütfen başka tarih seçin.');
       setSubmitting(false);
       return;
     }
 
+    const totalDiscount = couponDiscount + loyaltyDiscount;
+
     const result = await createBooking({
       listingId: listing.id,
       guestId: profile.id,
-      checkIn,
-      checkOut,
+      checkIn: selectedCheckIn,
+      checkOut: selectedCheckOut,
       guestsCount: guests,
       totalPrice: total,
+      discountTotal: totalDiscount,
+      couponId: appliedCoupon?.id ?? null,
+      pointsRedeemed: pointsToRedeem,
       checkInSlotStart: selectedSlot.start,
       checkInSlotEnd: selectedSlot.end,
       extras: { options: extrasState, note: extrasNote.trim() || null },
     });
 
-    if (result) {
-      setSuccess(true);
+    if (!result) {
+      setErrorMessage('Rezervasyon oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
       setSubmitting(false);
-      setTimeout(() => router.push('/profile?tab=bookings'), 1500);
       return;
     }
+
+    // Kupon kullanım kaydı
+    if (appliedCoupon && couponDiscount > 0) {
+      await recordCouponUsage(appliedCoupon.id, profile.id, result.id, couponDiscount);
+    }
+
+    // Sadakat puan harcama
+    if (pointsToRedeem > 0) {
+      await redeemLoyaltyPoints(profile.id, result.id, pointsToRedeem);
+    }
+
+    setSuccess(true);
     setSubmitting(false);
+    setTimeout(() => router.push('/profile?tab=bookings'), 1500);
   };
 
   return (
@@ -207,6 +288,8 @@ function CheckoutPageContent({ id }: { id: string }) {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
               <div className="lg:col-span-7 space-y-12">
                 <CheckoutTripSection
+                  checkInStr={checkInStr}
+                  checkOutStr={checkOutStr}
                   nights={nights}
                   guests={guests}
                   checkInSlotKey={checkInSlotKey}
@@ -215,6 +298,18 @@ function CheckoutPageContent({ id }: { id: string }) {
                   setExtrasState={setExtrasState}
                   extrasNote={extrasNote}
                   setExtrasNote={setExtrasNote}
+                  couponCode={couponCode}
+                  setCouponCode={setCouponCode}
+                  couponApplied={!!appliedCoupon}
+                  couponError={couponError}
+                  couponLoading={couponLoading}
+                  couponDiscount={couponDiscount}
+                  onApplyCoupon={handleApplyCoupon}
+                  onRemoveCoupon={handleRemoveCoupon}
+                  redeemablePoints={redeemablePoints}
+                  pointsToRedeem={pointsToRedeem}
+                  setPointsToRedeem={setPointsToRedeem}
+                  loyaltyDiscount={loyaltyDiscount}
                 />
 
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -258,7 +353,7 @@ function CheckoutPageContent({ id }: { id: string }) {
                           Rezervasyon Oluşturuldu
                         </>
                       ) : (
-                        'Rezervasyonu Tamamla ve Öde'
+                        `Rezervasyonu Tamamla${finalTotal > 0 ? ` — ₺${finalTotal.toLocaleString('tr-TR')}` : ''}`
                       )}
                     </Button>
                     {hasValidStayDates && !priceBreakdown && listing && (
@@ -280,7 +375,7 @@ function CheckoutPageContent({ id }: { id: string }) {
                       </p>
                     )}
                     <p className="text-center text-xs text-muted-foreground mt-1">
-                      &quot;Rezervasyonu Tamamla ve Öde&quot; butonuna tıklayarak Hizmet Şartlarımızı
+                      &quot;Rezervasyonu Tamamla&quot; butonuna tıklayarak Hizmet Şartlarımızı
                       ve İptal Politikamızı kabul etmiş olursunuz.
                     </p>
                   </div>
@@ -297,6 +392,9 @@ function CheckoutPageContent({ id }: { id: string }) {
                   extraGuestFee={priceBreakdown?.extraGuestFee ?? 0}
                   total={total}
                   totalLabel={t.listingTotal as string}
+                  couponDiscount={couponDiscount}
+                  loyaltyDiscount={loyaltyDiscount}
+                  finalTotal={finalTotal}
                 />
               </div>
             </div>

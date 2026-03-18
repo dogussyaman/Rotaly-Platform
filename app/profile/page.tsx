@@ -85,8 +85,8 @@ export default function ProfilePage() {
 
       setLoading(true);
       setProfileFullName(profile.fullName ?? '');
-      setProfilePhone(''); // If phone is in schema, fetch it
-      setProfileBio('');
+      setProfilePhone(profile.phone ?? '');
+      setProfileBio(profile.bio ?? '');
 
       try {
         const [b, w, l, t] = await Promise.all([
@@ -115,7 +115,8 @@ export default function ProfilePage() {
     setProfileMessage(null);
     const ok = await updateUserProfile({
       fullName: profileFullName,
-      // If schema supports phone/bio, add them here
+      phone: profilePhone || null,
+      bio: profileBio || null,
     });
     setProfileMessage(ok ? (t.profileUpdateSuccess as string) : (t.profileUpdateError as string));
     setSavingProfile(false);

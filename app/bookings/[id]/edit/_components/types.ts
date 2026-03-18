@@ -3,6 +3,7 @@ export interface BookingForEdit {
   checkIn: string;
   checkOut: string;
   guestsCount: number;
+  totalPrice: number;
   status: string;
   specialRequests: string | null;
   checkInSlotStart: string | null;
