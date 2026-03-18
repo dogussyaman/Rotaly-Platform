@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { PlusCircleIcon, type LucideIcon } from "lucide-react"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   SidebarGroup,
@@ -18,9 +19,11 @@ export function NavMain({
   items,
 }: {
   items: {
+    key?: string
     title: string
     url: string
     icon?: LucideIcon
+    badge?: number
   }[]
 }) {
   const pathname = usePathname()
@@ -106,6 +109,15 @@ export function NavMain({
                     >
                       {item.title}
                     </span>
+
+                    {item.badge !== undefined && item.badge > 0 ? (
+                      <Badge
+                        variant="secondary"
+                        className="ml-auto h-5 min-w-5 justify-center px-1.5 text-[10px] font-bold group-data-[collapsible=icon]:hidden"
+                      >
+                        {item.badge > 99 ? "99+" : item.badge}
+                      </Badge>
+                    ) : null}
 
                   </Link>
                 </SidebarMenuButton>

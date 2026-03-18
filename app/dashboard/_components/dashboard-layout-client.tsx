@@ -11,6 +11,7 @@ import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { fetchUserProfile } from '@/lib/store/slices/user-slice';
 
 const ADMIN_ONLY_PREFIXES = [
+  '/dashboard/applications',
   '/dashboard/users',
   '/dashboard/roles',
   '/dashboard/hosts',
@@ -37,8 +38,9 @@ function getHeaderTitle(pathname: string, role: 'admin' | 'host') {
 
   const map: Record<string, { title: string; subtitle: string }> = {
     '/dashboard/search': { title: 'Arama', subtitle: 'İlan, rezervasyon ve mesaj sonuçları.' },
+    '/dashboard/applications': { title: 'Otel Başvuruları', subtitle: 'Gelen başvuruları inceleyip onaylayın.' },
     '/dashboard/users': { title: 'Kullanıcılar', subtitle: 'Profil doğrulama ve rol atamaları.' },
-    '/dashboard/roles': { title: 'Roller & Partnerler', subtitle: 'Partner profilleri ve rol yönetimi.' },
+    '/dashboard/roles': { title: 'Roller & Yetkiler', subtitle: 'Rol atama, doğrulama ve ilk üyelik kupon kuralı.' },
     '/dashboard/hosts': { title: 'Ev Sahipleri', subtitle: 'Yanıt oranı, dil ve performans metrikleri.' },
     '/dashboard/availability': { title: 'Uygunluk Takvimi', subtitle: 'Müsaitlik ve özel fiyat yönetimi.' },
     '/dashboard/reviews': { title: 'Değerlendirmeler', subtitle: 'Puan kırılımı ve yorum yönetimi.' },

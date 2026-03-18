@@ -140,10 +140,10 @@ export function DashboardOverview() {
   const links =
     role === 'admin'
       ? [
-          { title: 'Kullanıcılar', description: 'Profil ve rol yönetimi', href: '/dashboard/users' },
-          { title: 'İlanlar', description: 'İlan, görsel, imkan', href: '/dashboard/listings' },
-          { title: 'Rezervasyonlar', description: 'Durum ve ödeme takibi', href: '/dashboard/bookings' },
-          { title: 'Raporlar', description: 'Finansal ve operasyon', href: '/dashboard/reports' },
+          { title: 'Başvurular', description: 'Gelen otel başvurularını incele', href: '/dashboard/applications' },
+          { title: 'Roller & Yetkiler', description: 'Rol atama ve doğrulama yönetimi', href: '/dashboard/roles' },
+          { title: 'İlanlar', description: 'İlan, görsel, imkan ve moderasyon', href: '/dashboard/listings' },
+          { title: 'Kuponlar', description: 'İlk üyelik ve kampanya kuponları', href: '/dashboard/coupons' },
         ]
       : [
           { title: 'Otel ilanlarım', description: 'İlan yönetimi', href: '/dashboard/listings' },
@@ -156,9 +156,9 @@ export function DashboardOverview() {
     role === 'admin'
       ? [
           {
-            title: 'Yeni ilanları doğrula',
-            description: 'Görsel, konum ve içerik kalite kontrolü.',
-            href: '/dashboard/listings',
+            title: 'Yeni otel başvuruları',
+            description: 'Başvuruları inceleyip onay/reddet aksiyonu al.',
+            href: '/dashboard/applications',
           },
           {
             title: 'Ev sahibi performansı',

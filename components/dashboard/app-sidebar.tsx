@@ -7,6 +7,7 @@ import {
   BarChartIcon,
   Calendar,
   ClipboardListIcon,
+  FileSearch,
   DatabaseIcon,
   FileTextIcon,
   Gift,
@@ -22,6 +23,7 @@ import {
   Star,
   TicketPercent,
   UsersIcon,
+  type LucideIcon,
 } from "lucide-react"
 
 import {
@@ -38,48 +40,62 @@ import { NavMain } from "./nav-main"
 import { NavSecondary } from "./nav-secondary"
 import { NavUser } from "./nav-user"
 
+import {
+  ADMIN_MODULES,
+  HOST_MODULES,
+  type DashboardIconKey,
+  type DashboardModuleDefinition,
+} from "@/lib/dashboard/admin-structure"
 import { useAppSelector } from "@/lib/store/hooks"
+import { fetchAdminSidebarBadges, type AdminSidebarBadgeMap } from "@/lib/supabase/admin"
 import { cn } from "@/lib/utils"
 
-const ADMIN_DATA = {
-  navMain: [
-    { title: "Genel Bakış", url: "/dashboard", icon: LayoutDashboardIcon },
-    { title: "Kullanıcılar", url: "/dashboard/users", icon: UsersIcon },
-    { title: "Roller & Partnerler", url: "/dashboard/roles", icon: ShieldCheck },
-    { title: "Ev Sahipleri", url: "/dashboard/hosts", icon: Home },
-    { title: "Otel İlanları", url: "/dashboard/listings", icon: ListIcon },
-    { title: "Uygunluk Takvimi", url: "/dashboard/availability", icon: Calendar },
-    { title: "Rezervasyonlar", url: "/dashboard/bookings", icon: ClipboardListIcon },
-    { title: "Değerlendirmeler", url: "/dashboard/reviews", icon: Star },
-    { title: "Favoriler", url: "/dashboard/wishlists", icon: Heart },
-    { title: "Mesajlar", url: "/dashboard/messages", icon: MessageSquare },
-    { title: "Sadakat & Puan", url: "/dashboard/loyalty", icon: Gift },
-    { title: "Kuponlar", url: "/dashboard/coupons", icon: TicketPercent },
-    { title: "Turlar", url: "/dashboard/tours", icon: MapPin },
-  ],
-  documents: [
-    { name: "Raporlar", url: "/dashboard/reports", icon: BarChartIcon },
-    { name: "Sistem Kayıtları", url: "/dashboard/reports", icon: DatabaseIcon },
-  ],
+const ICON_MAP: Record<DashboardIconKey, LucideIcon> = {
+  overview: LayoutDashboardIcon,
+  users: UsersIcon,
+  roles: ShieldCheck,
+  hosts: Home,
+  applications: FileSearch,
+  listings: ListIcon,
+  availability: Calendar,
+  bookings: ClipboardListIcon,
+  reviews: Star,
+  wishlists: Heart,
+  messages: MessageSquare,
+  loyalty: Gift,
+  coupons: TicketPercent,
+  tours: MapPin,
+  reports: BarChartIcon,
+  systemLogs: DatabaseIcon,
+  earnings: BarChartIcon,
 }
 
-const HOST_DATA = {
-  navMain: [
-    { title: "Genel Bakış", url: "/dashboard", icon: LayoutDashboardIcon },
-    { title: "Otel ilanlarım", url: "/dashboard/listings", icon: ListIcon },
-    { title: "Uygunluk", url: "/dashboard/availability", icon: Calendar },
-    { title: "Rezervasyonlar", url: "/dashboard/bookings", icon: ClipboardListIcon },
-    { title: "Değerlendirmeler", url: "/dashboard/reviews", icon: Star },
-    { title: "Mesajlar", url: "/dashboard/messages", icon: MessageSquare },
-    { title: "Sadakat", url: "/dashboard/loyalty", icon: Gift },
-    { title: "Kuponlar", url: "/dashboard/coupons", icon: TicketPercent },
-    { title: "Turlar", url: "/dashboard/tours", icon: MapPin },
-    { title: "Gelirler", url: "/dashboard/earnings", icon: BarChartIcon },
-  ],
-  documents: [
-    { name: "Rezervasyon Raporları", url: "/dashboard/reports", icon: ClipboardListIcon },
-    { name: "Vergi Belgeleri", url: "/dashboard/reports", icon: FileTextIcon },
-  ],
+function buildMainNavItems(modules: DashboardModuleDefinition[], badges?: AdminSidebarBadgeMap) {
+  return modules
+    .filter((module) => module.placement === "main")
+    .map((module) => ({
+      key: module.key,
+      title: module.title,
+      url: module.url,
+      icon: ICON_MAP[module.iconKey],
+      badge: badges?.[module.key],
+    }))
+}
+
+function buildDocumentItems(modules: DashboardModuleDefinition[]) {
+  return modules
+    .filter((module) => module.placement === "documents")
+    .map((module) => ({
+      key: module.key,
+      name: module.title,
+      url: module.url,
+      icon:
+        module.iconKey === "reports"
+          ? FileTextIcon
+          : module.iconKey === "bookings"
+            ? ClipboardListIcon
+            : ICON_MAP[module.iconKey],
+    }))
 }
 
 const SECONDARY_NAV = [
@@ -91,7 +107,35 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { profile } = useAppSelector((s) => s.user)
 
   const isAdmin = !!profile?.isAdmin
-  const sidebarData = isAdmin ? ADMIN_DATA : HOST_DATA
+  const [adminBadges, setAdminBadges] = React.useState<AdminSidebarBadgeMap>({})
+
+  React.useEffect(() => {
+    let active = true
+
+    async function loadAdminBadges() {
+      if (!isAdmin) {
+        setAdminBadges({})
+        return
+      }
+
+      const badgeMap = await fetchAdminSidebarBadges()
+      if (active) {
+        setAdminBadges(badgeMap)
+      }
+    }
+
+    void loadAdminBadges()
+
+    return () => {
+      active = false
+    }
+  }, [isAdmin])
+
+  const modules = isAdmin ? ADMIN_MODULES : HOST_MODULES
+  const sidebarData = {
+    navMain: buildMainNavItems(modules, isAdmin ? adminBadges : undefined),
+    documents: buildDocumentItems(modules),
+  }
   const roleLabel = isAdmin ? "Yönetici" : "Ev Sahibi"
   const sidebarBg = "bg-sidebar"
 
@@ -122,7 +166,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <div className={cn(
                   "flex min-w-0 flex-col overflow-hidden",
                   "transition-[opacity,max-width] duration-200 ease-in-out",
-                  "max-w-[160px] opacity-100",
+                  "max-w-40 opacity-100",
                   "group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0",
                 )}>
                   <span className="truncate text-sm font-semibold text-sidebar-foreground whitespace-nowrap">Rotaly</span>
