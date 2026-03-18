@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import { SearchHeader } from '@/components/header/search-header';
-import { MainFooter } from '@/components/footer/main-footer';
 import Image from 'next/image';
 
 const posts = [
@@ -57,7 +56,6 @@ export default function BlogPage() {
           ))}
         </div>
       </main>
-      <MainFooter />
     </div>
   );
 }

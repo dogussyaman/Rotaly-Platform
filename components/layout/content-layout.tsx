@@ -1,7 +1,6 @@
 'use client';
 
 import { SearchHeader } from '@/components/header/search-header';
-import { MainFooter } from '@/components/footer/main-footer';
 import { motion } from 'framer-motion';
 
 interface ContentLayoutProps {
@@ -43,7 +42,6 @@ export function ContentLayout({ children, title, subtitle, className = "" }: Con
                 </div>
             </main>
 
-            <MainFooter />
         </div>
     );
 }

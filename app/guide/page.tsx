@@ -12,7 +12,6 @@ import {
   Zap,
 } from 'lucide-react';
 import { SearchHeader } from '@/components/header/search-header';
-import { MainFooter } from '@/components/footer/main-footer';
 import { useLocale } from '@/lib/i18n/locale-context';
 import { GuideHero } from './_components/GuideHero';
 import { GuideSidebar, type GuideSection } from './_components/GuideSidebar';
@@ -80,7 +79,6 @@ export default function GuidePage() {
           <GuideContent sections={filteredSections} faqQuestions={faqQuestions} faqAnswers={faqAnswers} includesQuery={includesQuery} t={t} />
         </div>
       </main>
-      <MainFooter />
     </div>
   );
 }

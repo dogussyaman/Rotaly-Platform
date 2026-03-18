@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import { SearchHeader } from '@/components/header/search-header';
-import { MainFooter } from '@/components/footer/main-footer';
 import { Gift, Share2, Copy } from 'lucide-react';
 
 export default function InvitePage() {
@@ -57,7 +56,6 @@ export default function InvitePage() {
           </div>
         </div>
       </main>
-      <MainFooter />
     </div>
   );
 }

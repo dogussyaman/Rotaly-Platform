@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLocale } from '@/lib/i18n/locale-context';
 import { SearchHeader } from '@/components/header/search-header';
-import { MainFooter } from '@/components/footer/main-footer';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Loader2, CheckCircle2 } from 'lucide-react';
 import {
@@ -304,7 +303,6 @@ function CheckoutPageContent({ id }: { id: string }) {
           )}
         </div>
       </main>
-      <MainFooter />
     </div>
   );
 }

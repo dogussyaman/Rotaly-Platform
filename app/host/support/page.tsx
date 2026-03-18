@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import { SearchHeader } from '@/components/header/search-header';
-import { MainFooter } from '@/components/footer/main-footer';
 import { MessageCircle, Phone, Mail, HelpCircle } from 'lucide-react';
 
 export default function HostSupportPage() {
@@ -45,7 +44,6 @@ export default function HostSupportPage() {
           ))}
         </div>
       </main>
-      <MainFooter />
     </div>
   );
 }

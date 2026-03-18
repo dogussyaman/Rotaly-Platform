@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import { SearchHeader } from '@/components/header/search-header';
-import { MainFooter } from '@/components/footer/main-footer';
 import { Briefcase, MapPin, Clock } from 'lucide-react';
 
 const jobs = [
@@ -52,7 +51,6 @@ export default function CareersPage() {
           ))}
         </div>
       </main>
-      <MainFooter />
     </div>
   );
 }

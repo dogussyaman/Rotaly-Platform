@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import { SearchHeader } from '@/components/header/search-header';
-import { MainFooter } from '@/components/footer/main-footer';
 import { Heart, Shield, Users } from 'lucide-react';
 
 export default function AntiDiscriminationPage() {
@@ -54,7 +53,6 @@ export default function AntiDiscriminationPage() {
           </section>
         </div>
       </main>
-      <MainFooter />
     </div>
   );
 }

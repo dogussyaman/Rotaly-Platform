@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { SearchHeader } from '@/components/header/search-header';
-import { MainFooter } from '@/components/footer/main-footer';
 import { Button } from '@/components/ui/button';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { clearUser, fetchUserProfile } from '@/lib/store/slices/user-slice';
@@ -247,7 +246,6 @@ export default function ProfilePage() {
         onConfirmDelete={() => deleteBookingTarget && handleDeleteBooking(deleteBookingTarget)}
         t={t}
       />
-      <MainFooter />
     </div>
   );
 }

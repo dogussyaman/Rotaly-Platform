@@ -4,7 +4,6 @@ import { use, useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { SearchHeader } from '@/components/header/search-header';
-import { MainFooter } from '@/components/footer/main-footer';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/locale-context';
@@ -264,7 +263,6 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
           </>
         )}
       </main>
-      <MainFooter />
     </div>
   );
 }

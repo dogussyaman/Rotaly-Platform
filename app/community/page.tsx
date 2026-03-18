@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import { SearchHeader } from '@/components/header/search-header';
-import { MainFooter } from '@/components/footer/main-footer';
 import { Globe, Heart, Sparkles } from 'lucide-react';
 
 export default function CommunityPage() {
@@ -50,7 +49,6 @@ export default function CommunityPage() {
           </div>
         </div>
       </main>
-      <MainFooter />
     </div>
   );
 }

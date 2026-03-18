@@ -4,7 +4,6 @@ import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SearchHeader } from '@/components/header/search-header';
-import { MainFooter } from '@/components/footer/main-footer';
 import { Button } from '@/components/ui/button';
 import { Loader2, ChevronLeft } from 'lucide-react';
 import { useAppSelector } from '@/lib/store/hooks';
@@ -185,7 +184,6 @@ export default function BookingEditPage({ params }: BookingEditPageProps) {
           )}
         </div>
       </main>
-      <MainFooter />
     </div>
   );
 }

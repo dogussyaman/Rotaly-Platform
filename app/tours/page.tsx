@@ -2,7 +2,6 @@
 
 import { useLocale } from '@/lib/i18n/locale-context';
 import { SearchHeader } from '@/components/header/search-header';
-import { MainFooter } from '@/components/footer/main-footer';
 import { Button } from '@/components/ui/button';
 import { MOCK_TOURS_BASE } from './_components/constants';
 import type { LocalizedTour } from './_components/types';
@@ -96,7 +95,6 @@ export default function ToursPage() {
           ctaImageAlt={t.toursCtaImageAlt as string}
         />
       </main>
-      <MainFooter />
     </div>
   );
 }

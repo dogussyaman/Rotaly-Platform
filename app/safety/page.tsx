@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion';
 import { ShieldCheck, UserCheck, Lock, Eye, LifeBuoy, AlertTriangle } from 'lucide-react';
 import { SearchHeader } from '@/components/header/search-header';
-import { MainFooter } from '@/components/footer/main-footer';
 
 export default function SafetyPage() {
   return (
@@ -79,7 +78,6 @@ export default function SafetyPage() {
           </button>
         </div>
       </main>
-      <MainFooter />
     </div>
   );
 }
