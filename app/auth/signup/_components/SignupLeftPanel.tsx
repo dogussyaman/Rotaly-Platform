@@ -22,7 +22,7 @@ export function SignupLeftPanel() {
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
           </div>
-          <span className="font-bold text-2xl text-white tracking-tight">StayHub</span>
+          <span className="font-bold text-2xl text-white tracking-tight">Rotaly</span>
         </Link>
       </div>
       <motion.div
@@ -37,7 +37,7 @@ export function SignupLeftPanel() {
             <span className="text-white/60">Burada Başlıyor.</span>
           </h2>
           <p className="text-lg text-white/70 font-medium">
-            StayHub topluluğuna katılarak dünyanın her yerindeki özel konaklama yerlerine erişim sağla.
+            Rotaly topluluğuna katılarak dünyanın her yerindeki özel konaklama yerlerine erişim sağla.
           </p>
         </div>
         <div className="grid grid-cols-3 gap-4 border-t border-white/10 pt-8 mt-8">

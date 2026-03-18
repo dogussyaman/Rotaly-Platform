@@ -33,7 +33,7 @@ export default function CommunityPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <div className="bg-card p-12 rounded-[2.5rem] border border-border flex flex-col items-center text-center">
             <Sparkles className="w-16 h-16 text-amber-500 mb-8" />
-            <h2 className="text-3xl font-black mb-6">StayHub.org</h2>
+            <h2 className="text-3xl font-black mb-6">Rotaly.org</h2>
             <p className="text-muted-foreground mb-8 text-lg">
               Kar amacı gütmeyen kuruluşlar için konaklama çözümleri sunduğumuz projemiz. Dünyayı daha yaşanabilir kılmak için sosyal sorumluluk projelerini destekliyoruz.
             </p>

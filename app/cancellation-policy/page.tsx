@@ -11,13 +11,13 @@ export default function CancellationPage() {
     return (
         <ContentLayout
             title={t.cancellationTitle as string}
-            subtitle="StayHub üzerinden yapılan tüm rezervasyonlar için geçerli iptal ve iade koşullarımız aşağıda detaylandırılmıştır."
+            subtitle="Rotaly üzerinden yapılan tüm rezervasyonlar için geçerli iptal ve iade koşullarımız aşağıda detaylandırılmıştır."
         >
             <div className="space-y-12">
                 {/* Intro */}
                 <section className="prose prose-slate max-w-none">
                     <p className="text-muted-foreground leading-relaxed">
-                        Misafirlerimizin ve ev sahiplerimizin güvenini korumak en öncelikli görevimizdir. StayHub'daki her ilan, rezervasyon sırasında belirtilen belirli bir iptal politikasına tabidir. Lütfen rezervasyonunuzu onaylamadan önce bu politikayı dikkatlice inceleyin.
+                        Misafirlerimizin ve ev sahiplerimizin güvenini korumak en öncelikli görevimizdir. Rotaly'deki her ilan, rezervasyon sırasında belirtilen belirli bir iptal politikasına tabidir. Lütfen rezervasyonunuzu onaylamadan önce bu politikayı dikkatlice inceleyin.
                     </p>
                 </section>
 
@@ -36,7 +36,7 @@ export default function CancellationPage() {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="hover:bg-transparent">
-                                        <TableHead className="w-[180px]">Zamanlama</TableHead>
+                                        <TableHead className="w-45">Zamanlama</TableHead>
                                         <TableHead>İade Oranı</TableHead>
                                         <TableHead>Notlar</TableHead>
                                     </TableRow>
@@ -71,7 +71,7 @@ export default function CancellationPage() {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="hover:bg-transparent">
-                                        <TableHead className="w-[180px]">Zamanlama</TableHead>
+                                        <TableHead className="w-45">Zamanlama</TableHead>
                                         <TableHead>İade Oranı</TableHead>
                                         <TableHead>Notlar</TableHead>
                                     </TableRow>
@@ -106,7 +106,7 @@ export default function CancellationPage() {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="hover:bg-transparent">
-                                        <TableHead className="w-[180px]">Zamanlama</TableHead>
+                                        <TableHead className="w-45">Zamanlama</TableHead>
                                         <TableHead>İade Oranı</TableHead>
                                         <TableHead>Notlar</TableHead>
                                     </TableRow>
@@ -140,7 +140,7 @@ export default function CancellationPage() {
                         <div className="space-y-3">
                             <h4 className="font-bold text-white">Pandemi ve Mücbir Sebepler</h4>
                             <p className="text-gray-300 leading-relaxed">
-                                Doğal afetler veya hükümet kararları gibi öngörülemeyen durumlarda StayHub, ev sahibinin kendi politikasından bağımsız olarak misafire tam iade hakkı tanıyabilir.
+                                Doğal afetler veya hükümet kararları gibi öngörülemeyen durumlarda Rotaly, ev sahibinin kendi politikasından bağımsız olarak misafire tam iade hakkı tanıyabilir.
                             </p>
                         </div>
                         <div className="space-y-3">

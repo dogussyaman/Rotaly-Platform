@@ -14,8 +14,8 @@ export default function FAQPage() {
 
     const faqs = [
         {
-            question: 'StayHub nedir?',
-            answer: 'StayHub, dünyanın dört bir yanındaki eşsiz konaklama yerlerini keşfetmenize, rezerve etmenize ve güvenle seyahat etmenize olanak tanıyan küresel bir konaklama platformudur.',
+            question: 'Rotaly nedir?',
+            answer: 'Rotaly, dünyanın dört bir yanındaki eşsiz konaklama yerlerini keşfetmenize, rezerve etmenize ve güvenle seyahat etmenize olanak tanıyan küresel bir konaklama platformudur.',
         },
         {
             question: 'Nasıl rezervasyon yaparım?',
@@ -30,12 +30,12 @@ export default function FAQPage() {
             answer: 'Bir ilanı incelerken veya rezervasyon yaptıktan sonra, mesajlar bölümünden veya ilan sayfasındaki iletişim butonu aracılığıyla ev sahibiyle doğrudan konuşabilirsiniz.',
         },
         {
-            question: 'StayHub güvenli mi?',
-            answer: 'Evet. StayHub, hem misafirleri hem de ev sahiplerini koruyan çeşitli güvenlik önlemlerine sahiptir. AirCover koruması sayesinde rezervasyonunuz güvence altındadır.',
+            question: 'Rotaly güvenli mi?',
+            answer: 'Evet. Rotaly, hem misafirleri hem de ev sahiplerini koruyan çeşitli güvenlik önlemlerine sahiptir. AirCover koruması sayesinde rezervasyonunuz güvence altındadır.',
         },
         {
             question: 'Ödeme yöntemleri nelerdir?',
-            answer: 'StayHub üzerinden tüm ana kredi kartları, banka kartları ve belirli bölgelerde yerel ödeme yöntemleri (Apple Pay, Google Pay vb.) ile ödeme yapabilirsiniz.',
+            answer: 'Rotaly üzerinden tüm ana kredi kartları, banka kartları ve belirli bölgelerde yerel ödeme yöntemleri (Apple Pay, Google Pay vb.) ile ödeme yapabilirsiniz.',
         },
     ];
 

@@ -9,7 +9,8 @@ interface LocaleContextValue {
   setLocale: (l: Locale) => void;
 }
 
-const LOCALE_STORAGE_KEY = 'stayhub_locale';
+const LOCALE_STORAGE_KEY = 'rotaly_locale';
+const LEGACY_LOCALE_STORAGE_KEY = 'stayhub_locale';
 
 const LocaleContext = createContext<LocaleContextValue>({
   locale: 'tr',
@@ -23,7 +24,9 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Hydrate locale from previous selection (client only).
     try {
-      const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY) as Locale | null;
+      const stored =
+        (window.localStorage.getItem(LOCALE_STORAGE_KEY) as Locale | null) ??
+        (window.localStorage.getItem(LEGACY_LOCALE_STORAGE_KEY) as Locale | null);
       if (stored && stored in translations) setLocaleState(stored);
     } catch {
       // Ignore storage errors (private mode, disabled storage, etc).

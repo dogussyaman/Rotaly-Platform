@@ -8,7 +8,7 @@ export default function ContactPage() {
     const { t } = useLocale();
 
     const contactMethods = [
-        { label: 'E-posta', value: 'hello@stayhub.com', icon: <Mail className="w-5 h-5" />, href: 'mailto:hello@stayhub.com' },
+        { label: 'E-posta', value: 'hello@rotaly.com', icon: <Mail className="w-5 h-5" />, href: 'mailto:hello@rotaly.com' },
         { label: 'Destek Hattı', value: '+90 216 444 00 00', icon: <Phone className="w-5 h-5" />, href: 'tel:+902164440000' },
         { label: 'Ofis Adresi', value: 'Levent, Büyükdere Cd. No: 12, İstanbul', icon: <MapPin className="w-5 h-5" />, href: '#' },
     ];
@@ -33,7 +33,7 @@ export default function ContactPage() {
                             <a
                                 key={i}
                                 href={method.href}
-                                className="group flex items-center gap-6 p-6 rounded-[2rem] border bg-card hover:border-foreground/20 transition-all hover:bg-muted/50 shadow-sm"
+                                className="group flex items-center gap-6 p-6 rounded-4xl border bg-card hover:border-foreground/20 transition-all hover:bg-muted/50 shadow-sm"
                             >
                                 <div className="w-12 h-12 rounded-2xl bg-foreground text-background flex items-center justify-center group-hover:scale-110 transition-transform">
                                     {method.icon}
@@ -46,7 +46,7 @@ export default function ContactPage() {
                         ))}
                     </div>
 
-                    <div className="bg-secondary p-8 rounded-[2rem] space-y-4">
+                    <div className="bg-secondary p-8 rounded-4xl space-y-4">
                         <h4 className="font-bold text-foreground">Sıkça Sorulan Sorular</h4>
                         <p className="text-sm text-muted-foreground">Aradığınız cevabı belki de çoktan vermişizdir. Yardım merkezimize göz atın.</p>
                         <a href="/faq" className="inline-block font-bold text-sm text-foreground underline underline-offset-4 hover:opacity-70 transition-opacity">FAQ sayfasını gör →</a>

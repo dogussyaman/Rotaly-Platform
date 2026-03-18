@@ -17,7 +17,7 @@ export default function AboutPage() {
     return (
         <ContentLayout
             title={t.aboutTitle as string}
-            subtitle="StayHub olarak dünyayı herkes için daha erişilebilir ve konforlu bir yer haline getirmeyi hedefliyoruz."
+            subtitle="Rotaly olarak dünyayı herkes için daha erişilebilir ve konforlu bir yer haline getirmeyi hedefliyoruz."
         >
             <div className="space-y-20 py-10">
                 {/* Mission */}
@@ -26,7 +26,7 @@ export default function AboutPage() {
                         <div className="space-y-6">
                             <h2 className="text-3xl font-bold text-foreground">Misyonumuz</h2>
                             <p className="text-muted-foreground text-lg leading-relaxed">
-                                StayHub, seyahat etmeyi sadece bir yerden bir yere gitmek değil, yeni kültürler tanımak ve unutulmaz anılar biriktirmek olarak görür. Teknolojiyi ve tasarımı birleştirerek, gezginler ile ev sahipleri arasında güvenli bir köprü kuruyoruz.
+                                Rotaly, seyahat etmeyi sadece bir yerden bir yere gitmek değil, yeni kültürler tanımak ve unutulmaz anılar biriktirmek olarak görür. Teknolojiyi ve tasarımı birleştirerek, gezginler ile ev sahipleri arasında güvenli bir köprü kuruyoruz.
                             </p>
                             <p className="text-muted-foreground text-lg leading-relaxed">
                                 Herkesin hayalindeki konaklamayı bulabileceği, şeffaf ve güvenilir bir ekosistem inşa ediyoruz.
@@ -51,7 +51,7 @@ export default function AboutPage() {
                             2020 yılında sadece birkaç ev ilanıyla başladığımız bu yolculukta, bugün dünyanın dört bir yanındaki milyonlarca insana ulaşıyoruz. İstanbul merkezli bir teknoloji şirketi olarak, seyahat endüstrisinde dijital dönüşümün öncüsü olmaktan gurur duyuyoruz.
                         </p>
                         <p>
-                            Sıradan bir otel odasından ziyade, kendinizi evinizde hissedeceğiniz o özel köşeyi bulmanız için çalışıyoruz. İster bir dağ evi, ister modern bir şehir dairesi; StayHub yanınızda.
+                            Sıradan bir otel odasından ziyade, kendinizi evinizde hissedeceğiniz o özel köşeyi bulmanız için çalışıyoruz. İster bir dağ evi, ister modern bir şehir dairesi; Rotaly yanınızda.
                         </p>
                     </div>
                 </section>

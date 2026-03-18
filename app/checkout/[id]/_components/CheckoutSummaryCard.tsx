@@ -102,7 +102,7 @@ export function CheckoutSummaryCard({
             </span>
           </div>
           <div className="flex justify-between items-center text-muted-foreground">
-            <span className="font-medium">StayHub hizmet bedeli</span>
+            <span className="font-medium">Rotaly hizmet bedeli</span>
             <span className="font-bold text-foreground">
               ₺{serviceFee.toLocaleString('tr-TR')}
             </span>
@@ -125,7 +125,7 @@ export function CheckoutSummaryCard({
         <div className="p-4 bg-muted/30 rounded-2xl text-center space-y-1">
           <ShieldCheck className="w-5 h-5 mx-auto text-muted-foreground" />
           <div className="text-[10px] font-black uppercase text-muted-foreground">
-            StayHub Koruma
+            Rotaly Koruma
           </div>
         </div>
       </div>

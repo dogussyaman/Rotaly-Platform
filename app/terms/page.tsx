@@ -11,11 +11,11 @@ export default function TermsPage() {
     const terms = [
         {
             title: 'Hizmet Kapsamı',
-            content: 'StayHub, ev sahipleri ile misafirleri buluşturan bir platformdur. Rezervasyon sırasında sağlanan her türlü veri ve mülk bilgisi ev sahiplerinin sorumluluğundadır.',
+            content: 'Rotaly, ev sahipleri ile misafirleri buluşturan bir platformdur. Rezervasyon sırasında sağlanan her türlü veri ve mülk bilgisi ev sahiplerinin sorumluluğundadır.',
         },
         {
             title: 'Rezervasyon ve Ödemeler',
-            content: 'Tüm rezervasyonlar StayHub güvenli ödeme sistemi üzerinden gerçekleştirilir. Ödemeler ancak rezervasyon onaylandıktan sonra kesinleşir.',
+            content: 'Tüm rezervasyonlar Rotaly güvenli ödeme sistemi üzerinden gerçekleştirilir. Ödemeler ancak rezervasyon onaylandıktan sonra kesinleşir.',
         },
         {
             title: 'İptal ve Rezervasyon Değişiklikleri',
@@ -27,18 +27,18 @@ export default function TermsPage() {
         },
         {
             title: 'Sorumluluk Reddi',
-            content: 'StayHub, platformdaki ilanların doğruluğunu denetlemek için çalışsa da her zaman tam doğruluğu garanti edemez. Sorumluluk mülk sahiplerindedir.',
+            content: 'Rotaly, platformdaki ilanların doğruluğunu denetlemek için çalışsa da her zaman tam doğruluğu garanti edemez. Sorumluluk mülk sahiplerindedir.',
         },
         {
             title: 'Uyuşmazlıkların Çözümü',
-            content: 'Misafir ve ev sahibi arasındaki uyuşmazlıklarda StayHub arabuluculuk yapmaya çalışır. Mevcut yerel yasalar uyuşmazlığın çözümünde temel alınır.',
+            content: 'Misafir ve ev sahibi arasındaki uyuşmazlıklarda Rotaly arabuluculuk yapmaya çalışır. Mevcut yerel yasalar uyuşmazlığın çözümünde temel alınır.',
         },
     ];
 
     return (
         <ContentLayout
             title={t.termsTitle as string}
-            subtitle="StayHub hizmetlerini kullanırken tabi olduğunuz kuralları ve koşulları içerir."
+            subtitle="Rotaly hizmetlerini kullanırken tabi olduğunuz kuralları ve koşulları içerir."
         >
             <div className="py-10 space-y-16">
                 <section className="bg-foreground text-background rounded-[2.5rem] p-12 relative overflow-hidden">
@@ -49,7 +49,7 @@ export default function TermsPage() {
                             </Badge>
                             <h2 className="text-3xl font-bold text-white max-w-md">Sorumlu ve Güvenilir Bir Platform İçin</h2>
                             <p className="text-gray-400 max-w-sm leading-relaxed">
-                                StayHub topluluğuna katılarak, aşağıda belirtilen hizmet koşullarını kabul etmiş sayılmaktasınız.
+                                Rotaly topluluğuna katılarak, aşağıda belirtilen hizmet koşullarını kabul etmiş sayılmaktasınız.
                             </p>
                         </div>
                         <div className="w-48 h-48 bg-white/5 rounded-full flex items-center justify-center border border-white/10 shrink-0">
@@ -80,7 +80,7 @@ export default function TermsPage() {
 
                 <section className="prose prose-slate max-w-none text-muted-foreground italic text-center text-sm pt-8">
                     <p>
-                        *StayHub bir aracılık hizmeti olup mülklerin doğrudan yönetilmesi veya mülkiyeti ile bir ilişiği yoktur.*
+                        *Rotaly bir aracılık hizmeti olup mülklerin doğrudan yönetilmesi veya mülkiyeti ile bir ilişiği yoktur.*
                     </p>
                 </section>
             </div>

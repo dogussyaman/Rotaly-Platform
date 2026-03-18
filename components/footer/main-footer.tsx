@@ -20,7 +20,7 @@ export function MainFooter() {
         {
             title: t.community as string,
             links: [
-                { label: 'StayHub.org', href: '/community' },
+                { label: 'Rotaly.org', href: '/community' },
                 { label: 'Ayrımcılıkla Mücadele', href: '/anti-discrimination' },
                 { label: 'Arkadaşını Davet Et', href: '/invite' }
             ]

@@ -84,10 +84,10 @@ export function ListingBookingCard({
 
   return (
     <aside className="sticky top-28">
-      <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group min-h-[520px]">
+      <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group min-h-130">
         <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-rose-500 to-amber-500" />
 
-        <div className="flex items-baseline justify-between mb-8 min-h-[96px]">
+        <div className="flex items-baseline justify-between mb-8 min-h-24">
           <div className="space-y-1">
             <div className="text-sm text-muted-foreground line-through opacity-80">
               ₺{baseNightly.toLocaleString('tr-TR')} / {t.listingPerNight}
@@ -245,7 +245,7 @@ export function ListingBookingCard({
       <div className="mt-8 p-6 bg-muted/40 rounded-3xl border border-border/60 flex gap-4 items-start">
         <ShieldCheck className="w-8 h-8 text-emerald-600 shrink-0" />
         <div>
-          <h4 className="font-bold text-sm">StayHub Koruması</h4>
+          <h4 className="font-bold text-sm">Rotaly Koruması</h4>
           <p className="text-xs text-muted-foreground leading-relaxed mt-1">
             Rezervasyonunuz acil durumlara ve ev sahibi iptallerine karşı tam güvence altındadır.
           </p>

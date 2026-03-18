@@ -1,4 +1,4 @@
-# StayHub - Modern Accommodation Rental Platform
+# Rotaly - Modern Accommodation Rental Platform
 
 A premium, full-featured accommodation rental platform built with Next.js 15, React, Framer Motion, Supabase, and Tailwind CSS. Features a sticky search bar, modern UI/UX, user and host dashboards, messaging system, and comprehensive booking management.
 
@@ -99,7 +99,7 @@ scripts/
 1. **Clone and install**
 ```bash
 git clone <repository-url>
-cd stayhub
+cd rotaly-platform
 pnpm install
 ```
 

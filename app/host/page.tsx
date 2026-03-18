@@ -165,10 +165,18 @@ export default function HostLandingPage() {
                 Host kaynaklarını inceleyin veya destek ekibiyle iletişime geçerek hızlıca yayına alın.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
-                <Button asChild variant="outline" className="rounded-xl border-background text-background hover:bg-background hover:text-foreground font-semibold">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="rounded-xl border-background/70 bg-transparent text-background hover:bg-background hover:text-foreground font-semibold"
+                >
                   <Link href="/host/resources">Kaynaklar</Link>
                 </Button>
-                <Button asChild variant="outline" className="rounded-xl border-background text-background hover:bg-background hover:text-foreground font-semibold">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="rounded-xl border-background/70 bg-transparent text-background hover:bg-background hover:text-foreground font-semibold"
+                >
                   <Link href="/host/support">Destek Al</Link>
                 </Button>
               </div>

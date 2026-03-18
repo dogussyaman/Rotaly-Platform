@@ -38,7 +38,7 @@ export default function PrivacyPage() {
             <div className="space-y-16 py-10">
                 <section className="prose prose-slate prose-lg max-w-none">
                     <p className="text-muted-foreground leading-relaxed">
-                        StayHub, kullanıcılarının gizliliğine ve veri güvenliğine yüksek önem vermektedir. Bu gizlilik politikası, hizmetlerimizi kullanırken hangi verilerinizin nasıl toplandığını, kullanıldığını ve korunduğunu açıklamaktadır.
+                        Rotaly, kullanıcılarının gizliliğine ve veri güvenliğine yüksek önem vermektedir. Bu gizlilik politikası, hizmetlerimizi kullanırken hangi verilerinizin nasıl toplandığını, kullanıldığını ve korunduğunu açıklamaktadır.
                     </p>
                 </section>
 
@@ -53,7 +53,7 @@ export default function PrivacyPage() {
                             className="space-y-4"
                         >
                             <h3 className="text-2xl font-bold text-foreground flex items-center gap-3">
-                                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-foreground text-background text-sm flex items-center justify-center font-bold">
+                                <span className="shrink-0 w-8 h-8 rounded-full bg-foreground text-background text-sm flex items-center justify-center font-bold">
                                     {index + 1}
                                 </span>
                                 {section.title}
@@ -68,7 +68,7 @@ export default function PrivacyPage() {
                 <section className="bg-muted p-10 rounded-[2.5rem] mt-20 text-center space-y-6">
                     <h4 className="text-xl font-bold">Sorularınız mı var?</h4>
                     <p className="text-muted-foreground max-w-xl mx-auto">
-                        Gizlilik politikamızla ilgili herhangi bir sorunuz varsa lütfen bize privacy@stayhub.com adresinden ulaşın.
+                        Gizlilik politikamızla ilgili herhangi bir sorunuz varsa lütfen bize privacy@rotaly.com adresinden ulaşın.
                     </p>
                 </section>
             </div>

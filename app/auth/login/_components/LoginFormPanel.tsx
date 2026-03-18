@@ -43,7 +43,7 @@ export function LoginFormPanel({
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
           </div>
-          <span className="font-bold text-lg text-foreground">StayHub</span>
+          <span className="font-bold text-lg text-foreground">Rotaly</span>
         </Link>
         <div className="ml-auto flex items-center gap-4">
           <LanguageSwitcher />
@@ -57,7 +57,7 @@ export function LoginFormPanel({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="w-full max-w-[400px] space-y-8"
+          className="w-full max-w-100 space-y-8"
         >
           <div className="space-y-2">
             <h1 className="text-3xl font-bold tracking-tight text-foreground">{t.loginPageTitle as string}</h1>

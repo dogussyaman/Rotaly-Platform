@@ -22,7 +22,7 @@ export function LoginLeftPanel() {
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
           </div>
-          <span className="font-bold text-2xl text-white tracking-tight">StayHub</span>
+          <span className="font-bold text-2xl text-white tracking-tight">Rotaly</span>
         </Link>
       </div>
       <motion.div

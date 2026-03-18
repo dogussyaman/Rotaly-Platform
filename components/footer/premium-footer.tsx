@@ -139,7 +139,7 @@ export default function PremiumFooter() {
         {
             title: t.community as string || "Topluluk",
             links: [
-                { label: 'StayHub.org', href: '/community' },
+                { label: 'Rotaly.org', href: '/community' },
                 { label: 'Ayrımcılıkla Mücadele', href: '/anti-discrimination' },
                 { label: 'Arkadaşını Davet Et', href: '/invite' }
             ]

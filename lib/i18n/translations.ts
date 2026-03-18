@@ -61,7 +61,7 @@ export const translations = {
     offersSubtitle: 'Belirli tarihlerde indirimli konaklamalar',
     // Host CTA
     hostTitle: 'Evinizi listeleyin ve kazanmaya başlayın',
-    hostSubtitle: 'Evlerini paylaşan ve StayHub ile ekstra gelir elde eden binlerce ev sahibine katılın.',
+    hostSubtitle: 'Evlerini paylaşan ve Rotaly ile ekstra gelir elde eden binlerce ev sahibine katılın.',
     getStarted: 'Başla',
     // Categories
     beachfront: 'Denize Sıfır',
@@ -156,7 +156,7 @@ export const translations = {
     dashboardNoMessagesTitle: 'Henüz mesaj yok',
     dashboardNoMessagesSubtitle: 'Bir ev sahibi veya misafirle konuşma başlatın',
     // Host dashboard
-    hostDashboardTitle: 'StayHub Ev Sahipleri için',
+    hostDashboardTitle: 'Rotaly Ev Sahipleri için',
     hostDashboardNewListing: 'Yeni ilan',
     hostDashboardTotalEarnings: 'Toplam Kazanç',
     hostDashboardThisMonth: 'Bu Ay',
@@ -345,7 +345,7 @@ export const translations = {
       'Ev sahibinin onayını beklemeden, ödemeniz tamamlanır tamamlanmaz rezervasyonun kesinleştiği ilanlardır.',
     ],
     guideProTipBadge: 'Pro İpucu',
-    guideProTipText: 'Ödemeyi her zaman StayHub üzerinden yapın. Dışarıdan ödeme veya link isteyen mesajlar şüpheli olabilir.',
+    guideProTipText: 'Ödemeyi her zaman Rotaly üzerinden yapın. Dışarıdan ödeme veya link isteyen mesajlar şüpheli olabilir.',
     guideNoResultsTitle: 'Sonuç bulunamadı',
     guideNoResultsSubtitle: 'Farklı bir anahtar kelime deneyin veya aramayı kısaltın.',
     // Profile / bookings
@@ -444,8 +444,8 @@ export const translations = {
     support: 'Destek',
     community: 'Topluluk',
     hosting: 'Ev Sahipliği',
-    company: 'StayHub',
-    privacyTerms: '© 2026 StayHub, Inc. · Gizlilik · Kullanım Koşulları',
+    company: 'Rotaly',
+    privacyTerms: '© 2026 Rotaly, Inc. · Gizlilik · Kullanım Koşulları',
     // New pages
     cancellationTitle: 'İptal ve İade Politikası',
     privacyTitle: 'Gizlilik Politikası',
@@ -501,7 +501,7 @@ export const translations = {
     offersTitle: 'Deals',
     offersSubtitle: 'Discounted stays for select dates',
     hostTitle: 'List your place and start earning',
-    hostSubtitle: 'Join thousands of hosts sharing their homes and earning extra income with StayHub.',
+    hostSubtitle: 'Join thousands of hosts sharing their homes and earning extra income with Rotaly.',
     getStarted: 'Get started',
     beachfront: 'Beachfront',
     lakefront: 'Lakefront',
@@ -593,7 +593,7 @@ export const translations = {
     dashboardNoMessagesTitle: 'No messages yet',
     dashboardNoMessagesSubtitle: 'Start a conversation with a host or guest',
     // Host dashboard
-    hostDashboardTitle: 'StayHub for Hosts',
+    hostDashboardTitle: 'Rotaly for Hosts',
     hostDashboardNewListing: 'New Listing',
     hostDashboardTotalEarnings: 'Total Earnings',
     hostDashboardThisMonth: 'This Month',
@@ -781,7 +781,7 @@ export const translations = {
       'It means your booking is confirmed as soon as your payment is completed, without waiting for host approval.',
     ],
     guideProTipBadge: 'Pro tip',
-    guideProTipText: 'Always pay through StayHub. Off-platform payment requests or links can be suspicious.',
+    guideProTipText: 'Always pay through Rotaly. Off-platform payment requests or links can be suspicious.',
     guideNoResultsTitle: 'No results found',
     guideNoResultsSubtitle: 'Try a different keyword or shorten your search.',
     // Profile / bookings
@@ -880,8 +880,8 @@ export const translations = {
     support: 'Support',
     community: 'Community',
     hosting: 'Hosting',
-    company: 'StayHub',
-    privacyTerms: '© 2026 StayHub, Inc. · Privacy · Terms',
+    company: 'Rotaly',
+    privacyTerms: '© 2026 Rotaly, Inc. · Privacy · Terms',
     // New pages
     cancellationTitle: 'Cancellation and Refund Policy',
     privacyTitle: 'Privacy Policy',
@@ -1029,7 +1029,7 @@ export const translations = {
     dashboardNoMessagesTitle: 'Noch keine Nachrichten',
     dashboardNoMessagesSubtitle: 'Starte eine Unterhaltung mit einem Gastgeber oder Gast',
     // Host dashboard
-    hostDashboardTitle: 'StayHub für Gastgeber',
+    hostDashboardTitle: 'Rotaly für Gastgeber',
     hostDashboardNewListing: 'Neue Unterkunft',
     hostDashboardTotalEarnings: 'Gesamteinnahmen',
     hostDashboardThisMonth: 'Diesen Monat',
@@ -1217,7 +1217,7 @@ export const translations = {
       'Die Buchung ist bestätigt, sobald die Zahlung abgeschlossen ist, ohne Host-Freigabe.',
     ],
     guideProTipBadge: 'Pro-Tipp',
-    guideProTipText: 'Zahle immer über StayHub. Externe Zahlungslinks oder -anfragen können betrügerisch sein.',
+    guideProTipText: 'Zahle immer über Rotaly. Externe Zahlungslinks oder -anfragen können betrügerisch sein.',
     guideNoResultsTitle: 'Keine Ergebnisse',
     guideNoResultsSubtitle: 'Versuche ein anderes Stichwort oder kürze die Suche.',
     // Profile / bookings
@@ -1316,8 +1316,8 @@ export const translations = {
     support: 'Support',
     community: 'Community',
     hosting: 'Gastgeber werden',
-    company: 'StayHub',
-    privacyTerms: '© 2026 StayHub, Inc. · Datenschutz · AGB',
+    company: 'Rotaly',
+    privacyTerms: '© 2026 Rotaly, Inc. · Datenschutz · AGB',
   },
   fr: {
     stays: 'Séjours',
@@ -1457,7 +1457,7 @@ export const translations = {
     dashboardNoMessagesTitle: 'Aucun message pour le moment',
     dashboardNoMessagesSubtitle: "Commencez une conversation avec un hôte ou un voyageur",
     // Host dashboard
-    hostDashboardTitle: 'StayHub pour les hôtes',
+    hostDashboardTitle: 'Rotaly pour les hôtes',
     hostDashboardNewListing: 'Nouvelle annonce',
     hostDashboardTotalEarnings: 'Gains totaux',
     hostDashboardThisMonth: 'Ce mois-ci',
@@ -1645,7 +1645,7 @@ export const translations = {
       'La réservation est confirmée dès que le paiement est terminé, sans attente de validation.',
     ],
     guideProTipBadge: 'Conseil pro',
-    guideProTipText: 'Payez toujours via StayHub. Les demandes de paiement hors plateforme peuvent être suspectes.',
+    guideProTipText: 'Payez toujours via Rotaly. Les demandes de paiement hors plateforme peuvent être suspectes.',
     guideNoResultsTitle: 'Aucun résultat',
     guideNoResultsSubtitle: 'Essayez un autre mot-clé ou raccourcissez la recherche.',
     // Profile / bookings
@@ -1744,8 +1744,8 @@ export const translations = {
     support: 'Assistance',
     community: 'Communauté',
     hosting: 'Hébergement',
-    company: 'StayHub',
-    privacyTerms: '© 2026 StayHub, Inc. · Confidentialité · Conditions',
+    company: 'Rotaly',
+    privacyTerms: '© 2026 Rotaly, Inc. · Confidentialité · Conditions',
   },
 } satisfies Record<Locale, Record<string, string | string[]>>;
 
