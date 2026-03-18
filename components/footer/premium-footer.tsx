@@ -1,73 +1,82 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Mail, Phone, Instagram, Facebook, Twitter, Globe, ChevronDown } from 'lucide-react';
+import { Mail, Phone, Instagram, Facebook, Twitter, Globe } from 'lucide-react';
 import { useLocale } from '@/lib/i18n/locale-context';
+import { useRef } from 'react';
+import { useInView } from 'framer-motion';
 
 const SKY_GRADIENT = "bg-gradient-to-b from-sky-100 via-orange-100 to-orange-200"; 
 
-// Gerçekçi Güneş Komponenti - Aşağıdan yukarı yükselir ve döner
-const Sun = () => (
+// Gerçekçi güneş: alttan yükselir, tam görünür, daha kompakt boyut
+const Sun = ({ shouldAnimate }: { shouldAnimate: boolean }) => (
     <motion.div
-        initial={{ y: 400, opacity: 0, scale: 0.8, rotate: -45 }}
-        whileInView={{ y: 0, opacity: 1, scale: 1, rotate: 0 }}
-        viewport={{ once: true, margin: "-200px" }}
-        transition={{ 
-            duration: 3,
-            ease: [0.16, 1, 0.3, 1],
-            rotate: {
-                duration: 4,
-                ease: "easeInOut"
-            }
-        }}
-        className="absolute left-1/2 -translate-x-1/2 bottom-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] pointer-events-none z-0"
+        initial={{ y: 130, opacity: 0, scale: 0.9 }}
+        animate={
+            shouldAnimate
+                ? { y: [0, -5, 0], opacity: 1, scale: 1 }
+                : { y: 130, opacity: 0, scale: 0.9 }
+        }
+        transition={
+            shouldAnimate
+                ? {
+                    delay: 1.2,
+                    duration: 2.2,
+                    ease: [0.16, 1, 0.3, 1],
+                    y: {
+                        duration: 4.6,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                    }
+                }
+                : { duration: 0.2 }
+        }
+        className="absolute left-6 sm:left-10 md:left-14 bottom-5 w-44 md:w-56 h-44 md:h-56 pointer-events-none z-0"
     >
-        {/* Dış Işık Halkası - Atmosfer */}
-        <div className="absolute inset-0 bg-gradient-radial from-orange-300/30 via-amber-400/20 to-transparent blur-[100px] rounded-full animate-pulse" 
-             style={{ animationDuration: '4s' }} 
+        {/* Dış atmosfer glow */}
+        <div className="absolute inset-0 bg-gradient-radial from-amber-300/35 via-orange-300/20 to-transparent blur-[56px] rounded-full animate-pulse" 
+             style={{ animationDuration: '4.2s' }} 
         />
         
-        {/* Orta Işık Katmanı */}
-        <div className="absolute inset-[8%] bg-gradient-radial from-amber-400/40 via-orange-500/30 to-transparent blur-[60px] rounded-full" />
+        {/* Orta ışık katmanı */}
+        <div className="absolute inset-[7%] bg-gradient-radial from-yellow-300/35 via-orange-400/28 to-transparent blur-[36px] rounded-full" />
         
-        {/* Güneş Gövdesi - Gerçekçi Gradyan */}
-        <div className="absolute inset-[25%] rounded-full overflow-hidden shadow-[0_0_120px_rgba(251,146,60,0.6)]">
-            {/* Ana Güneş Yüzeyi */}
-            <div className="absolute inset-0 bg-gradient-to-br from-yellow-200 via-orange-400 to-red-500 rounded-full" />
+        {/* Güneş gövdesi */}
+        <div className="absolute inset-[24%] rounded-full overflow-hidden shadow-[0_0_70px_rgba(251,146,60,0.45)]">
+            {/* Ana yüzey */}
+            <div className="absolute inset-0 bg-radial from-yellow-100 via-orange-300 to-orange-500 rounded-full" />
             
-            {/* Parlama Efekti */}
-            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/30 to-white/50 rounded-full blur-sm" />
+            {/* Parlama */}
+            <div className="absolute inset-0 bg-linear-to-t from-transparent via-white/30 to-white/50 rounded-full blur-sm" />
             
-            {/* Güneş Lekeleri */}
-            <div className="absolute top-[20%] left-[30%] w-8 h-8 bg-orange-600/40 rounded-full blur-md" />
-            <div className="absolute top-[60%] right-[25%] w-12 h-12 bg-orange-700/30 rounded-full blur-lg" />
-            <div className="absolute bottom-[30%] left-[40%] w-6 h-6 bg-red-600/30 rounded-full blur-sm" />
+            {/* Hafif yüzey dokusu */}
+            <div className="absolute top-[23%] left-[28%] w-4 h-4 bg-orange-700/30 rounded-full blur-[3px]" />
+            <div className="absolute top-[58%] right-[24%] w-6 h-6 bg-orange-800/20 rounded-full blur-xs" />
+            <div className="absolute bottom-[30%] left-[43%] w-3 h-3 bg-red-700/25 rounded-full blur-[2px]" />
             
-            {/* Merkez Parlaklık */}
+            {/* Merkez aydınlık */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-gradient-radial from-yellow-100 via-amber-300/50 to-transparent rounded-full blur-xl" />
         </div>
         
-        {/* İç Beyaz Parlama */}
-        <div className="absolute inset-[35%] bg-white/40 rounded-full blur-2xl" />
+        {/* İç beyaz parlama */}
+        <div className="absolute inset-[37%] bg-white/35 rounded-full blur-xl" />
         
-        {/* Güneş Işınları */}
-        {[...Array(12)].map((_, i) => (
+        {/* Yumuşak ışınlar */}
+        {[...Array(10)].map((_, i) => (
             <motion.div
                 key={i}
                 initial={{ opacity: 0, scale: 0 }}
-                whileInView={{ opacity: [0.3, 0.6, 0.3], scale: [0.8, 1, 0.8] }}
-                viewport={{ once: true }}
+                animate={shouldAnimate ? { opacity: [0.3, 0.6, 0.3], scale: [0.8, 1, 0.8] } : { opacity: 0, scale: 0 }}
                 transition={{
-                    duration: 3,
-                    delay: i * 0.1,
+                    duration: 2.8,
+                    delay: i * 0.08,
                     repeat: Infinity,
-                    repeatDelay: 2
+                    repeatDelay: 1.8
                 }}
-                className="absolute top-1/2 left-1/2 w-1 h-[80px] md:h-[120px] bg-gradient-to-t from-amber-400/60 to-transparent origin-bottom blur-sm"
+                className="absolute top-1/2 left-1/2 w-0.5 h-14 md:h-16 bg-linear-to-t from-amber-300/55 to-transparent origin-bottom blur-[1px]"
                 style={{
-                    transform: `translate(-50%, -100%) rotate(${i * 30}deg)`,
+                    transform: `translate(-50%, -100%) rotate(${i * 36}deg)`,
                 }}
             />
         ))}
@@ -94,18 +103,18 @@ const Sparkle = ({ x, y, delay }: { x: string; y: string; delay: number }) => (
 // Bulut komponenti
 const Cloud = ({ delay = 0, duration = 20, size = 1, opacity = 0.8, x = 0, y = 0 }) => (
     <motion.div
-        initial={{ x: 150, opacity: 0 }}
-        whileInView={{ x: 0, opacity: 1 }}
+        initial={{ x: 240, opacity: 0 }}
+        whileInView={{ x: 0, opacity }}
         viewport={{ once: true }}
         transition={{ duration: 1.5, delay, ease: "easeOut" }}
         className="absolute pointer-events-none z-10"
-        style={{ right: `${x}%`, top: `${y}%`, scale: size, opacity }}
+        style={{ right: `${x}%`, top: `${y}%`, scale: size }}
     >
         <motion.div
-            animate={{ x: [0, 30, 0], y: [0, -10, 0] }}
+            animate={{ x: [0, -22, 0, -10, 0], y: [0, -9, -2, -11, 0] }}
             transition={{ duration, repeat: Infinity, ease: "easeInOut" }}
         >
-            <svg width="240" height="120" viewBox="0 0 180 80" fill="white" className="filter blur-[2px] opacity-60 drop-shadow-lg">
+            <svg width="260" height="130" viewBox="0 0 180 80" fill="white" className="filter blur-[1px] opacity-95 drop-shadow-2xl">
                 <path d="M25 60C25 48.954 33.954 40 45 40C48.909 40 52.542 41.149 55.6 43.137C59.172 34.381 67.83 28 78 28C89.598 28 99.373 36.09 101.6 47.038C104.18 45.754 107.04 45 110 45C119.389 45 127 52.611 127 62H25Z" fillOpacity="0.8" />
             </svg>
         </motion.div>
@@ -114,6 +123,8 @@ const Cloud = ({ delay = 0, duration = 20, size = 1, opacity = 0.8, x = 0, y = 0
 
 export default function PremiumFooter() {
     const { t } = useLocale();
+    const triggerRef = useRef<HTMLDivElement | null>(null);
+    const footerInView = useInView(triggerRef, { once: true, amount: 0.65 });
 
     const sections = [
         {
@@ -150,7 +161,8 @@ export default function PremiumFooter() {
     ];
 
     return (
-        <footer className="relative w-full min-h-screen flex flex-col justify-end overflow-hidden text-slate-800 border-t border-slate-200/50">
+        <footer className="relative w-full overflow-hidden text-slate-800 border-t border-slate-200/50">
+            <div ref={triggerRef} className="absolute inset-x-0 top-0 h-2" />
             {/* Animasyonlu Arka Plan */}
             <div className={`absolute inset-0 z-0 ${SKY_GRADIENT} opacity-40`} />
             
@@ -161,7 +173,7 @@ export default function PremiumFooter() {
             
             {/* Arka Plan Animasyonları (Güneş & Bulutlar) */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <Sun />
+                <Sun shouldAnimate={footerInView} />
                 
                 {/* Yıldız Efektleri */}
                 <Sparkle x="15%" y="20%" delay={0.5} />
@@ -171,14 +183,14 @@ export default function PremiumFooter() {
                 <Sparkle x="90%" y="60%" delay={1.5} />
 
                 {/* Bulutlar - kenarlarda */}
-                <Cloud x={5} y={15} size={1} delay={0.4} duration={45} opacity={0.35} />
-                <Cloud x={-5} y={40} size={1.5} delay={0.8} duration={35} opacity={0.25} />
-                <Cloud x={10} y={65} size={0.9} delay={1.2} duration={40} opacity={0.3} />
+                <Cloud x={2} y={14} size={1.1} delay={0.4} duration={30} opacity={0.62} />
+                <Cloud x={-8} y={38} size={1.35} delay={0.8} duration={24} opacity={0.5} />
+                <Cloud x={8} y={63} size={1} delay={1.2} duration={28} opacity={0.58} />
             </div>
 
-            <div className="relative z-10 max-w-7xl mx-auto px-6 w-full pb-0">
+            <div className="relative z-10 max-w-7xl mx-auto px-6 w-full pb-2">
                 {/* İçerik Bölümü */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-12 md:gap-16 mb-16 pt-20">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 md:gap-10 mb-8 pt-8 md:pt-10">
                     {/* Marka Kolonu */}
                     <div className="space-y-8">
                         <div className="flex items-center gap-3 group">
@@ -219,7 +231,7 @@ export default function PremiumFooter() {
                                             className="text-slate-500 hover:text-orange-500 transition-colors text-base font-bold relative group w-fit block"
                                         >
                                             {link.label}
-                                            <span className="absolute -bottom-1 left-0 w-0 h-[3px] bg-orange-400/30 transition-all duration-300 group-hover:w-full rounded-full" />
+                                            <span className="absolute -bottom-1 left-0 w-0 h-0.75 bg-orange-400/30 transition-all duration-300 group-hover:w-full rounded-full" />
                                         </Link>
                                     </li>
                                 ))}
@@ -252,10 +264,10 @@ export default function PremiumFooter() {
             <div className="relative z-10 w-full bg-white/40 backdrop-blur-2xl border-t border-slate-200/50 py-8">
                 <div className="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row justify-between items-center gap-8">
                     <div className="flex flex-col md:flex-row items-center gap-6">
-                        <p className="text-slate-600 text-[11px] font-black tracking-[0.1em]">
+                        <p className="text-slate-600 text-[11px] font-black tracking-widest">
                             &copy; {new Date().getFullYear()} ROTALY PLATFORM. TÜM HAKLAR SAKLIDIR.
                         </p>
-                        <div className="hidden md:block w-[1px] h-5 bg-slate-300/50" />
+                        <div className="hidden md:block w-px h-5 bg-slate-300/50" />
                         <div className="flex gap-6">
                             <Link href="/privacy" className="text-[10px] font-black text-slate-400 hover:text-slate-900 transition-colors tracking-[0.2em]">GİZLİLİK</Link>
                             <Link href="/terms" className="text-[10px] font-black text-slate-400 hover:text-slate-900 transition-colors tracking-[0.2em]">ŞARTLAR</Link>
@@ -268,7 +280,7 @@ export default function PremiumFooter() {
                             <Globe size={16} className="text-orange-500" />
                             TÜRKÇE (TR)
                         </button>
-                        <div className="w-[1px] h-5 bg-slate-300/50" />
+                        <div className="w-px h-5 bg-slate-300/50" />
                         <button className="flex items-center gap-2 px-5 py-2.5 text-xs font-black text-slate-700 hover:bg-white rounded-2xl transition-all shadow-sm hover:shadow-lg">
                             TRY (₺)
                         </button>
@@ -277,7 +289,7 @@ export default function PremiumFooter() {
             </div>
             
             {/* Alt Işık Efekti */}
-            <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-r from-orange-400/30 via-amber-400/30 to-orange-400/30 blur-[60px] pointer-events-none opacity-50" />
+            <div className="absolute bottom-0 inset-x-0 h-10 bg-linear-to-r from-orange-400/30 via-amber-400/30 to-orange-400/30 blur-[60px] pointer-events-none opacity-50" />
         </footer>
     );
 }

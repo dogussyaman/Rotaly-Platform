@@ -51,14 +51,27 @@ function CheckoutPageContent({ id }: { id: string }) {
   const toParam = searchParams.get('to');
   const guestsParam = searchParams.get('guests');
 
-  const selectedCheckIn = fromParam ? new Date(fromParam) : null;
-  const selectedCheckOut = toParam ? new Date(toParam) : null;
-
-  let nights = 5;
-  if (selectedCheckIn && selectedCheckOut) {
-    const diffMs = Math.abs(selectedCheckOut.getTime() - selectedCheckIn.getTime());
-    nights = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+  function parseYmd(ymd: string): Date | null {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+    if (!m) return null;
+    const y = Number(m[1]);
+    const mo = Number(m[2]) - 1;
+    const d = Number(m[3]);
+    if (!Number.isFinite(y) || !Number.isFinite(mo) || !Number.isFinite(d)) return null;
+    return new Date(Date.UTC(y, mo, d, 12, 0, 0));
   }
+
+  const selectedCheckIn = fromParam ? parseYmd(fromParam) : null;
+  const selectedCheckOut = toParam ? parseYmd(toParam) : null;
+  const hasValidStayDates =
+    !!selectedCheckIn && !!selectedCheckOut && selectedCheckOut.getTime() > selectedCheckIn.getTime();
+
+  const nights = hasValidStayDates
+    ? Math.max(1, Math.ceil((selectedCheckOut.getTime() - selectedCheckIn.getTime()) / (1000 * 60 * 60 * 24)))
+    : 0;
+
+  const checkInStr = selectedCheckIn ? selectedCheckIn.toISOString().slice(0, 10) : null;
+  const checkOutStr = selectedCheckOut ? selectedCheckOut.toISOString().slice(0, 10) : null;
 
   const guests = guestsParam ? Number.parseInt(guestsParam, 10) || 2 : 2;
 
@@ -91,12 +104,12 @@ function CheckoutPageContent({ id }: { id: string }) {
   }, [id]);
 
   useEffect(() => {
-    if (!listing || !fromParam || !toParam) {
+    if (!listing || !hasValidStayDates || !checkInStr || !checkOutStr) {
       setPriceBreakdown(null);
       return;
     }
     const requestId = ++priceRequestIdRef.current;
-    getPriceBreakdown(listing, fromParam, toParam, guests)
+    getPriceBreakdown(listing, checkInStr, checkOutStr, guests)
       .then((b) => {
         if (requestId !== priceRequestIdRef.current || !b) return;
         setPriceBreakdown({
@@ -111,7 +124,7 @@ function CheckoutPageContent({ id }: { id: string }) {
         if (requestId !== priceRequestIdRef.current) return;
         setPriceBreakdown(null);
       });
-  }, [listing?.id, fromParam, toParam, guests]);
+  }, [listing?.id, hasValidStayDates, checkInStr, checkOutStr, guests]);
 
   const selectedSlot = CHECK_IN_SLOTS.find((s) => s.key === checkInSlotKey) ?? null;
 
@@ -127,11 +140,14 @@ function CheckoutPageContent({ id }: { id: string }) {
       return;
     }
 
-    const now = new Date();
-    const fallbackCheckIn = now;
-    const fallbackCheckOut = new Date(now.getTime() + nights * 24 * 60 * 60 * 1000);
-    const checkIn = selectedCheckIn ?? fallbackCheckIn;
-    const checkOut = selectedCheckOut ?? fallbackCheckOut;
+    if (!hasValidStayDates || !selectedCheckIn || !selectedCheckOut) {
+      setErrorMessage('Geçerli giriş ve çıkış tarihleri seçmelisiniz.');
+      setSubmitting(false);
+      return;
+    }
+
+    const checkIn = selectedCheckIn;
+    const checkOut = selectedCheckOut;
 
     const available = await isListingAvailable(listing.id, checkIn, checkOut);
     if (!available) {
@@ -227,7 +243,8 @@ function CheckoutPageContent({ id }: { id: string }) {
                         submitting ||
                         !profile ||
                         success ||
-                        (!!fromParam && !!toParam && !priceBreakdown)
+                        !hasValidStayDates ||
+                        (!priceBreakdown && !!checkInStr && !!checkOutStr)
                       }
                       className="w-full h-16 rounded-3xl bg-foreground text-background font-black text-xl hover:bg-foreground/85 transition-transform active:scale-95 shadow-2xl shadow-foreground/10"
                     >
@@ -245,9 +262,14 @@ function CheckoutPageContent({ id }: { id: string }) {
                         'Rezervasyonu Tamamla ve Öde'
                       )}
                     </Button>
-                    {fromParam && toParam && !priceBreakdown && listing && (
+                    {hasValidStayDates && !priceBreakdown && listing && (
                       <p className="text-xs text-muted-foreground text-center">
                         Fiyat hesaplanıyor...
+                      </p>
+                    )}
+                    {!hasValidStayDates && (
+                      <p className="text-xs text-red-500 text-center">
+                        Rezervasyona devam etmek için geçerli giriş ve çıkış tarihleri seçin.
                       </p>
                     )}
                     {errorMessage && (

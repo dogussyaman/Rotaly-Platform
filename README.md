@@ -84,7 +84,7 @@ lib/
 scripts/
 ├── 001_create_tables.sql      # Database schema
 ├── 002_create_rls_policies.sql # Row-level security
-└── 003_create_triggers_and_seed.sql # Triggers & seed data
+└── ...                         # Continue running scripts in numeric order
 ```
 
 ## Getting Started
@@ -112,10 +112,10 @@ NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000
 ```
 
 3. **Setup database**
-Run the SQL migration scripts in your Supabase dashboard:
+Run all SQL scripts in the `scripts/` folder in numeric order (001 → latest), including booking integrity guards:
 - Execute `scripts/001_create_tables.sql`
 - Execute `scripts/002_create_rls_policies.sql`
-- Execute `scripts/003_create_triggers_and_seed.sql`
+- Execute remaining scripts sequentially up to `scripts/016_booking_integrity_guards.sql`
 
 4. **Run development server**
 ```bash

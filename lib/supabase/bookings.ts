@@ -266,6 +266,57 @@ export async function fetchListingById(id: string): Promise<ListingDetail | null
 export async function createBooking(input: CreateBookingInput): Promise<{ id: string } | null> {
   const supabase = createClient();
 
+  const checkInDate = input.checkIn instanceof Date ? input.checkIn : new Date(input.checkIn);
+  const checkOutDate = input.checkOut instanceof Date ? input.checkOut : new Date(input.checkOut);
+
+  if (Number.isNaN(checkInDate.getTime()) || Number.isNaN(checkOutDate.getTime())) {
+    console.warn('createBooking: invalid date payload');
+    return null;
+  }
+
+  const checkInStr = checkInDate.toISOString().slice(0, 10);
+  const checkOutStr = checkOutDate.toISOString().slice(0, 10);
+
+  if (checkOutStr <= checkInStr) {
+    console.warn('createBooking: check_out must be after check_in');
+    return null;
+  }
+
+  if (!Number.isFinite(input.guestsCount) || input.guestsCount < 1) {
+    console.warn('createBooking: guests_count must be >= 1');
+    return null;
+  }
+
+  if (!Number.isFinite(input.totalPrice) || input.totalPrice < 0) {
+    console.warn('createBooking: total_price must be >= 0');
+    return null;
+  }
+
+  const available = await isListingAvailable(input.listingId, checkInDate, checkOutDate);
+  if (!available) {
+    console.warn('createBooking: listing is not available in selected date range');
+    return null;
+  }
+
+  const { data: blockedDays, error: blockedDaysError } = await supabase
+    .from('availability_calendar')
+    .select('date')
+    .eq('listing_id', input.listingId)
+    .eq('is_available', false)
+    .gte('date', checkInStr)
+    .lt('date', checkOutStr)
+    .limit(1);
+
+  if (blockedDaysError) {
+    console.error('createBooking availability check error:', blockedDaysError.message);
+    return null;
+  }
+
+  if ((blockedDays ?? []).length > 0) {
+    console.warn('createBooking: listing has blocked dates in selected range');
+    return null;
+  }
+
   const pointsRedeemed = input.pointsRedeemed ?? 0;
   const discountTotal = input.discountTotal ?? 0;
   const finalPrice = Math.max(0, input.totalPrice - discountTotal);
@@ -275,8 +326,8 @@ export async function createBooking(input: CreateBookingInput): Promise<{ id: st
     .insert({
       listing_id: input.listingId,
       guest_id: input.guestId,
-      check_in: input.checkIn.toISOString().slice(0, 10),
-      check_out: input.checkOut.toISOString().slice(0, 10),
+      check_in: checkInStr,
+      check_out: checkOutStr,
       guests_count: input.guestsCount,
       total_price: input.totalPrice,
       final_price: finalPrice,

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Calendar, Gift, Home, MessageSquare, Star, Users, Loader2, ArrowRight, CheckCircle2, TicketPercent } from 'lucide-react';
+import { Calendar, Gift, Home, MessageSquare, Star, Users, Loader2, ArrowRight, CheckCircle2, TicketPercent, Clock3, ClipboardCheck, MessageCircleMore, CalendarCheck2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useAppSelector } from '@/lib/store/hooks';
@@ -94,6 +94,12 @@ export function DashboardOverview() {
     .filter((b) => b.status === 'confirmed' && new Date(b.checkIn) >= new Date())
     .sort((a, b) => new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime())
     .slice(0, 5);
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const pendingBookingsCount = hostBookings.filter((b) => b.status === 'pending').length;
+  const todayCheckinsCount = hostBookings.filter(
+    (b) => b.status === 'confirmed' && b.checkIn.slice(0, 10) === todayStr,
+  ).length;
 
   const stats =
     role === 'admin'
@@ -195,7 +201,7 @@ export function DashboardOverview() {
 
   if (loading) {
     return (
-      <div className="flex h-[400px] w-full items-center justify-center">
+      <div className="flex h-100 w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -210,6 +216,68 @@ export function DashboardOverview() {
           ))}
         </div>
       </Section>
+
+      {role === 'host' && (
+        <Section title="" description="">
+          <div className="rounded-xl border border-border/70 bg-card/90 p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] sm:p-5">
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Bugün için hızlı erişim</h3>
+                <p className="mt-0.5 text-xs text-muted-foreground">En çok kullanılan işlemler tek alanda</p>
+              </div>
+              <Clock3 className="h-4 w-4 text-primary" />
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+              <Link
+                href="/dashboard/bookings?status=pending"
+                className="flex items-center justify-between rounded-lg border border-border/70 bg-muted/40 px-3 py-2.5 transition-colors hover:bg-accent/60"
+              >
+                <div className="flex items-center gap-2">
+                  <ClipboardCheck className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">Onay Bekleyenler</span>
+                </div>
+                <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">{pendingBookingsCount}</span>
+              </Link>
+
+              <Link
+                href="/dashboard/bookings"
+                className="flex items-center justify-between rounded-lg border border-border/70 bg-muted/40 px-3 py-2.5 transition-colors hover:bg-accent/60"
+              >
+                <div className="flex items-center gap-2">
+                  <CalendarCheck2 className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">Bugünkü Girişler</span>
+                </div>
+                <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">{todayCheckinsCount}</span>
+              </Link>
+
+              <Link
+                href="/dashboard/messages"
+                className="flex items-center justify-between rounded-lg border border-border/70 bg-muted/40 px-3 py-2.5 transition-colors hover:bg-accent/60"
+              >
+                <div className="flex items-center gap-2">
+                  <MessageCircleMore className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">Mesaj Merkezi</span>
+                </div>
+                <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                  {hostStats?.unreadMessages ?? 0}
+                </span>
+              </Link>
+
+              <Link
+                href="/dashboard/availability"
+                className="flex items-center justify-between rounded-lg border border-border/70 bg-muted/40 px-3 py-2.5 transition-colors hover:bg-accent/60"
+              >
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">Takvim & Fiyat</span>
+                </div>
+                <ArrowRight className="h-4 w-4 text-primary" />
+              </Link>
+            </div>
+          </div>
+        </Section>
+      )}
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <div className="xl:col-span-2 space-y-4">
@@ -255,7 +323,7 @@ export function DashboardOverview() {
                 </div>
               </div>
             ) : (
-              <div className="flex h-[200px] w-full items-center justify-center rounded-xl border border-dashed border-border/70 bg-muted/20">
+              <div className="flex h-50 w-full items-center justify-center rounded-xl border border-dashed border-border/70 bg-muted/20">
                 <p className="text-sm text-muted-foreground">Takvim ev sahibi panelinde görünür.</p>
               </div>
             )}
@@ -286,7 +354,7 @@ export function DashboardOverview() {
         </div>
 
         <div className="space-y-4">
-          <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-br from-primary to-primary/80 p-5 text-primary-foreground shadow-[0_6px_18px_-6px_rgba(13,148,136,0.25)] sm:p-6">
+          <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-linear-to-br from-primary to-primary/80 p-5 text-primary-foreground shadow-[0_6px_18px_-6px_rgba(13,148,136,0.25)] sm:p-6">
             <div className="relative z-10">
               <h3 className="text-sm font-semibold">Hızlı İşlemler</h3>
               <p className="mt-0.5 text-xs text-primary-foreground/70">İşlemlerinizi hızlıca gerçekleştirin</p>

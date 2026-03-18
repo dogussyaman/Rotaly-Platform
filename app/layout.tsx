@@ -5,7 +5,7 @@ import { LocaleProvider } from '@/lib/i18n/locale-context'
 import { ReduxProvider } from '@/components/providers/redux-provider'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
-import PremiumFooter from '@/components/footer/premium-footer'
+import Footer from '@/components/layout/footer'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -46,7 +46,7 @@ export default function RootLayout({
           <LocaleProvider>
             <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
               {children}
-              <PremiumFooter />
+              <Footer />
               <Toaster richColors closeButton />
             </ThemeProvider>
           </LocaleProvider>

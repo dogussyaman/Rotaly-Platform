@@ -33,17 +33,21 @@ export function NavMain({
           <SidebarMenuItem className="flex justify-center">
             {/* Expanded: full pill button */}
             <Button
+              asChild
               variant="secondary"
               className={cn(
                 "w-full font-semibold rounded-xl gap-2 shadow-sm h-9 px-3 text-[12px]",
                 "group-data-[collapsible=icon]:hidden",
               )}
             >
-              <PlusCircleIcon className="size-4 shrink-0" />
-              <span>Hızlı Oluştur</span>
+              <Link href="/dashboard/listings/new" className="flex items-center gap-2">
+                <PlusCircleIcon className="size-4 shrink-0" />
+                <span>Hızlı Oluştur</span>
+              </Link>
             </Button>
             {/* Collapsed: icon-only */}
             <SidebarMenuButton
+              asChild
               tooltip="Hızlı Oluştur"
               className={cn(
                 "hidden group-data-[collapsible=icon]:flex",
@@ -51,7 +55,9 @@ export function NavMain({
                 "bg-sidebar-accent text-sidebar-accent-foreground rounded-xl hover:bg-sidebar-accent/80 transition-colors",
               )}
             >
-              <PlusCircleIcon className="size-4" />
+              <Link href="/dashboard/listings/new">
+                <PlusCircleIcon className="size-4" />
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -93,7 +99,7 @@ export function NavMain({
                       className={cn(
                         "text-[13px] tracking-tight whitespace-nowrap overflow-hidden",
                         "transition-[opacity,max-width] duration-200 ease-in-out",
-                        "max-w-[160px] opacity-100",
+                        "max-w-40 opacity-100",
                         "group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0",
                         isActive ? "font-bold" : "font-semibold",
                       )}
