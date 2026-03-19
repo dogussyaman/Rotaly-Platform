@@ -13,19 +13,25 @@ export type CouponValidationResult =
   | { valid: false; error: string };
 
 /**
- * Kupon kodunu doğrular. Aktiflik, süre, min tutar ve tekrar kullanım kontrolü yapar.
+ * Kupon kodunu doğrular.
+ * Aktiflik, süre, min tutar, tekrar kullanım ve host eşleşmesi kontrolü yapar.
+ *
+ * @param listingId - Rezerve edilecek ilanın ID'si. Kupona host_id bağlıysa
+ *   bu ilanın aynı hosta ait olduğu doğrulanır; böylece başka host'un
+ *   kuponunun haksız kullanımı engellenir.
  */
 export async function validateCoupon(
   code: string,
   userId: string,
   bookingTotal: number,
+  listingId?: string,
 ): Promise<CouponValidationResult> {
   const supabase = createClient();
   const today = new Date().toISOString().slice(0, 10);
 
   const { data, error } = await supabase
     .from('coupons')
-    .select('id, code, discount_type, discount_value, min_booking_total, expires_at, is_active')
+    .select('id, code, discount_type, discount_value, min_booking_total, expires_at, is_active, host_id')
     .eq('code', code.trim().toUpperCase())
     .maybeSingle();
 
@@ -51,6 +57,19 @@ export async function validateCoupon(
       valid: false,
       error: `Bu kupon için minimum rezervasyon tutarı ₺${Number(data.min_booking_total).toLocaleString('tr-TR')} olmalıdır.`,
     };
+  }
+
+  // Kupona host bağlıysa, rezerve edilen ilan aynı hosta ait olmalı
+  if (data.host_id && listingId) {
+    const { data: listingHost } = await supabase
+      .from('listings')
+      .select('host_id')
+      .eq('id', listingId)
+      .maybeSingle();
+
+    if (!listingHost || listingHost.host_id !== data.host_id) {
+      return { valid: false, error: 'Bu kupon kodu bu ilan için geçerli değil.' };
+    }
   }
 
   // Kullanıcı bu kuponu daha önce kullandı mı?

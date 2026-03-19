@@ -63,8 +63,8 @@ export function NavUser({
               {!isCollapsed && (
                 <>
                   <div className="grid flex-1 text-left text-sm leading-tight ml-2">
-                    <span className="truncate font-bold tracking-tight">{user.name}</span>
-                    <span className="truncate text-[10px] text-sidebar-foreground/60 uppercase font-black">Premium Hesap</span>
+                    <span className="truncate font-bold tracking-tight text-sidebar-foreground">{user.name}</span>
+                    <span className="truncate text-[9px] font-black uppercase tracking-widest text-primary/80">Premium Hesap</span>
                   </div>
                   <MoreVerticalIcon className="ml-auto size-4 opacity-50" />
                 </>

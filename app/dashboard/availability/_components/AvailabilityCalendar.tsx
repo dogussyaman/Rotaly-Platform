@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarCheck, ChevronLeft, ChevronRight, Lock, Loader2, Unlock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -51,7 +51,7 @@ export function AvailabilityCalendar({
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-3">
           <Select value={listingId} onValueChange={setListingId}>
-            <SelectTrigger className="w-[240px] rounded-lg">
+            <SelectTrigger className="w-60 rounded-lg">
               <SelectValue placeholder="İlan seçin" />
             </SelectTrigger>
             <SelectContent>
@@ -62,16 +62,16 @@ export function AvailabilityCalendar({
           </Select>
           <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border/70 bg-muted/40 px-3 py-2 text-sm">
             <span className="flex items-center gap-1.5">
-              <Unlock className="h-4 w-4 text-primary" />
-              <span>Uygun</span>
+              <span className="inline-block h-3 w-3 rounded-sm bg-emerald-500 border border-emerald-600" />
+              <span className="text-emerald-700 font-medium">Uygun</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <Lock className="h-4 w-4 text-muted-foreground" />
-              <span>Kapalı</span>
+              <span className="inline-block h-3 w-3 rounded-sm bg-slate-400 border border-slate-500" />
+              <span className="text-slate-600 font-medium">Kapalı</span>
             </span>
-            <span className="flex items-center gap-1.5 text-amber-700">
-              <CalendarCheck className="h-4 w-4" />
-              <span>Rezervasyon</span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-3 w-3 rounded-sm bg-amber-400 border border-amber-500" />
+              <span className="text-amber-700 font-medium">Rezervasyon</span>
             </span>
           </div>
         </div>
@@ -83,7 +83,7 @@ export function AvailabilityCalendar({
                 <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1))}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <span className="min-w-[140px] text-center text-sm font-medium">
+                <span className="min-w-35 text-center text-sm font-medium">
                   {month.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}
                 </span>
                 <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1))}>
@@ -101,7 +101,7 @@ export function AvailabilityCalendar({
             </div>
 
             {loading ? (
-              <div className="flex h-[320px] items-center justify-center">
+              <div className="flex h-80 items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : (
@@ -123,11 +123,11 @@ export function AvailabilityCalendar({
                         key={dateStr}
                         type="button"
                         className={cn(
-                          'flex min-h-10 flex-col items-center justify-center rounded-lg text-sm transition-colors',
-                          isPast && 'cursor-not-allowed bg-muted/50 text-muted-foreground/70 opacity-70',
-                          !isPast && isBooked && 'cursor-default bg-amber-100 text-amber-800 border border-amber-300',
-                          !isPast && !isBooked && available && 'bg-primary/10 text-primary hover:bg-primary/20',
-                          !isPast && !isBooked && !available && 'bg-muted text-muted-foreground hover:bg-muted/70',
+                          'flex min-h-10 flex-col items-center justify-center rounded-lg text-sm font-medium transition-colors',
+                          isPast && 'cursor-not-allowed bg-muted/40 text-muted-foreground/50 opacity-60',
+                          !isPast && isBooked && 'cursor-default bg-amber-200 text-amber-900 border border-amber-400 font-semibold',
+                          !isPast && !isBooked && available && 'bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200 hover:border-emerald-400',
+                          !isPast && !isBooked && !available && 'bg-slate-200 text-slate-600 border border-slate-300 hover:bg-slate-300',
                           isUpdating && 'pointer-events-none opacity-60',
                         )}
                         onClick={() => onDayClick(d)}

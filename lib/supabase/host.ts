@@ -506,6 +506,163 @@ export interface EarningsByListing {
   total: number;
 }
 
+// ---------------------------------------------------------------------------
+// Full-detail earnings model (modern dashboard)
+// ---------------------------------------------------------------------------
+export interface EarningsStats {
+  grossRevenue: number;
+  confirmedCount: number;
+  pendingRevenue: number;
+  pendingCount: number;
+  cancelledCount: number;
+  avgBookingValue: number;
+}
+
+export interface ListingPerformance {
+  listingId: string;
+  listingTitle: string;
+  total: number;
+  bookingsCount: number;
+  pct: number;
+}
+
+export interface RecentBookingRow {
+  id: string;
+  checkIn: string;
+  checkOut: string;
+  guestsCount: number;
+  totalPrice: number;
+  status: string;
+  nights: number;
+  listingTitle: string;
+  guestName: string | null;
+}
+
+export async function fetchHostEarningsFull(
+  hostId: string,
+  months: number,
+): Promise<{
+  stats: EarningsStats;
+  byMonth: EarningsByMonth[];
+  byListing: ListingPerformance[];
+  recentBookings: RecentBookingRow[];
+}> {
+  const supabase = createClient();
+
+  const startDate = new Date();
+  startDate.setMonth(startDate.getMonth() - months);
+  const startStr = startDate.toISOString().slice(0, 10);
+
+  const { data: rows, error } = await supabase
+    .from('bookings')
+    .select(
+      `id, check_in, check_out, guests_count, total_price, status, created_at,
+       listings!inner ( id, host_id, title ),
+       profiles ( full_name )`
+    )
+    .eq('listings.host_id', hostId)
+    .gte('created_at', startDate.toISOString())
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('fetchHostEarningsFull error:', error.message);
+    return {
+      stats: { grossRevenue: 0, confirmedCount: 0, pendingRevenue: 0, pendingCount: 0, cancelledCount: 0, avgBookingValue: 0 },
+      byMonth: [],
+      byListing: [],
+      recentBookings: [],
+    };
+  }
+
+  const all = (rows ?? []) as any[];
+
+  // Stats
+  let grossRevenue = 0;
+  let confirmedCount = 0;
+  let pendingRevenue = 0;
+  let pendingCount = 0;
+  let cancelledCount = 0;
+
+  // Month buckets
+  const byMonthMap = new Map<string, number>();
+  for (let i = 0; i < months; i++) {
+    const d = new Date();
+    d.setMonth(d.getMonth() - i);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    byMonthMap.set(key, 0);
+  }
+
+  // Listing buckets
+  const listingMap = new Map<string, { title: string; total: number; count: number }>();
+
+  for (const row of all) {
+    const amount = Number(row.total_price ?? 0);
+    const status: string = row.status ?? '';
+    const checkIn: string = row.check_in ?? '';
+    const monthKey = `${checkIn.slice(0, 4)}-${checkIn.slice(5, 7)}`;
+    const lid: string = row.listings?.id ?? '';
+    const ltitle: string = row.listings?.title ?? 'Adsız İlan';
+
+    if (status === 'confirmed' || status === 'completed') {
+      grossRevenue += amount;
+      confirmedCount++;
+      byMonthMap.set(monthKey, (byMonthMap.get(monthKey) ?? 0) + amount);
+      const cur = listingMap.get(lid);
+      listingMap.set(lid, { title: ltitle, total: (cur?.total ?? 0) + amount, count: (cur?.count ?? 0) + 1 });
+    } else if (status === 'pending') {
+      pendingRevenue += amount;
+      pendingCount++;
+    } else if (status === 'cancelled') {
+      cancelledCount++;
+    }
+  }
+
+  const avgBookingValue = confirmedCount > 0 ? Math.round(grossRevenue / confirmedCount) : 0;
+
+  // Build byMonth array
+  const monthNames = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+  const byMonth: EarningsByMonth[] = Array.from(byMonthMap.entries())
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([key, total]) => {
+      const [y, m] = key.split('-');
+      return { month: key, year: parseInt(y, 10), label: `${monthNames[parseInt(m, 10) - 1]} ${y.slice(2)}`, total };
+    });
+
+  // Build byListing with pct
+  const listingTotal = grossRevenue || 1;
+  const byListing: ListingPerformance[] = Array.from(listingMap.entries())
+    .map(([listingId, v]) => ({
+      listingId,
+      listingTitle: v.title,
+      total: v.total,
+      bookingsCount: v.count,
+      pct: Math.round((v.total / listingTotal) * 100),
+    }))
+    .sort((a, b) => b.total - a.total);
+
+  // Recent bookings (last 15, all statuses)
+  const recentBookings: RecentBookingRow[] = all.slice(0, 15).map((row) => {
+    const checkIn = row.check_in ?? '';
+    const checkOut = row.check_out ?? '';
+    const nights = checkIn && checkOut
+      ? Math.max(1, Math.round((new Date(checkOut).getTime() - new Date(checkIn).getTime()) / 86_400_000))
+      : 1;
+    return {
+      id: row.id,
+      checkIn,
+      checkOut,
+      guestsCount: row.guests_count ?? 1,
+      totalPrice: Number(row.total_price ?? 0),
+      status: row.status ?? 'pending',
+      nights,
+      listingTitle: row.listings?.title ?? 'Adsız İlan',
+      guestName: (row.profiles as any)?.full_name ?? null,
+    };
+  });
+
+  return { stats: { grossRevenue, confirmedCount, pendingRevenue, pendingCount, cancelledCount, avgBookingValue }, byMonth, byListing, recentBookings };
+}
+
 export async function fetchHostEarnings(
   hostId: string,
   params: { months?: number },

@@ -81,7 +81,10 @@ export function NavMain({
                   className={cn(
                     "relative h-10 gap-3 px-3 rounded-xl",
                     "flex items-center group/nav-item",
-                    "transition-colors duration-200",
+                    "transition-all duration-200",
+                    isActive
+                      ? "bg-primary/15 text-primary data-[active=true]:bg-primary/15 data-[active=true]:text-primary"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                   )}
                 >
                   <Link
@@ -91,8 +94,10 @@ export function NavMain({
                     {item.icon && (
                       <item.icon
                         className={cn(
-                          "size-4 shrink-0 transition-transform duration-200",
-                          isActive ? "scale-100" : "group-hover/nav-item:scale-105",
+                          "size-4 shrink-0 transition-all duration-200",
+                          isActive
+                            ? "text-primary scale-100"
+                            : "text-sidebar-foreground/60 group-hover/nav-item:text-sidebar-accent-foreground group-hover/nav-item:scale-105",
                         )}
                       />
                     )}
@@ -104,7 +109,7 @@ export function NavMain({
                         "transition-[opacity,max-width] duration-200 ease-in-out",
                         "max-w-40 opacity-100",
                         "group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0",
-                        isActive ? "font-bold" : "font-semibold",
+                        isActive ? "font-bold text-primary" : "font-medium",
                       )}
                     >
                       {item.title}
@@ -113,7 +118,10 @@ export function NavMain({
                     {item.badge !== undefined && item.badge > 0 ? (
                       <Badge
                         variant="secondary"
-                        className="ml-auto h-5 min-w-5 justify-center px-1.5 text-[10px] font-bold group-data-[collapsible=icon]:hidden"
+                        className={cn(
+                          "ml-auto h-5 min-w-5 justify-center px-1.5 text-[10px] font-bold group-data-[collapsible=icon]:hidden",
+                          isActive ? "bg-primary/20 text-primary" : "",
+                        )}
                       >
                         {item.badge > 99 ? "99+" : item.badge}
                       </Badge>

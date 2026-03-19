@@ -33,8 +33,8 @@ export function NavSecondary({
                 tooltip={item.title}
                 asChild
                 className={cn(
-                  "flex items-center gap-2 px-3 h-9 rounded-2xl",
-                  "text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent",
+                  "flex items-center gap-2 px-3 h-9 rounded-xl",
+                  "text-sidebar-foreground/85 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent",
                   "transition-colors duration-200",
                   "focus-visible:ring-2 focus-visible:ring-sidebar-ring/40",
                   "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
@@ -47,7 +47,7 @@ export function NavSecondary({
                   <item.icon className="size-4 shrink-0" />
                   <span
                     className={cn(
-                      "text-xs font-medium tracking-wide truncate overflow-hidden whitespace-nowrap",
+                      "text-[13px] font-semibold tracking-tight truncate overflow-hidden whitespace-nowrap",
                       "transition-[opacity,max-width] duration-200 ease-in-out",
                       "max-w-40 opacity-100",
                       "group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0",

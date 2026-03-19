@@ -147,19 +147,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton
               asChild
               className={cn(
-                "hover:bg-white/10! focus-visible:ring-2 focus-visible:ring-white/20 transition-colors rounded-xl w-full",
+                "hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring/40 transition-colors rounded-xl w-full",
                 "h-auto py-2 px-2.5",
                 "group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9 group-data-[collapsible=icon]:justify-center",
               )}
             >
-              <Link href="/" className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0">
+              <Link href="/" className="flex items-center gap-2.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0">
                 {/* Logo icon */}
                 <div className={cn(
-                  "flex shrink-0 items-center justify-center rounded-lg bg-background text-foreground",
-                  "size-8 transition-[width,height] duration-300 ease-in-out",
+                  "flex shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground",
+                  "size-8 transition-[width,height] duration-300 ease-in-out shadow-sm",
                   "group-data-[collapsible=icon]:size-7",
                 )}>
-                  <ArrowUpCircleIcon className="size-5 transition-[width,height] duration-300 ease-in-out group-data-[collapsible=icon]:size-4" />
+                  <ArrowUpCircleIcon className="size-4.5 transition-[width,height] duration-300 ease-in-out group-data-[collapsible=icon]:size-4" />
                 </div>
 
                 {/* Brand text – always rendered, hidden via CSS */}
@@ -169,8 +169,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   "max-w-40 opacity-100",
                   "group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0",
                 )}>
-                  <span className="truncate text-sm font-semibold text-sidebar-foreground whitespace-nowrap">Rotaly</span>
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-sidebar-foreground/60 whitespace-nowrap">
+                  <span className="truncate text-sm font-bold text-sidebar-foreground whitespace-nowrap">Rotaly</span>
+                  <span className="mt-0.5 inline-flex w-fit items-center rounded-full bg-primary/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-primary whitespace-nowrap">
                     {roleLabel}
                   </span>
                 </div>

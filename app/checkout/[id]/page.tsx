@@ -163,7 +163,7 @@ function CheckoutPageContent({ id }: { id: string }) {
     if (!profile || !couponCode.trim()) return;
     setCouponLoading(true);
     setCouponError(null);
-    const result = await validateCoupon(couponCode.trim(), profile.id, total);
+    const result = await validateCoupon(couponCode.trim(), profile.id, total, listing?.id);
     if (result.valid) {
       setAppliedCoupon(result.coupon);
       setCouponDiscount(result.discountAmount);
