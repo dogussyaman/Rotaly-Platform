@@ -73,15 +73,15 @@ export function StatCard({
 
 export function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; className: string }> = {
-    confirmed: { label: 'Onaylandı', className: 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100/90' },
-    pending: { label: 'Beklemede', className: 'bg-amber-100 text-amber-700 hover:bg-amber-100/90' },
-    cancelled: { label: 'İptal', className: 'bg-rose-100 text-rose-700 hover:bg-rose-100/90' },
-    completed: { label: 'Tamamlandı', className: 'bg-slate-100 text-slate-600 hover:bg-slate-100/90' },
+    confirmed: { label: 'Onaylandı', className: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/80 hover:bg-emerald-50' },
+    pending: { label: 'Beklemede', className: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/80 hover:bg-amber-50' },
+    cancelled: { label: 'İptal', className: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200/80 hover:bg-rose-50' },
+    completed: { label: 'Tamamlandı', className: 'bg-slate-100 text-slate-700 ring-1 ring-slate-200/80 hover:bg-slate-100' },
   };
 
-  const state = map[status] ?? { label: status, className: 'bg-slate-100 text-slate-700' };
+  const state = map[status] ?? { label: status, className: 'bg-muted text-muted-foreground ring-1 ring-border/70' };
   return (
-    <Badge className={`capitalize border-none shadow-none rounded-lg px-2.5 py-0.5 font-bold text-[11px] ${state.className}`}>
+    <Badge className={`capitalize rounded-lg border-none px-2.5 py-0.5 text-[11px] font-bold shadow-none ${state.className}`}>
       {state.label}
     </Badge>
   );
@@ -252,7 +252,7 @@ export function ContentCard({
 }) {
   return (
     <div
-      className={`rounded-xl border border-border/70 bg-card/90 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] ${className ?? ''}`}
+      className={`rounded-xl border border-border/70 bg-card/95 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] ${className ?? ''}`}
     >
       <div className="border-b border-border/60 px-4 py-3 sm:px-5 sm:py-3.5">
         <h3 className="text-sm font-semibold text-foreground">{title}</h3>

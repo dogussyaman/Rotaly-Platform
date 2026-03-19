@@ -125,7 +125,7 @@ export default function DashboardLayoutClient({ children }: { children: ReactNod
   return (
     <SidebarProvider className="dashboard-theme">
       <AppSidebar variant="sidebar" />
-      <SidebarInset className="bg-muted/40 min-h-svh flex flex-col">
+      <SidebarInset className="bg-background min-h-svh flex flex-col">
         <SiteHeader title={header.title} subtitle={header.subtitle} />
         <div className="flex flex-1 flex-col @container/main overflow-auto min-h-0">
           {children}

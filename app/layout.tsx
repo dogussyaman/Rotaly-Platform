@@ -5,7 +5,7 @@ import { LocaleProvider } from '@/lib/i18n/locale-context'
 import { ReduxProvider } from '@/components/providers/redux-provider'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
-import Footer from '@/components/layout/footer'
+import { PublicFooter } from '@/components/layout/public-footer'
 import { CookieBanner } from '@/components/layout/cookie-banner'
 import './globals.css'
 
@@ -48,7 +48,7 @@ export default function RootLayout({
             <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
               {children}
               <CookieBanner />
-              <Footer />
+              <PublicFooter />
               <Toaster richColors closeButton />
             </ThemeProvider>
           </LocaleProvider>

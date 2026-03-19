@@ -34,9 +34,9 @@ export function NavSecondary({
                 asChild
                 className={cn(
                   "flex items-center gap-2 px-3 h-9 rounded-2xl",
-                  "text-white/60 hover:text-white hover:bg-white/10",
+                  "text-sidebar-foreground/70 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent",
                   "transition-colors duration-200",
-                  "focus-visible:ring-2 focus-visible:ring-white/30",
+                  "focus-visible:ring-2 focus-visible:ring-sidebar-ring/40",
                   "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0",
                 )}
               >
@@ -49,7 +49,7 @@ export function NavSecondary({
                     className={cn(
                       "text-xs font-medium tracking-wide truncate overflow-hidden whitespace-nowrap",
                       "transition-[opacity,max-width] duration-200 ease-in-out",
-                      "max-w-[160px] opacity-100",
+                      "max-w-40 opacity-100",
                       "group-data-[collapsible=icon]:max-w-0 group-data-[collapsible=icon]:opacity-0",
                     )}
                   >
