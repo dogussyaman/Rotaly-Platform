@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
-
 import { ContentCard, Section } from '@/components/dashboard/dashboard-ui';
 import { createClient } from '@/lib/supabase/client';
 import { fetchHostByUserId } from '@/lib/supabase/host';
@@ -10,6 +8,7 @@ import { useAppSelector } from '@/lib/store/hooks';
 import type { ReviewRow } from '@/lib/mock/dashboard';
 import { formatDate } from '@/lib/format';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ReviewsSkeleton } from '@/components/dashboard/dashboard-skeletons';
 
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
@@ -77,13 +76,7 @@ export default function ReviewsPage() {
     void load();
   }, [profile?.id, profile?.isAdmin, profile?.isHost]);
 
-  if (loading) {
-    return (
-      <div className="flex h-[300px] w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#0d9488]" />
-      </div>
-    );
-  }
+  if (loading) return <ReviewsSkeleton />;
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Loader2, Star, ExternalLink } from 'lucide-react';
+import { Star, ExternalLink } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -13,6 +13,7 @@ import { PaginationControls } from '@/components/dashboard/pagination-controls';
 import { useAppSelector } from '@/lib/store/hooks';
 import { fetchHostByUserId, fetchHostListingsPage, type HostListingCard } from '@/lib/supabase/host';
 import { createClient } from '@/lib/supabase/client';
+import { ListingsSkeleton } from '@/components/dashboard/dashboard-skeletons';
 
 const PAGE_SIZE = 10;
 
@@ -134,13 +135,7 @@ export default function ListingsPage() {
     void load();
   }, [profile?.id, role, page, q]);
 
-  if (loading) {
-    return (
-      <div className="flex h-[400px] w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  if (loading) return <ListingsSkeleton />;
 
   if (role === 'guest') {
     return (

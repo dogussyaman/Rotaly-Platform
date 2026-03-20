@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import {
-  Loader2, TrendingUp, Clock, XCircle, BarChart3, Building2,
+  TrendingUp, Clock, XCircle, BarChart3, Building2,
   Users, CalendarDays, ArrowUpRight, ArrowDownRight, ChevronRight,
 } from 'lucide-react';
 import {
@@ -14,6 +14,7 @@ import { formatCurrency } from '@/lib/format';
 import { fetchHostByUserId, fetchHostEarningsFull } from '@/lib/supabase/host';
 import type { EarningsStats, ListingPerformance, RecentBookingRow, EarningsByMonth } from '@/lib/supabase/host';
 import { useAppSelector } from '@/lib/store/hooks';
+import { EarningsSkeleton } from '@/components/dashboard/dashboard-skeletons';
 
 const PLATFORM_COMMISSION_RATE = 0.10; // %10 platform komisyonu
 const PERIOD_OPTIONS = [
@@ -119,13 +120,7 @@ export default function EarningsPage() {
     [byMonth],
   );
 
-  if (loading) {
-    return (
-      <div className="flex h-75 w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  if (loading) return <EarningsSkeleton />;
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">

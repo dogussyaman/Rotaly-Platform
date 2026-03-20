@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Calendar, Gift, Home, MessageSquare, Star, Users, Loader2, ArrowRight, CheckCircle2, TicketPercent, Clock3, ClipboardCheck, MessageCircleMore, CalendarCheck2 } from 'lucide-react';
+import { Calendar, Gift, Home, MessageSquare, Star, Users, ArrowRight, CheckCircle2, TicketPercent, Clock3, ClipboardCheck, MessageCircleMore, CalendarCheck2 } from 'lucide-react';
+import { DashboardOverviewSkeleton } from '@/components/dashboard/dashboard-skeletons';
 
 import { Button } from '@/components/ui/button';
 import { useAppSelector } from '@/lib/store/hooks';
@@ -199,13 +200,7 @@ export function DashboardOverview() {
           },
         ];
 
-  if (loading) {
-    return (
-      <div className="flex h-100 w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  if (loading) return <DashboardOverviewSkeleton />;
 
   return (
     <div className="flex flex-1 flex-col gap-8 px-4 py-6 sm:px-6 lg:px-8">

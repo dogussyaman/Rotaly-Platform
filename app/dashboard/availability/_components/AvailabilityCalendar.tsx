@@ -1,6 +1,7 @@
 'use client';
 
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { AvailabilityCalendarSkeleton } from '@/components/dashboard/dashboard-skeletons';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -101,9 +102,7 @@ export function AvailabilityCalendar({
             </div>
 
             {loading ? (
-              <div className="flex h-80 items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
+              <AvailabilityCalendarSkeleton />
             ) : (
               <div className="rounded-xl border border-border/70 bg-card/90 p-4">
                 <div className="grid grid-cols-7 gap-1">

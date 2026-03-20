@@ -14,6 +14,7 @@ import { formatCurrency, formatDate } from '@/lib/format';
 import { createClient } from '@/lib/supabase/client';
 import { fetchHostByUserId } from '@/lib/supabase/host';
 import { useAppSelector } from '@/lib/store/hooks';
+import { CouponsSkeleton } from '@/components/dashboard/dashboard-skeletons';
 
 type CouponRow = {
   id: string;
@@ -283,13 +284,7 @@ export default function CouponsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-75 w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+  if (loading) return <CouponsSkeleton />;
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
