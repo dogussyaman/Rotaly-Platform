@@ -35,6 +35,31 @@ export async function fetchConversations(currentUserId: string): Promise<Convers
 
   if (!rows?.length) return [];
 
+  const conversationIds = (rows as any[]).map((r) => r.id).filter(Boolean);
+  const latestMessageMap = new Map<string, { content: string | null; created_at: string | null }>();
+
+  if (conversationIds.length > 0) {
+    const { data: latestMessages, error: latestMessagesError } = await supabase
+      .from('messages')
+      .select('conversation_id, content, created_at')
+      .in('conversation_id', conversationIds)
+      .order('created_at', { ascending: false });
+
+    if (latestMessagesError) {
+      console.error('fetchConversations latest messages error:', latestMessagesError.message);
+    } else {
+      for (const msg of latestMessages ?? []) {
+        const conversationId = (msg as any).conversation_id as string;
+        if (!latestMessageMap.has(conversationId)) {
+          latestMessageMap.set(conversationId, {
+            content: (msg as any).content ?? null,
+            created_at: (msg as any).created_at ?? null,
+          });
+        }
+      }
+    }
+  }
+
   const otherUserIds = [...new Set(
     (rows as any[]).map((r) =>
       r.participant_1 === currentUserId ? r.participant_2 : r.participant_1
@@ -72,14 +97,15 @@ export async function fetchConversations(currentUserId: string): Promise<Convers
     const isParticipant1 = row.participant_1 === currentUserId;
     const otherUserId = isParticipant1 ? row.participant_2 : row.participant_1;
     const profile = otherUserId ? profileMap.get(otherUserId) : null;
+    const latestMessage = latestMessageMap.get(row.id);
 
     return {
       id: row.id,
       otherUserId: otherUserId ?? '',
       otherUserName: profile?.full_name ?? null,
       otherUserAvatar: profile?.avatar_url ?? null,
-      lastMessage: null,
-      lastMessageTime: row.last_message_at,
+      lastMessage: latestMessage?.content ?? null,
+      lastMessageTime: latestMessage?.created_at ?? row.last_message_at,
       unreadCount: unreadMap.get(row.id) ?? 0,
     } as ConversationSummary;
   });

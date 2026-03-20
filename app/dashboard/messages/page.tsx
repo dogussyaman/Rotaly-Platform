@@ -79,23 +79,21 @@ export default function DashboardMessagesPage() {
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
       <Section title="Mesajlar" description="Gelen mesajları görüntüleyin ve cevap yazın." />
-      <div className="grid gap-4 lg:grid-cols-[320px_1fr] rounded-2xl border border-[#e5e7eb] bg-white shadow-sm overflow-hidden">
+      <div className="grid lg:grid-cols-[300px_1fr] rounded-2xl border border-border bg-card shadow-sm overflow-hidden h-[calc(100vh-12rem)] min-h-125">
         <ConversationList
           conversations={conversations}
           selectedId={selectedConversation?.id ?? null}
           loading={loadingConversations}
         />
-        <div className="flex flex-col max-h-[calc(100vh-12rem)] min-h-[420px]">
-          <ConversationThread
-            conversation={selectedConversation}
-            messages={messages}
-            loadingMessages={loadingMessages}
-            replyText={replyText}
-            setReplyText={setReplyText}
-            sending={sending}
-            onSend={handleSend}
-          />
-        </div>
+        <ConversationThread
+          conversation={selectedConversation}
+          messages={messages}
+          loadingMessages={loadingMessages}
+          replyText={replyText}
+          setReplyText={setReplyText}
+          sending={sending}
+          onSend={handleSend}
+        />
       </div>
     </div>
   );
