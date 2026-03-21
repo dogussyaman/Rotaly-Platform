@@ -17,6 +17,12 @@ import { ListingAmenities } from './_components/ListingAmenities';
 import { ListingHost } from './_components/ListingHost';
 import { ListingBookingCard } from './_components/ListingBookingCard';
 
+type GuestCounts = {
+  adults: number;
+  children: number;
+  infants: number;
+};
+
 interface ListingDetailsProps {
   params: Promise<{ id: string }>;
 }
@@ -29,12 +35,66 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
-    from: new Date(),
-    to: new Date(new Date().getTime() + 5 * 24 * 60 * 60 * 1000),
+
+  function parseDateParam(raw: string): Date | null {
+    if (!raw) return null;
+    const ymd = /^\d{4}-\d{2}-\d{2}$/.test(raw);
+    if (ymd) return parseYmd(raw);
+    const dt = new Date(raw);
+    return Number.isNaN(dt.getTime()) ? null : dt;
+  }
+
+  const fromParam = searchParams.get('from') ?? searchParams.get('checkin');
+  const toParam = searchParams.get('to') ?? searchParams.get('checkout');
+  const adultsParam = searchParams.get('adults');
+  const childrenParam = searchParams.get('children');
+  const infantsParam = searchParams.get('infants');
+  const legacyGuestsParam = searchParams.get('guests');
+
+  const initialFrom = fromParam ? parseDateParam(fromParam) : null;
+  const initialTo = toParam ? parseDateParam(toParam) : null;
+
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>(() => ({
+    from: initialFrom ?? new Date(),
+    to: initialTo ?? new Date(new Date().getTime() + 5 * 24 * 60 * 60 * 1000),
+  }));
+
+  const [guestCounts, setGuestCounts] = useState<GuestCounts>(() => {
+    const adults = adultsParam ? Number.parseInt(adultsParam, 10) : NaN;
+    const children = childrenParam ? Number.parseInt(childrenParam, 10) : NaN;
+    const infants = infantsParam ? Number.parseInt(infantsParam, 10) : NaN;
+    const legacyGuests = legacyGuestsParam ? Number.parseInt(legacyGuestsParam, 10) : NaN;
+
+    if (Number.isFinite(adults) || Number.isFinite(children) || Number.isFinite(infants)) {
+      return {
+        adults: Number.isFinite(adults) ? Math.max(1, adults) : 1,
+        children: Number.isFinite(children) ? Math.max(0, children) : 0,
+        infants: Number.isFinite(infants) ? Math.max(0, infants) : 0,
+      };
+    }
+
+    if (Number.isFinite(legacyGuests) && legacyGuests > 0) {
+      return {
+        adults: Math.max(1, legacyGuests),
+        children: 0,
+        infants: 0,
+      };
+    }
+
+    return {
+      adults: 2,
+      children: 0,
+      infants: 0,
+    };
   });
-  const [guestCount, setGuestCount] = useState(2);
-  const initializationRef = useRef(false);
+
+  const checkoutError = searchParams.get('checkoutError');
+  const checkoutErrorText =
+    checkoutError === 'invalid_dates'
+      ? 'Rezervasyona devam etmek için geçerli giriş/çıkış tarihlerini yeniden seçin.'
+      : checkoutError === 'listing_not_found'
+        ? 'Checkout sırasında ilan bilgisi doğrulanamadı. Lütfen tekrar deneyin.'
+        : null;
 
   function parseYmd(ymd: string): Date | null {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
@@ -45,28 +105,6 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
     if (!Number.isFinite(y) || !Number.isFinite(mo) || !Number.isFinite(d)) return null;
     return new Date(Date.UTC(y, mo, d, 12, 0, 0));
   }
-
-  useEffect(() => {
-    if (initializationRef.current) return;
-    
-    // We only initialize once when the component mounts
-    const fromParam = searchParams.get('from');
-    const toParam = searchParams.get('to');
-    const guestsParam = searchParams.get('guests');
-
-    if (fromParam && toParam) {
-      const from = parseYmd(fromParam);
-      const to = parseYmd(toParam);
-      if (from && to) setDateRange({ from, to });
-    }
-
-    if (guestsParam) {
-      const g = Number.parseInt(guestsParam, 10);
-      if (Number.isFinite(g) && g > 0) setGuestCount(g);
-    }
-    
-    initializationRef.current = true;
-  }, [searchParams]);
 
   const totalNights = useMemo(() => {
     if (!dateRange.from || !dateRange.to) return 5;
@@ -86,6 +124,7 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
 
   const checkInStr = dateRange.from ? dateRange.from.toISOString().slice(0, 10) : '';
   const checkOutStr = dateRange.to ? dateRange.to.toISOString().slice(0, 10) : '';
+  const totalGuestsForPricing = guestCounts.adults + guestCounts.children;
 
   useEffect(() => {
     let active = true;
@@ -141,7 +180,7 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
     const requestId = ++priceRequestIdRef.current;
     setPriceLoading(true);
 
-    getPriceBreakdown(listing, checkInStr, checkOutStr, guestCount)
+    getPriceBreakdown(listing, checkInStr, checkOutStr, totalGuestsForPricing)
       .then((breakdown) => {
         if (requestId !== priceRequestIdRef.current) return;
 
@@ -167,7 +206,7 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
       .finally(() => {
         if (requestId === priceRequestIdRef.current) setPriceLoading(false);
       });
-  }, [listing?.id, checkInStr, checkOutStr, guestCount, totalNights]);
+  }, [listing?.id, checkInStr, checkOutStr, totalGuestsForPricing, totalNights]);
 
   return (
     <div className="min-h-screen bg-background font-sans">
@@ -193,6 +232,14 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
 
         {listing && (
           <>
+            {checkoutErrorText && (
+              <div className="max-w-7xl mx-auto px-6 mb-6">
+                <div className="rounded-2xl border border-amber-300/60 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">
+                  {checkoutErrorText}
+                </div>
+              </div>
+            )}
+
             <ListingGallery
               listing={listing}
               selectedImageIndex={selectedImageIndex}
@@ -240,8 +287,8 @@ export default function ListingDetailsPage({ params }: ListingDetailsProps) {
                   listingId={id}
                   dateRange={dateRange}
                   setDateRange={setDateRange}
-                  guestCount={guestCount}
-                  setGuestCount={setGuestCount}
+                  guestCounts={guestCounts}
+                  setGuestCounts={setGuestCounts}
                   totalNights={totalNights}
                   priceCalc={priceCalc}
                   priceLoading={priceLoading}

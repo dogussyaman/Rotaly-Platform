@@ -1,17 +1,27 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
+export interface GuestCounts {
+  adults: number;
+  children: number;
+  infants: number;
+}
+
 export interface SearchState {
   location: string;
   checkIn: string | null;  // ISO string (Date serialize edilemez)
   checkOut: string | null;
-  guests: number;
+  guests: GuestCounts;
 }
 
 const initialState: SearchState = {
   location: '',
   checkIn: null,
   checkOut: null,
-  guests: 1,
+  guests: {
+    adults: 1,
+    children: 0,
+    infants: 0,
+  },
 };
 
 const searchSlice = createSlice({

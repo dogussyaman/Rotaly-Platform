@@ -305,34 +305,34 @@ export function SearchHeader() {
 
       {/* ── Scroll-down compact search pill ── */}
       <div className="fixed top-[68px] left-0 right-0 z-40 flex justify-center px-6 pointer-events-none">
-        <AnimatePresence>
-          {isScrolled && !heroSearchVisible && (
-            <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.28, ease: 'easeInOut' }}
-              className="flex justify-center w-full max-w-7xl pointer-events-auto"
-            >
-              <button
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="flex items-center gap-2.5 bg-[#f3f3f3] backdrop-blur-xl border-x border-b border-border border-t-0 rounded-b-full px-5 py-2.5 shadow-lg hover:shadow-xl transition-all text-sm font-medium text-foreground max-w-xl w-full justify-center"
-              >
-                <Search className="w-4 h-4 text-muted-foreground" />
-                <span>{t.locationPlaceholder as string}</span>
-                <span className="h-4 w-px bg-border mx-0.5" />
-                <span className="text-muted-foreground text-xs">
-                  {t.checkin as string} – {t.checkout as string}
-                </span>
-                <span className="h-4 w-px bg-border mx-0.5" />
-                <span className="text-muted-foreground text-xs">
-                  {t.addGuests as string}
-                </span>
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+  <AnimatePresence>
+    {isScrolled && !heroSearchVisible && (
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.28, ease: 'easeInOut' }}
+        className="flex justify-center w-full max-w-7xl pointer-events-auto"
+      >
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="animated-border-beam flex items-center gap-2.5 backdrop-blur-xl rounded-b-full px-5 py-2.5 shadow-lg hover:shadow-xl transition-all text-sm font-medium text-foreground max-w-xl w-full justify-center"
+        >
+          <Search className="w-4 h-4 text-muted-foreground" />
+          <span>{t.locationPlaceholder as string}</span>
+          <span className="h-4 w-px bg-border mx-0.5" />
+          <span className="text-muted-foreground text-xs">
+            {t.checkin as string} – {t.checkout as string}
+          </span>
+          <span className="h-4 w-px bg-border mx-0.5" />
+          <span className="text-muted-foreground text-xs">
+            {t.addGuests as string}
+          </span>
+        </button>
+      </motion.div>
+    )}
+  </AnimatePresence>
+</div>
     </>
   );
 }

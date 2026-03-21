@@ -7,17 +7,23 @@ import { tr, enUS } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Star, ShieldCheck } from 'lucide-react';
+import { Star, ShieldCheck, Minus, Plus } from 'lucide-react';
 import type { ListingDetail } from '@/lib/supabase/bookings';
 import type { Locale } from 'date-fns';
+
+type GuestCounts = {
+  adults: number;
+  children: number;
+  infants: number;
+};
 
 interface ListingBookingCardProps {
   listing: ListingDetail;
   listingId: string;
   dateRange: { from: Date | undefined; to: Date | undefined };
   setDateRange: (range: { from: Date | undefined; to: Date | undefined }) => void;
-  guestCount: number;
-  setGuestCount: (n: number) => void;
+  guestCounts: GuestCounts;
+  setGuestCounts: (counts: GuestCounts) => void;
   totalNights: number;
   priceCalc: {
     subtotal: number;
@@ -46,8 +52,8 @@ export function ListingBookingCard({
   listingId,
   dateRange,
   setDateRange,
-  guestCount,
-  setGuestCount,
+  guestCounts,
+  setGuestCounts,
   totalNights,
   priceCalc,
   priceLoading,
@@ -73,11 +79,18 @@ export function ListingBookingCard({
     Math.round(100 - (effectiveNightly / Math.max(1, baseNightly)) * 100);
   const hasDiscount = discountPercent > 0;
 
+  const totalGuests = guestCounts.adults + guestCounts.children;
+
   const handleReserveClick = () => {
+    if (!dateRange.from || !dateRange.to) return;
+
     const params = new URLSearchParams();
     if (dateRange.from) params.set('from', format(dateRange.from, 'yyyy-MM-dd'));
     if (dateRange.to) params.set('to', format(dateRange.to, 'yyyy-MM-dd'));
-    if (guestCount > 0) params.set('guests', String(guestCount));
+    params.set('adults', String(guestCounts.adults));
+    params.set('children', String(guestCounts.children));
+    params.set('infants', String(guestCounts.infants));
+    params.set('guests', String(totalGuests));
     const query = params.toString();
     router.push(query ? `/checkout/${listingId}?${query}` : `/checkout/${listingId}`);
   };
@@ -87,20 +100,22 @@ export function ListingBookingCard({
       <div className="bg-card border border-border rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group min-h-130">
         <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-rose-500 to-amber-500" />
 
-        <div className="flex items-baseline justify-between mb-8 min-h-24">
-          <div className="space-y-1">
+        <div className="flex items-start sm:items-baseline justify-between gap-3 mb-8 min-h-24">
+          <div className="space-y-1 min-w-0 flex-1">
             {hasDiscount && (
               <div className="text-sm text-muted-foreground line-through opacity-80">
                 ₺{baseNightly.toLocaleString('tr-TR')} / {t.listingPerNight}
               </div>
             )}
-            <div className="flex items-center gap-2">
-              <span className={`text-3xl font-black ${hasDiscount ? 'text-emerald-700' : 'text-foreground'}`}>
-                ₺{effectiveNightly.toLocaleString('tr-TR')}
-              </span>
-              <span className="text-lg text-muted-foreground">/ {t.listingPerNight}</span>
+            <div className="flex flex-wrap items-end gap-x-2 gap-y-1">
+              <div className="flex items-end gap-2">
+                <span className={`text-3xl font-black leading-none ${hasDiscount ? 'text-emerald-700' : 'text-foreground'}`}>
+                  ₺{effectiveNightly.toLocaleString('tr-TR')}
+                </span>
+                <span className="text-lg text-muted-foreground whitespace-nowrap leading-none">/ {t.listingPerNight}</span>
+              </div>
               {hasDiscount && (
-                <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700">
+                <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-black text-emerald-700 whitespace-nowrap">
                   %{discountPercent} indirim
                 </span>
               )}
@@ -111,7 +126,7 @@ export function ListingBookingCard({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1 text-sm font-bold">
+          <div className="flex items-center gap-1 text-sm font-bold shrink-0 pt-1 sm:pt-0">
             <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
             {listing.rating.toFixed(2)}
           </div>
@@ -172,32 +187,86 @@ export function ListingBookingCard({
             </PopoverContent>
           </Popover>
 
-          <div className="col-span-2 border-t p-4 hover:bg-white transition-colors flex justify-between items-center cursor-pointer">
-            <div className="flex flex-col items-start">
-              <span className="text-[10px] uppercase font-black tracking-tighter text-muted-foreground mb-1">
-                {t.guests}
-              </span>
-              <span className="text-sm font-bold">
-                {guestCount} {t.guests}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
-                className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-muted font-bold"
-              >
-                -
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="col-span-2 border-t p-4 hover:bg-white transition-colors flex justify-between items-center cursor-pointer text-left">
+                <div className="flex flex-col items-start">
+                  <span className="text-[10px] uppercase font-black tracking-tighter text-muted-foreground mb-1">
+                    {t.guests}
+                  </span>
+                  <span className="text-sm font-bold">
+                    {totalGuests} {t.guests}{guestCounts.infants > 0 ? `, ${guestCounts.infants} bebek` : ''}
+                  </span>
+                </div>
+                <span className="text-xs text-muted-foreground">Düzenle</span>
               </button>
-              <button
-                type="button"
-                onClick={() => setGuestCount(Math.min(listing.maxGuests, guestCount + 1))}
-                className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-muted font-bold"
-              >
-                +
-              </button>
-            </div>
-          </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-84 rounded-3xl" align="end">
+              {[{
+                key: 'adults' as const,
+                label: 'Yetişkin',
+                description: '13+ yaş',
+                min: 1,
+              }, {
+                key: 'children' as const,
+                label: 'Çocuk',
+                description: '2-12 yaş',
+                min: 0,
+              }, {
+                key: 'infants' as const,
+                label: 'Bebek',
+                description: '0-2 yaş',
+                min: 0,
+              }].map((item) => {
+                const value = guestCounts[item.key];
+                const isAtMin = value <= item.min;
+                const canIncrease =
+                  item.key === 'infants' ? true : totalGuests < listing.maxGuests;
+
+                return (
+                  <div key={item.key} className="flex items-center justify-between py-3 border-b border-border/60 last:border-0">
+                    <div>
+                      <div className="text-sm font-semibold">{item.label}</div>
+                      <div className="text-xs text-muted-foreground">{item.description}</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setGuestCounts({
+                            ...guestCounts,
+                            [item.key]: Math.max(item.min, guestCounts[item.key] - 1),
+                          })
+                        }
+                        disabled={isAtMin}
+                        className="w-8 h-8 rounded-full border border-border flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="w-5 text-center text-sm font-semibold">{value}</span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setGuestCounts({
+                            ...guestCounts,
+                            [item.key]: guestCounts[item.key] + 1,
+                          })
+                        }
+                        disabled={!canIncrease}
+                        className="w-8 h-8 rounded-full border border-border flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                İlan kapasitesi: en fazla {listing.maxGuests} yetişkin/çocuk.
+              </p>
+            </PopoverContent>
+          </Popover>
         </div>
 
         <Button

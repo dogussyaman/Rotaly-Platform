@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, Loader2, CheckCircle2 } from 'lucide-react';
 import {
   fetchListingById,
-  createBooking,
   isListingAvailable,
   type ListingDetail,
 } from '@/lib/supabase/bookings';
@@ -17,6 +16,8 @@ import { getPriceBreakdown } from '@/lib/supabase/price-breakdown';
 import { validateCoupon, recordCouponUsage, type ValidCoupon } from '@/lib/supabase/coupons';
 import { getRedeemablePoints, redeemLoyaltyPoints } from '@/lib/supabase/loyalty';
 import { useAppSelector } from '@/lib/store/hooks';
+import { useAppDispatch } from '@/lib/store/hooks';
+import { submitBooking, resetBookingState } from '@/lib/store/slices/booking-slice';
 import { CheckoutTripSection } from './_components/CheckoutTripSection';
 import { CheckoutPaymentSection } from './_components/CheckoutPaymentSection';
 import { CheckoutSummaryCard } from './_components/CheckoutSummaryCard';
@@ -37,7 +38,9 @@ function CheckoutPageContent({ id }: { id: string }) {
   const { t } = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const dispatch = useAppDispatch();
   const { profile } = useAppSelector((s) => s.user);
+  const bookingStatus = useAppSelector((s) => s.booking.createStatus);
 
   const [listing, setListing] = useState<ListingDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,8 +62,11 @@ function CheckoutPageContent({ id }: { id: string }) {
   const [redeemablePoints, setRedeemablePoints] = useState(0);
   const [pointsToRedeem, setPointsToRedeem] = useState(0);
 
-  const fromParam = searchParams.get('from');
-  const toParam = searchParams.get('to');
+  const fromParam = searchParams.get('from') ?? searchParams.get('checkin');
+  const toParam = searchParams.get('to') ?? searchParams.get('checkout');
+  const adultsParam = searchParams.get('adults');
+  const childrenParam = searchParams.get('children');
+  const infantsParam = searchParams.get('infants');
   const guestsParam = searchParams.get('guests');
 
   function parseYmd(ymd: string): Date | null {
@@ -85,7 +91,22 @@ function CheckoutPageContent({ id }: { id: string }) {
   const checkInStr = selectedCheckIn ? selectedCheckIn.toISOString().slice(0, 10) : null;
   const checkOutStr = selectedCheckOut ? selectedCheckOut.toISOString().slice(0, 10) : null;
 
-  const guests = guestsParam ? Number.parseInt(guestsParam, 10) || 2 : 2;
+  const adults = adultsParam ? Number.parseInt(adultsParam, 10) : NaN;
+  const children = childrenParam ? Number.parseInt(childrenParam, 10) : NaN;
+  const infants = infantsParam ? Number.parseInt(infantsParam, 10) : NaN;
+  const legacyGuests = guestsParam ? Number.parseInt(guestsParam, 10) : NaN;
+
+  const guestBreakdown = {
+    adults: Number.isFinite(adults) ? Math.max(1, adults) : null,
+    children: Number.isFinite(children) ? Math.max(0, children) : null,
+    infants: Number.isFinite(infants) ? Math.max(0, infants) : 0,
+  };
+
+  const guests = guestBreakdown.adults !== null || guestBreakdown.children !== null
+    ? Math.max(1, (guestBreakdown.adults ?? 1) + (guestBreakdown.children ?? 0))
+    : Number.isFinite(legacyGuests) && legacyGuests > 0
+      ? legacyGuests
+      : 2;
 
   const [priceBreakdown, setPriceBreakdown] = useState<{
     subtotal: number;
@@ -113,11 +134,25 @@ function CheckoutPageContent({ id }: { id: string }) {
     (async () => {
       setLoading(true);
       const data = await fetchListingById(id);
-      if (!cancelled) setListing(data);
-      setLoading(false);
+      if (!cancelled) {
+        setListing(data);
+        setLoading(false);
+      }
     })();
     return () => { cancelled = true; };
   }, [id]);
+
+  useEffect(() => {
+    if (loading) return;
+    if (!listing) {
+      router.replace(`/listing/${id}?checkoutError=listing_not_found`);
+      return;
+    }
+    if (!hasValidStayDates) {
+      router.replace(`/listing/${id}?checkoutError=invalid_dates`);
+      return;
+    }
+  }, [loading, listing, hasValidStayDates, id, router]);
 
   useEffect(() => {
     if (!listing || !hasValidStayDates || !checkInStr || !checkOutStr) {
@@ -221,22 +256,25 @@ function CheckoutPageContent({ id }: { id: string }) {
 
     const totalDiscount = couponDiscount + loyaltyDiscount;
 
-    const result = await createBooking({
-      listingId: listing.id,
-      guestId: profile.id,
-      checkIn: selectedCheckIn,
-      checkOut: selectedCheckOut,
-      guestsCount: guests,
-      totalPrice: total,
-      discountTotal: totalDiscount,
-      couponId: appliedCoupon?.id ?? null,
-      pointsRedeemed: pointsToRedeem,
-      checkInSlotStart: selectedSlot.start,
-      checkInSlotEnd: selectedSlot.end,
-      extras: { options: extrasState, note: extrasNote.trim() || null },
-    });
-
-    if (!result) {
+    let result: { id: string };
+    try {
+      result = await dispatch(
+        submitBooking({
+          listingId: listing.id,
+          guestId: profile.id,
+          checkIn: selectedCheckIn,
+          checkOut: selectedCheckOut,
+          guestsCount: guests,
+          totalPrice: total,
+          discountTotal: totalDiscount,
+          couponId: appliedCoupon?.id ?? null,
+          pointsRedeemed: pointsToRedeem,
+          checkInSlotStart: selectedSlot.start,
+          checkInSlotEnd: selectedSlot.end,
+          extras: { options: extrasState, note: extrasNote.trim() || null },
+        })
+      ).unwrap();
+    } catch {
       setErrorMessage('Rezervasyon oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
       setSubmitting(false);
       return;
@@ -254,7 +292,10 @@ function CheckoutPageContent({ id }: { id: string }) {
 
     setSuccess(true);
     setSubmitting(false);
-    setTimeout(() => router.push('/profile?tab=bookings'), 1500);
+    setTimeout(() => {
+      dispatch(resetBookingState());
+      router.push('/profile?tab=bookings');
+    }, 1500);
   };
 
   return (
@@ -335,6 +376,7 @@ function CheckoutPageContent({ id }: { id: string }) {
                       type="submit"
                       disabled={
                         submitting ||
+                        bookingStatus === 'loading' ||
                         !profile ||
                         success ||
                         !hasValidStayDates ||

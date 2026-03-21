@@ -35,11 +35,30 @@ function SearchPageContent() {
 
   useEffect(() => {
     const loc = searchParams.get('location');
+    const adultsParam = searchParams.get('adults');
+    const childrenParam = searchParams.get('children');
+    const infantsParam = searchParams.get('infants');
     const gst = searchParams.get('guests');
     const cin = searchParams.get('checkin');
     const cout = searchParams.get('checkout');
     if (loc) setLocation(loc);
-    if (gst) setGuests(parseInt(gst));
+
+    const adults = adultsParam ? Number.parseInt(adultsParam, 10) : NaN;
+    const children = childrenParam ? Number.parseInt(childrenParam, 10) : NaN;
+    const infants = infantsParam ? Number.parseInt(infantsParam, 10) : NaN;
+    const legacyGuests = gst ? Number.parseInt(gst, 10) : NaN;
+
+    const hasBreakdown = Number.isFinite(adults) || Number.isFinite(children) || Number.isFinite(infants);
+    if (hasBreakdown) {
+      setGuests({
+        adults: Number.isFinite(adults) ? Math.max(1, adults) : 1,
+        children: Number.isFinite(children) ? Math.max(0, children) : 0,
+        infants: Number.isFinite(infants) ? Math.max(0, infants) : 0,
+      });
+    } else if (Number.isFinite(legacyGuests) && legacyGuests > 0) {
+      setGuests({ adults: Math.max(1, legacyGuests), children: 0, infants: 0 });
+    }
+
     if (cin) setCheckIn(new Date(cin));
     if (cout) setCheckOut(new Date(cout));
   }, [searchParams, setLocation, setGuests, setCheckIn, setCheckOut]);
@@ -56,7 +75,7 @@ function SearchPageContent() {
       priceMin: filters.priceMin,
       priceMax: filters.priceMax,
       propertyType: filters.propertyType,
-      guests: filters.guests,
+      guests: filters.guests.adults + filters.guests.children,
       checkIn: filters.checkIn,
       checkOut: filters.checkOut,
       discountOnly: filters.discountOnly || undefined,
@@ -141,6 +160,7 @@ function SearchPageContent() {
             showMap={showMap}
             t={t}
             mapNode={mapNode}
+            filters={filters}
             emptyState={
               !canSearch
                 ? {

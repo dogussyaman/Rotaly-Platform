@@ -126,6 +126,12 @@
 }
 
 @layer utilities {
+  @property --beam-angle {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0deg;
+  }
+
   @keyframes spin-slow {
     from {
       transform: rotate(0deg);
@@ -133,6 +139,27 @@
     to {
       transform: rotate(360deg);
     }
+  }
+
+  @keyframes border-beam-rotate {
+    to {
+      --beam-angle: 360deg;
+    }
+  }
+
+  .animated-border-beam {
+    border: 1px solid transparent;
+    background:
+      linear-gradient(#f3f3f3, #f3f3f3) padding-box,
+      conic-gradient(
+        from var(--beam-angle),
+        rgba(255, 255, 255, 0) 0deg,
+        rgba(255, 255, 255, 0) 305deg,
+        rgba(251, 146, 60, 0.95) 330deg,
+        rgba(250, 204, 21, 0.9) 348deg,
+        rgba(255, 255, 255, 0) 360deg
+      ) border-box;
+    animation: border-beam-rotate 3.8s linear infinite;
   }
 
   .animate-spin-slow {

@@ -1,10 +1,16 @@
 import { create } from 'zustand';
 
+export interface GuestCounts {
+  adults: number;
+  children: number;
+  infants: number;
+}
+
 export interface SearchFilters {
   location: string;
   checkIn: Date | null;
   checkOut: Date | null;
-  guests: number;
+  guests: GuestCounts;
   priceMin: number;
   priceMax: number;
   propertyType: string[];
@@ -17,7 +23,7 @@ interface SearchStore {
   setLocation: (location: string) => void;
   setCheckIn: (date: Date | null) => void;
   setCheckOut: (date: Date | null) => void;
-  setGuests: (guests: number) => void;
+  setGuests: (guests: GuestCounts) => void;
   setPriceRange: (min: number, max: number) => void;
   setPropertyType: (types: string[]) => void;
   setAmenities: (amenities: string[]) => void;
@@ -29,7 +35,11 @@ const initialFilters: SearchFilters = {
   location: '',
   checkIn: null,
   checkOut: null,
-  guests: 1,
+  guests: {
+    adults: 1,
+    children: 0,
+    infants: 0,
+  },
   priceMin: 0,
   priceMax: 10000,
   propertyType: [],

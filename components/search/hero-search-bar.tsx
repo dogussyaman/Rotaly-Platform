@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useLocale } from '@/lib/i18n/locale-context';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { setSearch } from '@/lib/store/slices/search-slice';
+import type { GuestCounts } from '@/lib/store/slices/search-slice';
 import { searchLocations, type LocationSuggestion } from '@/lib/supabase/listings';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -127,9 +128,9 @@ export function HeroSearchBar() {
   });
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
   const [guests, setGuests] = useState({
-    adults: Math.max(1, reduxSearch.guests),
-    children: 0,
-    infants: 0,
+    adults: Math.max(1, reduxSearch.guests.adults),
+    children: Math.max(0, reduxSearch.guests.children),
+    infants: Math.max(0, reduxSearch.guests.infants),
   });
   const [calYear, setCalYear] = useState(new Date().getFullYear());
   const [calMonth, setCalMonth] = useState(new Date().getMonth());
@@ -156,30 +157,51 @@ export function HeroSearchBar() {
     const loc = searchParams.get('location') ?? '';
     const cin = searchParams.get('checkin');
     const cout = searchParams.get('checkout');
+    const adultsParam = searchParams.get('adults');
+    const childrenParam = searchParams.get('children');
+    const infantsParam = searchParams.get('infants');
     const gst = searchParams.get('guests');
 
-    const queryKey = `${loc}__${cin ?? ''}__${cout ?? ''}__${gst ?? ''}`;
-    if (!loc && !cin && !cout && !gst) return;
+    const queryKey = `${loc}__${cin ?? ''}__${cout ?? ''}__${adultsParam ?? ''}__${childrenParam ?? ''}__${infantsParam ?? ''}__${gst ?? ''}`;
+    if (!loc && !cin && !cout && !adultsParam && !childrenParam && !infantsParam && !gst) return;
     if (lastSyncedQueryRef.current === queryKey) return;
     lastSyncedQueryRef.current = queryKey;
 
     const nextStart = cin ? parseDateParam(cin) : null;
     const nextEnd = cout ? parseDateParam(cout) : null;
-    const totalGuests = gst ? Number.parseInt(gst, 10) : NaN;
+    const adults = adultsParam ? Number.parseInt(adultsParam, 10) : NaN;
+    const children = childrenParam ? Number.parseInt(childrenParam, 10) : NaN;
+    const infants = infantsParam ? Number.parseInt(infantsParam, 10) : NaN;
+    const legacyTotalGuests = gst ? Number.parseInt(gst, 10) : NaN;
+
+    let nextGuests: GuestCounts = {
+      adults: Math.max(1, reduxSearch.guests.adults),
+      children: Math.max(0, reduxSearch.guests.children),
+      infants: Math.max(0, reduxSearch.guests.infants),
+    };
+
+    const hasBreakdown = Number.isFinite(adults) || Number.isFinite(children) || Number.isFinite(infants);
+    if (hasBreakdown) {
+      nextGuests = {
+        adults: Number.isFinite(adults) ? Math.max(1, adults) : 1,
+        children: Number.isFinite(children) ? Math.max(0, children) : 0,
+        infants: Number.isFinite(infants) ? Math.max(0, infants) : 0,
+      };
+    } else if (Number.isFinite(legacyTotalGuests) && legacyTotalGuests > 0) {
+      nextGuests = { adults: Math.max(1, legacyTotalGuests), children: 0, infants: 0 };
+    }
 
     setLocation(loc);
     setDateRange({ start: nextStart, end: nextEnd });
-    if (Number.isFinite(totalGuests) && totalGuests > 0) {
-      setGuests((prev) => ({ ...prev, adults: Math.max(1, totalGuests), children: 0, infants: prev.infants }));
-    }
+    setGuests(nextGuests);
 
     dispatch(setSearch({
       location: loc,
       checkIn: nextStart ? nextStart.toISOString() : null,
       checkOut: nextEnd ? nextEnd.toISOString() : null,
-      guests: Number.isFinite(totalGuests) && totalGuests > 0 ? totalGuests : reduxSearch.guests,
+      guests: nextGuests,
     }));
-  }, [activePanel, dispatch, parseDateParam, reduxSearch.guests, searchParams]);
+  }, [activePanel, dispatch, parseDateParam, reduxSearch.guests.adults, reduxSearch.guests.children, reduxSearch.guests.infants, searchParams]);
 
   // Canlı lokasyon arama
   const [locationSuggestions, setLocationSuggestions] = useState<LocationSuggestion[]>([]);
@@ -268,13 +290,17 @@ export function HeroSearchBar() {
       location,
       checkIn: dateRange.start ? dateRange.start.toISOString() : null,
       checkOut: dateRange.end ? dateRange.end.toISOString() : null,
-      guests: totalGuests,
+      guests,
     }));
 
     const params = new URLSearchParams();
     if (location) params.set('location', location);
     if (dateRange.start) params.set('checkin', dateRange.start.toISOString());
     if (dateRange.end) params.set('checkout', dateRange.end.toISOString());
+    params.set('adults', String(guests.adults));
+    params.set('children', String(guests.children));
+    params.set('infants', String(guests.infants));
+    // Legacy fallback for old links/components that still read total guests.
     params.set('guests', String(totalGuests));
     router.push(`/search?${params.toString()}`);
     setActivePanel(null);
