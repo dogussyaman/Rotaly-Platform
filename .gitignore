@@ -8,9 +8,9 @@ node_modules/
 .next/
 .env*.local
 .DS_Store
+.coverage/
+coverage/
+playwright-report/
+test-results/
 
 .env
-
-scripts
-
-docs

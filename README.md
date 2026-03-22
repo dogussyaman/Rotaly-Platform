@@ -124,6 +124,38 @@ pnpm dev
 
 Visit `http://localhost:3000` in your browser.
 
+## Engineering Workflow
+
+### Quality Gates
+
+Run these commands before opening a pull request:
+
+```bash
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+```
+
+Use `pnpm ci:check` for the local CI-equivalent baseline.
+
+### Testing
+
+- `pnpm test`: run unit and component tests with Vitest
+- `pnpm test:coverage`: generate a coverage report for the current test suite
+- `pnpm test:e2e`: run Playwright smoke tests
+
+The initial suite focuses on utilities, hooks, and smoke coverage for form behavior. Expand coverage around booking, auth, and dashboard flows as those areas stabilize.
+
+### Repository Standards
+
+- Use `pnpm` for dependency management
+- Keep SQL migrations versioned in `scripts/`
+- Do not commit secrets; use `.env.local` for local development
+- Open PRs with the provided templates and keep scope narrow
+
+See `CONTRIBUTING.md` for the contributor workflow and review expectations.
+
 ## Key Features Explained
 
 ### Sticky Search Header
