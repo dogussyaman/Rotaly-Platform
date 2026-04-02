@@ -1,3 +1,5 @@
+import { extendedEn } from './extended-partials/en';
+
 export type Locale = 'tr' | 'en' | 'de' | 'fr';
 
 export const LOCALES: { code: Locale; label: string; flag: string }[] = [
@@ -1749,4 +1751,4 @@ export const translations = {
   },
 } satisfies Record<Locale, Record<string, string | string[]>>;
 
-export type Translations = typeof translations.tr;
+export type Translations = typeof translations.tr & typeof extendedEn;

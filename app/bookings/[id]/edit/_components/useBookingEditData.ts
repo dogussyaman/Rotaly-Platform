@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { BookingForEdit, ExtrasState } from './types';
+import { useLocale } from '@/lib/i18n/locale-context';
 
 export function useBookingEditData(
   bookingId: string,
@@ -71,13 +72,13 @@ export function useBookingEditData(
 
       if (fetchError) {
         console.error('fetch booking for edit error:', fetchError.message);
-        setError('Rezervasyon yüklenirken bir hata oluştu.');
+        setError(t.bookingEditLoadError as string);
         setLoading(false);
         return;
       }
 
       if (!data) {
-        setError('Rezervasyon bulunamadı.');
+        setError(t.bookingEditNotFound as string);
         setLoading(false);
         return;
       }
@@ -131,7 +132,7 @@ export function useBookingEditData(
     };
 
     load();
-  }, [bookingId, profileId]);
+  }, [bookingId, profileId, t]);
 
   return { booking, loading, error, setError, initialForm };
 }

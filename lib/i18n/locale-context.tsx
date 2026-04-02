@@ -1,7 +1,8 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useMemo, type ReactNode } from 'react';
 import { type Locale, type Translations, translations } from './translations';
+import { extendedTranslations } from './extended-translations';
 
 interface LocaleContextValue {
   locale: Locale;
@@ -12,9 +13,16 @@ interface LocaleContextValue {
 const LOCALE_STORAGE_KEY = 'rotaly_locale';
 const LEGACY_LOCALE_STORAGE_KEY = 'stayhub_locale';
 
+function mergeTranslations(locale: Locale): Translations {
+  return {
+    ...translations[locale],
+    ...extendedTranslations[locale],
+  } as Translations;
+}
+
 const LocaleContext = createContext<LocaleContextValue>({
   locale: 'tr',
-  t: translations.tr,
+  t: mergeTranslations('tr'),
   setLocale: () => {},
 });
 
@@ -47,8 +55,10 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const t = useMemo(() => mergeTranslations(locale), [locale]);
+
   return (
-    <LocaleContext.Provider value={{ locale, t: translations[locale], setLocale }}>
+    <LocaleContext.Provider value={{ locale, t, setLocale }}>
       {children}
     </LocaleContext.Provider>
   );

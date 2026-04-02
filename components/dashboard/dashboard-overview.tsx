@@ -1,8 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Calendar, Gift, Home, MessageSquare, Star, Users, ArrowRight, CheckCircle2, TicketPercent, Clock3, ClipboardCheck, MessageCircleMore, CalendarCheck2 } from 'lucide-react';
+import {
+  Calendar,
+  Gift,
+  Home,
+  MessageSquare,
+  Star,
+  Users,
+  ArrowRight,
+  CheckCircle2,
+  TicketPercent,
+  Clock3,
+  ClipboardCheck,
+  MessageCircleMore,
+  CalendarCheck2,
+} from 'lucide-react';
 import { DashboardOverviewSkeleton } from '@/components/dashboard/dashboard-skeletons';
 
 import { Button } from '@/components/ui/button';
@@ -10,8 +24,15 @@ import { useAppSelector } from '@/lib/store/hooks';
 import { Section, StatCard } from '@/components/dashboard/dashboard-ui';
 import { fetchHostByUserId, fetchHostStats, fetchHostBookings, type HostBooking, HostStats } from '@/lib/supabase/host';
 import { fetchAdminStats, type AdminStatRow } from '@/lib/supabase/dashboard-stats';
+import { useLocale } from '@/lib/i18n/locale-context';
+import type { Locale } from '@/lib/i18n/translations';
 
-const WEEKDAYS = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+const NUMBER_LOCALES: Record<Locale, string> = {
+  tr: 'tr-TR',
+  en: 'en-US',
+  de: 'de-DE',
+  fr: 'fr-FR',
+};
 
 function getDaysInMonth(month: Date): (Date | null)[] {
   const y = month.getFullYear();
@@ -27,22 +48,9 @@ function getDaysInMonth(month: Date): (Date | null)[] {
 const ADMIN_ICONS = [Users, Home, Calendar, Star] as const;
 const HOST_ICONS = [Gift, Calendar, Star, MessageSquare] as const;
 
-function QuickLink({ title, description, href }: { title: string; description: string; href: string }) {
-  return (
-    <Link
-      href={href}
-      className="flex items-center justify-between rounded-xl border border-border/70 bg-card/90 px-4 py-3 shadow-[0_1px_2px_0_rgba(0,0,0,0.04)] transition-colors hover:border-primary/30 hover:bg-accent/60 hover:shadow-[0_2px_8px_-2px_rgba(0,0,0,0.06)]"
-    >
-      <div>
-        <span className="text-sm font-semibold text-foreground">{title}</span>
-        <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
-      </div>
-      <ArrowRight className="h-4 w-4 shrink-0 text-primary" />
-    </Link>
-  );
-}
-
 export function DashboardOverview() {
+  const { t, locale } = useLocale();
+  const numberLocale = NUMBER_LOCALES[locale];
   const { profile } = useAppSelector((s) => s.user);
   const [hostStats, setHostStats] = useState<HostStats | null>(null);
   const [hostBookings, setHostBookings] = useState<HostBooking[]>([]);
@@ -69,7 +77,7 @@ export function DashboardOverview() {
             setHostBookings(bookings);
           }
         } else {
-          const stats = await fetchAdminStats();
+          const stats = await fetchAdminStats(numberLocale);
           setAdminStats(stats);
         }
       } catch (error) {
@@ -80,7 +88,7 @@ export function DashboardOverview() {
     }
 
     loadStats();
-  }, [role, profile?.id]);
+  }, [role, profile?.id, numberLocale]);
 
   const calendarMonth = new Date();
   const daysWithBookings = new Set<string>();
@@ -102,103 +110,155 @@ export function DashboardOverview() {
     (b) => b.status === 'confirmed' && b.checkIn.slice(0, 10) === todayStr,
   ).length;
 
-  const stats =
-    role === 'admin'
-      ? adminStats.map((stat, index) => ({ ...stat, icon: ADMIN_ICONS[index] }))
-      : hostStats
+  const stats = useMemo(() => {
+    if (role === 'admin') {
+      const meta = [
+        { title: t.dashboardAdminStat1Title as string, helper: t.dashboardAdminStat1Helper as string },
+        { title: t.dashboardAdminStat2Title as string, helper: t.dashboardAdminStat2Helper as string },
+        { title: t.dashboardAdminStat3Title as string, helper: t.dashboardAdminStat3Helper as string },
+        { title: t.dashboardAdminStat4Title as string, helper: t.dashboardAdminStat4Helper as string },
+      ];
+      return adminStats.map((stat, index) => ({
+        ...stat,
+        title: meta[index]?.title ?? stat.title,
+        helper: meta[index]?.helper ?? stat.helper,
+        icon: ADMIN_ICONS[index],
+      }));
+    }
+    if (!hostStats) return [];
+    return [
+      {
+        title: t.dashboardStatRevenue as string,
+        value: `₺${hostStats.thisMonthEarnings.toLocaleString(numberLocale)}`,
+        change: '—',
+        helper: t.dashboardStatRevenueHelper as string,
+        icon: HOST_ICONS[0],
+      },
+      {
+        title: t.dashboardStatUpcoming as string,
+        value: hostStats.upcomingCheckins.toString(),
+        change: '—',
+        helper: t.dashboardStatUpcomingHelper as string,
+        icon: HOST_ICONS[1],
+      },
+      {
+        title: t.dashboardStatRating as string,
+        value: hostStats.averageRating.toFixed(1),
+        change: '—',
+        helper: `${hostStats.reviewCount} ${t.dashboardStatRatingHelper as string}`,
+        icon: HOST_ICONS[2],
+      },
+      {
+        title: t.dashboardStatMessages as string,
+        value: hostStats.unreadMessages.toString(),
+        change: '—',
+        helper: t.dashboardStatMessagesHelper as string,
+        icon: HOST_ICONS[3],
+      },
+    ];
+  }, [role, adminStats, hostStats, t, numberLocale]);
+
+  const links = useMemo(
+    () =>
+      role === 'admin'
         ? [
             {
-              title: 'Bu Ay Gelir',
-              value: `₺${hostStats.thisMonthEarnings.toLocaleString('tr-TR')}`,
-              change: '—',
-              helper: 'Geçen aya göre',
-              icon: HOST_ICONS[0],
+              title: t.dashboardLinkApplications as string,
+              description: t.dashboardLinkApplicationsDesc as string,
+              href: '/dashboard/applications',
             },
             {
-              title: 'Yaklaşan Giriş',
-              value: hostStats.upcomingCheckins.toString(),
-              change: '—',
-              helper: 'Gelecek 7 gün',
-              icon: HOST_ICONS[1],
+              title: t.dashboardLinkRoles as string,
+              description: t.dashboardLinkRolesDesc as string,
+              href: '/dashboard/roles',
             },
             {
-              title: 'Ortalama Puan',
-              value: hostStats.averageRating.toFixed(1),
-              change: '—',
-              helper: `${hostStats.reviewCount} yorum`,
-              icon: HOST_ICONS[2],
+              title: t.dashboardLinkListingsAdmin as string,
+              description: t.dashboardLinkListingsAdminDesc as string,
+              href: '/dashboard/listings',
             },
             {
-              title: 'Yeni Mesaj',
-              value: hostStats.unreadMessages.toString(),
-              change: '—',
-              helper: 'Okunmamış',
-              icon: HOST_ICONS[3],
+              title: t.dashboardLinkCoupons as string,
+              description: t.dashboardLinkCouponsDesc as string,
+              href: '/dashboard/coupons',
             },
           ]
-        : [];
+        : [
+            {
+              title: t.dashboardLinkListingsHost as string,
+              description: t.dashboardLinkListingsHostDesc as string,
+              href: '/dashboard/listings',
+            },
+            {
+              title: t.dashboardLinkAvailability as string,
+              description: t.dashboardLinkAvailabilityDesc as string,
+              href: '/dashboard/availability',
+            },
+            {
+              title: t.dashboardLinkBookings as string,
+              description: t.dashboardLinkBookingsDesc as string,
+              href: '/dashboard/bookings',
+            },
+            {
+              title: t.dashboardLinkMessages as string,
+              description: t.dashboardLinkMessagesDesc as string,
+              href: '/dashboard/messages',
+            },
+          ],
+    [role, t],
+  );
 
-  const links =
-    role === 'admin'
-      ? [
-          { title: 'Başvurular', description: 'Gelen otel başvurularını incele', href: '/dashboard/applications' },
-          { title: 'Roller & Yetkiler', description: 'Rol atama ve doğrulama yönetimi', href: '/dashboard/roles' },
-          { title: 'İlanlar', description: 'İlan, görsel, imkan ve moderasyon', href: '/dashboard/listings' },
-          { title: 'Kuponlar', description: 'İlk üyelik ve kampanya kuponları', href: '/dashboard/coupons' },
-        ]
-      : [
-          { title: 'Otel ilanlarım', description: 'İlan yönetimi', href: '/dashboard/listings' },
-          { title: 'Uygunluk', description: 'Takvim ve fiyat', href: '/dashboard/availability' },
-          { title: 'Rezervasyonlar', description: 'Giriş/çıkış planı', href: '/dashboard/bookings' },
-          { title: 'Mesajlar', description: 'Misafir iletişimi', href: '/dashboard/messages' },
-        ];
+  const todoItems = useMemo(
+    () =>
+      role === 'admin'
+        ? [
+            {
+              title: t.dashboardTodoAdmin1Title as string,
+              description: t.dashboardTodoAdmin1Desc as string,
+              href: '/dashboard/applications',
+            },
+            {
+              title: t.dashboardTodoAdmin2Title as string,
+              description: t.dashboardTodoAdmin2Desc as string,
+              href: '/dashboard/hosts',
+            },
+            {
+              title: t.dashboardTodoAdmin3Title as string,
+              description: t.dashboardTodoAdmin3Desc as string,
+              href: '/dashboard/coupons',
+            },
+            {
+              title: t.dashboardTodoAdmin4Title as string,
+              description: t.dashboardTodoAdmin4Desc as string,
+              href: '/dashboard/reports',
+            },
+          ]
+        : [
+            {
+              title: t.dashboardTodoHost1Title as string,
+              description: t.dashboardTodoHost1Desc as string,
+              href: '/dashboard/listings',
+            },
+            {
+              title: t.dashboardTodoHost2Title as string,
+              description: t.dashboardTodoHost2Desc as string,
+              href: '/dashboard/availability',
+            },
+            {
+              title: t.dashboardTodoHost3Title as string,
+              description: t.dashboardTodoHost3Desc as string,
+              href: '/dashboard/availability',
+            },
+            {
+              title: t.dashboardTodoHost4Title as string,
+              description: t.dashboardTodoHost4Desc as string,
+              href: '/dashboard/messages',
+            },
+          ],
+    [role, t],
+  );
 
-  const todoItems =
-    role === 'admin'
-      ? [
-          {
-            title: 'Yeni otel başvuruları',
-            description: 'Başvuruları inceleyip onay/reddet aksiyonu al.',
-            href: '/dashboard/applications',
-          },
-          {
-            title: 'Ev sahibi performansı',
-            description: 'Yanıt oranı ve iptal eğilimlerini gözden geçir.',
-            href: '/dashboard/hosts',
-          },
-          {
-            title: 'Fiyat ve kampanya denetimi',
-            description: 'İndirim/zam kuralları ve kupon limitleri.',
-            href: '/dashboard/coupons',
-          },
-          {
-            title: 'Operasyon raporları',
-            description: 'Gelir, risk ve doluluk özetleri.',
-            href: '/dashboard/reports',
-          },
-        ]
-      : [
-          {
-            title: 'İlan bilgilerini tamamla',
-            description: 'Oda tipleri, görseller ve kurallar.',
-            href: '/dashboard/listings',
-          },
-          {
-            title: 'Uygunluk ve özel fiyat',
-            description: 'Takvim, sezon/ay/uzun konaklama kuralları.',
-            href: '/dashboard/availability',
-          },
-          {
-            title: 'İndirim & zam kurgusu',
-            description: 'Tarih, ay veya minimum gece bazlı kural ekle.',
-            href: '/dashboard/availability',
-          },
-          {
-            title: 'Mesaj ve check-in akışı',
-            description: 'Misafir bilgilendirme ve hızlı yanıt şablonları.',
-            href: '/dashboard/messages',
-          },
-        ];
+  const weekdays = t.dashboardWeekdays as string[];
 
   if (loading) return <DashboardOverviewSkeleton />;
 
@@ -217,8 +277,8 @@ export function DashboardOverview() {
           <div className="rounded-xl border border-border/70 bg-card/90 p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] sm:p-5">
             <div className="mb-3 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-foreground">Bugün için hızlı erişim</h3>
-                <p className="mt-0.5 text-xs text-muted-foreground">En çok kullanılan işlemler tek alanda</p>
+                <h3 className="text-sm font-semibold text-foreground">{t.dashboardQuickTitle as string}</h3>
+                <p className="mt-0.5 text-xs text-muted-foreground">{t.dashboardQuickSubtitle as string}</p>
               </div>
               <Clock3 className="h-4 w-4 text-primary" />
             </div>
@@ -230,9 +290,11 @@ export function DashboardOverview() {
               >
                 <div className="flex items-center gap-2">
                   <ClipboardCheck className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground">Onay Bekleyenler</span>
+                  <span className="text-sm font-medium text-foreground">{t.dashboardQuickPending as string}</span>
                 </div>
-                <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">{pendingBookingsCount}</span>
+                <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                  {pendingBookingsCount}
+                </span>
               </Link>
 
               <Link
@@ -241,9 +303,11 @@ export function DashboardOverview() {
               >
                 <div className="flex items-center gap-2">
                   <CalendarCheck2 className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground">Bugünkü Girişler</span>
+                  <span className="text-sm font-medium text-foreground">{t.dashboardQuickToday as string}</span>
                 </div>
-                <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">{todayCheckinsCount}</span>
+                <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                  {todayCheckinsCount}
+                </span>
               </Link>
 
               <Link
@@ -252,7 +316,7 @@ export function DashboardOverview() {
               >
                 <div className="flex items-center gap-2">
                   <MessageCircleMore className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground">Mesaj Merkezi</span>
+                  <span className="text-sm font-medium text-foreground">{t.dashboardQuickMsgCenter as string}</span>
                 </div>
                 <span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
                   {hostStats?.unreadMessages ?? 0}
@@ -265,7 +329,7 @@ export function DashboardOverview() {
               >
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground">Takvim & Fiyat</span>
+                  <span className="text-sm font-medium text-foreground">{t.dashboardQuickCalendar as string}</span>
                 </div>
                 <ArrowRight className="h-4 w-4 text-primary" />
               </Link>
@@ -279,20 +343,20 @@ export function DashboardOverview() {
           <div className="rounded-xl border border-border/70 bg-card/90 p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] sm:p-6">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-foreground">Rezervasyon Takvimi</h3>
-                <p className="mt-0.5 text-xs text-muted-foreground">Bu ay dolu günler; tıklayınca rezervasyonlara gidin</p>
+                <h3 className="text-sm font-semibold text-foreground">{t.dashboardCalTitle as string}</h3>
+                <p className="mt-0.5 text-xs text-muted-foreground">{t.dashboardCalSubtitle as string}</p>
               </div>
               <Button asChild variant="outline" size="sm" className="rounded-lg">
-                <Link href="/dashboard/bookings">Tümünü Gör</Link>
+                <Link href="/dashboard/bookings">{t.dashboardCalViewAll as string}</Link>
               </Button>
             </div>
             {role === 'host' && hostStats ? (
               <div className="rounded-xl border border-border/70 bg-muted/40 p-3">
                 <div className="mb-2 text-center text-xs font-medium text-muted-foreground">
-                  {calendarMonth.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })}
+                  {calendarMonth.toLocaleDateString(numberLocale, { month: 'long', year: 'numeric' })}
                 </div>
                 <div className="grid grid-cols-7 gap-0.5">
-                  {WEEKDAYS.map((w) => (
+                  {weekdays.map((w) => (
                     <div key={w} className="py-1 text-center text-[10px] font-medium text-muted-foreground">
                       {w}
                     </div>
@@ -319,13 +383,13 @@ export function DashboardOverview() {
               </div>
             ) : (
               <div className="flex h-50 w-full items-center justify-center rounded-xl border border-dashed border-border/70 bg-muted/20">
-                <p className="text-sm text-muted-foreground">Takvim ev sahibi panelinde görünür.</p>
+                <p className="text-sm text-muted-foreground">{t.dashboardCalHostOnly as string}</p>
               </div>
             )}
           </div>
           {role === 'host' && upcomingBookings.length > 0 && (
             <div className="rounded-xl border border-border/70 bg-card/90 p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)]">
-              <h3 className="text-sm font-semibold text-foreground">Yaklaşan rezervasyonlar</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t.dashboardUpcomingTitle as string}</h3>
               <ul className="mt-3 space-y-2">
                 {upcomingBookings.map((b) => (
                   <li key={b.id}>
@@ -333,16 +397,17 @@ export function DashboardOverview() {
                       href={`/dashboard/bookings/${b.id}`}
                       className="flex items-center justify-between rounded-lg border border-border/70 px-3 py-2 text-sm transition-colors hover:bg-accent/60"
                     >
-                      <span className="font-medium">{b.listingTitle ?? 'İlan'}</span>
+                      <span className="font-medium">{b.listingTitle ?? (t.dashboardListingFallback as string)}</span>
                       <span className="text-xs text-muted-foreground">
-                        {new Date(b.checkIn).toLocaleDateString('tr-TR')} · {b.guestName ?? 'Misafir'}
+                        {new Date(b.checkIn).toLocaleDateString(numberLocale)} ·{' '}
+                        {b.guestName ?? (t.dashboardGuestFallback as string)}
                       </span>
                     </Link>
                   </li>
                 ))}
               </ul>
               <Button asChild variant="ghost" size="sm" className="mt-2 w-full rounded-lg text-primary">
-                <Link href="/dashboard/bookings">Tüm rezervasyonlar</Link>
+                <Link href="/dashboard/bookings">{t.dashboardUpcomingAll as string}</Link>
               </Button>
             </div>
           )}
@@ -351,8 +416,8 @@ export function DashboardOverview() {
         <div className="space-y-4">
           <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-linear-to-br from-primary to-primary/80 p-5 text-primary-foreground shadow-[0_6px_18px_-6px_rgba(13,148,136,0.25)] sm:p-6">
             <div className="relative z-10">
-              <h3 className="text-sm font-semibold">Hızlı İşlemler</h3>
-              <p className="mt-0.5 text-xs text-primary-foreground/70">İşlemlerinizi hızlıca gerçekleştirin</p>
+              <h3 className="text-sm font-semibold">{t.dashboardQuickActionsTitle as string}</h3>
+              <p className="mt-0.5 text-xs text-primary-foreground/70">{t.dashboardQuickActionsSubtitle as string}</p>
               <div className="mt-4 space-y-2">
                 {links.map((link) => (
                   <Link
@@ -373,8 +438,8 @@ export function DashboardOverview() {
           <div className="rounded-xl border border-border/70 bg-card/90 p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-foreground">Yapılacaklar</h3>
-                <p className="mt-0.5 text-xs text-muted-foreground">Operasyonu hızlandıran öneriler</p>
+                <h3 className="text-sm font-semibold text-foreground">{t.dashboardTodosTitle as string}</h3>
+                <p className="mt-0.5 text-xs text-muted-foreground">{t.dashboardTodosSubtitle as string}</p>
               </div>
               <CheckCircle2 className="h-4 w-4 text-primary" />
             </div>
@@ -398,10 +463,8 @@ export function DashboardOverview() {
           <div className="rounded-xl border border-border/70 bg-card/90 p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-foreground">Kampanya performansı (örnek)</h3>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  En çok rezervasyon getiren indirim kurgularını hızlıca görün.
-                </p>
+                <h3 className="text-sm font-semibold text-foreground">{t.dashboardCampaignTitle as string}</h3>
+                <p className="mt-0.5 text-xs text-muted-foreground">{t.dashboardCampaignSubtitle as string}</p>
               </div>
               <TicketPercent className="h-4 w-4 text-primary" />
             </div>
@@ -409,36 +472,44 @@ export function DashboardOverview() {
               <div className="flex items-center justify-between rounded-lg bg-muted/60 px-3 py-2">
                 <div>
                   <p className="font-semibold text-foreground">ROTAYAZ20</p>
-                  <p className="text-muted-foreground">Yaz sezonu %20 indirim kuponu</p>
+                  <p className="text-muted-foreground">{t.dashboardCouponSummerDesc as string}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-foreground">38 rezervasyon</p>
-                  <p className="text-[11px] text-emerald-600">Toplam ciro: ₺120k</p>
+                  <p className="font-semibold text-foreground">
+                    38 {t.dashboardCouponBookings as string}
+                  </p>
+                  <p className="text-[11px] text-emerald-600">
+                    {t.dashboardCouponRevenue as string} ₺120k
+                  </p>
                 </div>
               </div>
               <div className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2">
                 <div>
                   <p className="font-semibold text-foreground">UZUNKAL15</p>
-                  <p className="text-muted-foreground">7+ gece konaklamalarda %15</p>
+                  <p className="text-muted-foreground">{t.dashboardCouponLongDesc as string}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-foreground">21 rezervasyon</p>
-                  <p className="text-[11px] text-emerald-600">Doluluk artışı: +12%</p>
+                  <p className="font-semibold text-foreground">
+                    21 {t.dashboardCouponBookings as string}
+                  </p>
+                  <p className="text-[11px] text-emerald-600">
+                    {t.dashboardCouponOcc as string} +12%
+                  </p>
                 </div>
               </div>
               <div className="flex items-center justify-between rounded-lg bg-muted/30 px-3 py-2">
                 <div>
                   <p className="font-semibold text-foreground">SONDKAÇIS</p>
-                  <p className="text-muted-foreground">Son dakika %10 indirim</p>
+                  <p className="text-muted-foreground">{t.dashboardCouponLastDesc as string}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-foreground">14 rezervasyon</p>
-                  <p className="text-[11px] text-emerald-600">Boş gün kurtarma</p>
+                  <p className="font-semibold text-foreground">
+                    14 {t.dashboardCouponBookings as string}
+                  </p>
+                  <p className="text-[11px] text-emerald-600">{t.dashboardCouponSave as string}</p>
                 </div>
               </div>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Bu blok konsept amaçlıdır; gerçek entegrasyonda veriler kupon ve rezervasyon tablolarından çekilecektir.
-              </p>
+              <p className="mt-1 text-[11px] text-muted-foreground">{t.dashboardCampaignFoot as string}</p>
             </div>
           </div>
         </div>

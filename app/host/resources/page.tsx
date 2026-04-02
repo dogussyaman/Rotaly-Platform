@@ -4,106 +4,120 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { SearchHeader } from '@/components/header/search-header';
-import { BookOpen, Camera, Shield, Star, DollarSign, Layout, ArrowRight, CircleCheck } from 'lucide-react';
+import { BookOpen, Camera, Shield, Star, DollarSign, Layout, ArrowRight, CircleCheck, type LucideIcon } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useLocale } from '@/lib/i18n/locale-context';
+
+type ResourceItem = {
+  icon: LucideIcon;
+  title: string;
+  summary: string;
+  href: string;
+  tags: string[];
+  color: string;
+};
 
 export default function HostResourcesPage() {
+  const { t } = useLocale();
   const [query, setQuery] = useState('');
 
-  const resources = [
-    {
-      icon: BookOpen,
-      title: 'Başlangıç Rehberi',
-      summary: 'İlk ilanınızı açmadan önce temel süreçler, kurallar ve panel kullanımı.',
-      href: '/host/support',
-      tags: ['başlangıç', 'rehber', 'host'],
-      color: 'bg-blue-500/10 text-blue-600',
-    },
-    {
-      icon: Camera,
-      title: 'Fotoğraf İpuçları',
-      summary: 'Dönüşüm getiren kapak görseli, ışık kullanımı ve oda açıları.',
-      href: '/dashboard/listings',
-      tags: ['fotoğraf', 'kapak', 'ilan'],
-      color: 'bg-purple-500/10 text-purple-600',
-    },
-    {
-      icon: Shield,
-      title: 'Güvenlik Rehberi',
-      summary: 'Check-in güvenliği, kimlik doğrulama, acil durum ve ev kuralları.',
-      href: '/safety',
-      tags: ['güvenlik', 'kimlik', 'kural'],
-      color: 'bg-green-500/10 text-green-600',
-    },
-    {
-      icon: Star,
-      title: 'Mükemmel Misafir Deneyimi',
-      summary: 'Yorum puanını artıran iletişim, temizlik standardı ve karşılama akışı.',
-      href: '/dashboard/reviews',
-      tags: ['misafir', 'yorum', 'deneyim'],
-      color: 'bg-amber-500/10 text-amber-600',
-    },
-    {
-      icon: DollarSign,
-      title: 'Fiyatlandırma Stratejileri',
-      summary: 'Sezonluk fiyat, minimum gece ve kampanya kurgusu ile doluluk artışı.',
-      href: '/dashboard/availability',
-      tags: ['fiyat', 'sezon', 'kampanya'],
-      color: 'bg-emerald-500/10 text-emerald-600',
-    },
-    {
-      icon: Layout,
-      title: 'İlanınızı Optimize Edin',
-      summary: 'Başlık, açıklama, imkanlar ve kuralları SEO + dönüşüm odaklı düzenleyin.',
-      href: '/dashboard/listings',
-      tags: ['seo', 'ilan', 'optimizasyon'],
-      color: 'bg-rose-500/10 text-rose-600',
-    },
-  ];
+  const resources = useMemo((): ResourceItem[] => {
+    return [
+      {
+        icon: BookOpen,
+        title: t.hostRes1Title as string,
+        summary: t.hostRes1Summary as string,
+        href: '/host/support',
+        tags: t.hostRes1Tags as string[],
+        color: 'bg-blue-500/10 text-blue-600',
+      },
+      {
+        icon: Camera,
+        title: t.hostRes2Title as string,
+        summary: t.hostRes2Summary as string,
+        href: '/dashboard/listings',
+        tags: t.hostRes2Tags as string[],
+        color: 'bg-purple-500/10 text-purple-600',
+      },
+      {
+        icon: Shield,
+        title: t.hostRes3Title as string,
+        summary: t.hostRes3Summary as string,
+        href: '/safety',
+        tags: t.hostRes3Tags as string[],
+        color: 'bg-green-500/10 text-green-600',
+      },
+      {
+        icon: Star,
+        title: t.hostRes4Title as string,
+        summary: t.hostRes4Summary as string,
+        href: '/dashboard/reviews',
+        tags: t.hostRes4Tags as string[],
+        color: 'bg-amber-500/10 text-amber-600',
+      },
+      {
+        icon: DollarSign,
+        title: t.hostRes5Title as string,
+        summary: t.hostRes5Summary as string,
+        href: '/dashboard/availability',
+        tags: t.hostRes5Tags as string[],
+        color: 'bg-emerald-500/10 text-emerald-600',
+      },
+      {
+        icon: Layout,
+        title: t.hostRes6Title as string,
+        summary: t.hostRes6Summary as string,
+        href: '/dashboard/listings',
+        tags: t.hostRes6Tags as string[],
+        color: 'bg-rose-500/10 text-rose-600',
+      },
+    ];
+  }, [t]);
 
   const filteredResources = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return resources;
-    return resources.filter((resource) =>
-      resource.title.toLowerCase().includes(q) ||
-      resource.summary.toLowerCase().includes(q) ||
-      resource.tags.some((tag) => tag.includes(q)),
+    return resources.filter(
+      (resource) =>
+        resource.title.toLowerCase().includes(q) ||
+        resource.summary.toLowerCase().includes(q) ||
+        resource.tags.some((tag) => tag.toLowerCase().includes(q)),
     );
-  }, [query]);
+  }, [query, resources]);
+
+  const checklistItems = t.hostResourcesChecklistItems as string[];
 
   return (
     <div className="min-h-screen bg-background">
       <SearchHeader />
       <main className="max-w-7xl mx-auto px-6 py-24 space-y-12">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
-          <h1 className="text-5xl font-black">Ev Sahibi Kaynak Merkezi</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl">
-            Başarılı bir ev sahibi olmanız için gerekli rehberleri tek sayfada toplayın, arayın ve doğrudan ilgili aksiyona gidin.
-          </p>
+          <h1 className="text-5xl font-black">{t.hostResourcesTitle as string}</h1>
+          <p className="text-xl text-muted-foreground max-w-2xl">{t.hostResourcesSubtitle as string}</p>
 
           <div className="max-w-xl">
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Kaynak ara: fiyat, güvenlik, fotoğraf..."
+              placeholder={t.hostResourcesSearchPlaceholder as string}
               className="h-12 rounded-xl"
             />
           </div>
 
           <div className="flex flex-wrap gap-3">
             <Button asChild className="rounded-xl">
-              <Link href="/dashboard/listings/new">Yeni İlan Oluştur</Link>
+              <Link href="/dashboard/listings/new">{t.hostResourcesNewListing as string}</Link>
             </Button>
             <Button asChild variant="outline" className="rounded-xl">
-              <Link href="/dashboard/availability">Takvim & Fiyat Yönetimi</Link>
+              <Link href="/dashboard/availability">{t.hostResourcesCalendar as string}</Link>
             </Button>
             <Button asChild variant="outline" className="rounded-xl">
-              <Link href="/dashboard/bookings">Rezervasyonları Gör</Link>
+              <Link href="/dashboard/bookings">{t.hostResourcesBookings as string}</Link>
             </Button>
           </div>
         </motion.div>
@@ -127,7 +141,7 @@ export default function HostResourcesPage() {
                 <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">{res.title}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed mb-6">{res.summary}</p>
                 <span className="text-primary font-bold text-sm inline-flex items-center gap-2">
-                  Kaynağa Git <ArrowRight className="w-4 h-4" />
+                  {t.hostResourcesGoResource as string} <ArrowRight className="w-4 h-4" />
                 </span>
               </Link>
             </motion.div>
@@ -136,21 +150,14 @@ export default function HostResourcesPage() {
 
         {filteredResources.length === 0 && (
           <div className="rounded-2xl border border-dashed border-border p-8 text-center text-muted-foreground">
-            Arama kriterine uygun kaynak bulunamadı.
+            {t.hostResourcesEmpty as string}
           </div>
         )}
 
         <section className="rounded-4xl border border-border bg-card p-8 md:p-10">
-          <h2 className="text-2xl font-black mb-5">Ev sahiplerinin dikkat etmesi gerekenler</h2>
+          <h2 className="text-2xl font-black mb-5">{t.hostResourcesChecklistTitle as string}</h2>
           <div className="grid md:grid-cols-2 gap-4">
-            {[
-              'Takvim güncelliği: overbooking riskini önlemek için müsaitliği günlük kontrol edin.',
-              'Temizlik standardı: check-in öncesi tutarlı kontrol listesi uygulayın.',
-              'Yanıt süresi: misafir sorularına mümkünse 1 saat içinde dönüş yapın.',
-              'Fiyat disiplini: sezon ve etkinlik dönemlerinde özel fiyat kuralı tanımlayın.',
-              'Kuralların şeffaflığı: ev kurallarını kısa, net ve ilan üzerinde görünür tutun.',
-              'Güvenli ödeme: platform dışı ödeme taleplerini asla kabul etmeyin.',
-            ].map((item) => (
+            {checklistItems.map((item) => (
               <div key={item} className="flex items-start gap-3 rounded-xl bg-muted/40 p-4">
                 <CircleCheck className="w-5 h-5 mt-0.5 text-emerald-600 shrink-0" />
                 <p className="text-sm text-muted-foreground leading-relaxed">{item}</p>

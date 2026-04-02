@@ -1,48 +1,58 @@
 'use client';
 
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Zap, TrendingUp, CheckCircle2, Clock3, BadgeDollarSign } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { SearchHeader } from '@/components/header/search-header';
 import { Button } from '@/components/ui/button';
+import { useLocale } from '@/lib/i18n/locale-context';
 
 export default function HostLandingPage() {
-  const highlights = [
-    {
-      icon: Shield,
-      title: 'Güvenli Koruma',
-      description: 'Rezervasyon süreçlerinde eviniz ve geliriniz için ek güvenlik katmanları.',
-    },
-    {
-      icon: Zap,
-      title: 'Kolay Yönetim',
-      description: 'Uygunluk, fiyat, rezervasyon ve mesajları tek panelden hızlıca yönetin.',
-    },
-    {
-      icon: TrendingUp,
-      title: 'Daha Yüksek Kazanç',
-      description: 'Dinamik fiyatlama ve kampanya araçlarıyla doluluğu artırın.',
-    },
-  ];
+  const { t } = useLocale();
 
-  const steps = [
-    {
-      icon: CheckCircle2,
-      title: '1. İlanını Oluştur',
-      description: 'Otel/oda bilgilerini, görselleri ve kuralları birkaç adımda tamamla.',
-    },
-    {
-      icon: Clock3,
-      title: '2. Takvim ve Fiyatı Ayarla',
-      description: 'Müsaitlik, özel fiyat ve minimum gece kurallarını belirle.',
-    },
-    {
-      icon: BadgeDollarSign,
-      title: '3. Rezervasyonları Yönet',
-      description: 'Onay, check-in ve misafir iletişimini profesyonel şekilde yönet.',
-    },
-  ];
+  const highlights = useMemo(
+    () => [
+      {
+        icon: Shield,
+        title: t.hostLandingHl1Title as string,
+        description: t.hostLandingHl1Desc as string,
+      },
+      {
+        icon: Zap,
+        title: t.hostLandingHl2Title as string,
+        description: t.hostLandingHl2Desc as string,
+      },
+      {
+        icon: TrendingUp,
+        title: t.hostLandingHl3Title as string,
+        description: t.hostLandingHl3Desc as string,
+      },
+    ],
+    [t],
+  );
+
+  const steps = useMemo(
+    () => [
+      {
+        icon: CheckCircle2,
+        title: t.hostLandingStep1Title as string,
+        description: t.hostLandingStep1Desc as string,
+      },
+      {
+        icon: Clock3,
+        title: t.hostLandingStep2Title as string,
+        description: t.hostLandingStep2Desc as string,
+      },
+      {
+        icon: BadgeDollarSign,
+        title: t.hostLandingStep3Title as string,
+        description: t.hostLandingStep3Desc as string,
+      },
+    ],
+    [t],
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -58,36 +68,36 @@ export default function HostLandingPage() {
               className="lg:col-span-6 rounded-4xl border border-border/70 bg-card p-8 md:p-10 shadow-[0_8px_28px_-14px_rgba(0,0,0,0.14)]"
             >
               <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                Host Programı
+                {t.hostLandingBadge as string}
               </span>
               <h1 className="mt-4 text-4xl md:text-5xl font-black tracking-tight text-foreground">
-                Rotaly ile profesyonel ev sahipliğine başlayın
+                {t.hostLandingHeroTitle as string}
               </h1>
               <p className="mt-4 text-base md:text-lg text-muted-foreground leading-relaxed max-w-xl">
-                Mülkünüzü doğru misafirlerle buluşturun, gelir akışınızı büyütün ve tüm operasyonu tek panelden yönetin.
+                {t.hostLandingHeroSubtitle as string}
               </p>
 
               <div className="mt-7 flex flex-col sm:flex-row gap-3">
                 <Button asChild size="lg" className="rounded-xl px-7 font-semibold">
-                  <Link href="/dashboard/listings/new">İlan Oluştur</Link>
+                  <Link href="/dashboard/listings/new">{t.hostLandingCtaListing as string}</Link>
                 </Button>
                 <Button asChild variant="outline" size="lg" className="rounded-xl px-7 font-semibold">
-                  <Link href="/host/resources">Host Rehberi</Link>
+                  <Link href="/host/resources">{t.hostLandingCtaGuide as string}</Link>
                 </Button>
               </div>
 
               <div className="mt-8 grid grid-cols-3 gap-3">
                 <div className="rounded-xl border border-border/70 bg-muted/40 px-3 py-3">
                   <p className="text-lg font-black text-foreground">24/7</p>
-                  <p className="text-xs text-muted-foreground">Destek</p>
+                  <p className="text-xs text-muted-foreground">{t.hostLandingStat247Label as string}</p>
                 </div>
                 <div className="rounded-xl border border-border/70 bg-muted/40 px-3 py-3">
                   <p className="text-lg font-black text-foreground">%0</p>
-                  <p className="text-xs text-muted-foreground">Başlangıç Ücreti</p>
+                  <p className="text-xs text-muted-foreground">{t.hostLandingStat0Label as string}</p>
                 </div>
                 <div className="rounded-xl border border-border/70 bg-muted/40 px-3 py-3">
-                  <p className="text-lg font-black text-foreground">1 Panel</p>
-                  <p className="text-xs text-muted-foreground">Tüm Operasyon</p>
+                  <p className="text-lg font-black text-foreground">1</p>
+                  <p className="text-xs text-muted-foreground">{t.hostLandingStatPanelLabel as string}</p>
                 </div>
               </div>
             </motion.div>
@@ -100,15 +110,15 @@ export default function HostLandingPage() {
             >
               <Image
                 src="https://images.unsplash.com/photo-1556912177-c54030639a4c?w=1600&h=1100&fit=crop&auto=format"
-                alt="Rotaly host experience"
+                alt={t.hostLandingImageAlt as string}
                 fill
                 className="object-cover"
                 priority
               />
               <div className="absolute inset-0 bg-linear-to-t from-black/40 via-black/10 to-transparent" />
               <div className="absolute left-5 right-5 bottom-5 rounded-2xl bg-background/80 backdrop-blur-md border border-border/60 p-4">
-                <p className="text-sm font-semibold text-foreground">Rezervasyon, uygunluk ve mesaj akışını aynı yerden yönetin.</p>
-                <p className="text-xs text-muted-foreground mt-1">Daha hızlı karar, daha iyi misafir deneyimi.</p>
+                <p className="text-sm font-semibold text-foreground">{t.hostLandingCardTitle as string}</p>
+                <p className="text-xs text-muted-foreground mt-1">{t.hostLandingCardSubtitle as string}</p>
               </div>
             </motion.div>
           </div>
@@ -117,8 +127,10 @@ export default function HostLandingPage() {
         <section className="px-6">
           <div className="max-w-7xl mx-auto">
             <div className="mb-8">
-              <h2 className="text-3xl md:text-4xl font-black tracking-tight text-foreground">Neden Rotaly Host?</h2>
-              <p className="mt-2 text-muted-foreground max-w-2xl">Profesyonel ev sahipliği için gereken araçları tek platformda topluyoruz.</p>
+              <h2 className="text-3xl md:text-4xl font-black tracking-tight text-foreground">
+                {t.hostLandingWhyTitle as string}
+              </h2>
+              <p className="mt-2 text-muted-foreground max-w-2xl">{t.hostLandingWhySubtitle as string}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -144,7 +156,9 @@ export default function HostLandingPage() {
 
         <section className="px-6">
           <div className="max-w-7xl mx-auto rounded-4xl border border-border/70 bg-muted/35 p-7 md:p-10">
-            <h2 className="text-3xl md:text-4xl font-black tracking-tight text-foreground">3 adımda başlayın</h2>
+            <h2 className="text-3xl md:text-4xl font-black tracking-tight text-foreground">
+              {t.hostLandingStepsTitle as string}
+            </h2>
             <div className="mt-7 grid grid-cols-1 md:grid-cols-3 gap-4">
               {steps.map((step) => (
                 <div key={step.title} className="rounded-2xl bg-card border border-border/70 p-5">
@@ -160,31 +174,29 @@ export default function HostLandingPage() {
         <section className="px-6">
           <div className="max-w-7xl mx-auto rounded-4xl overflow-hidden border border-border/70 bg-foreground text-background grid grid-cols-1 lg:grid-cols-12">
             <div className="lg:col-span-7 p-8 md:p-12">
-              <h2 className="text-3xl md:text-4xl font-black">Sorularınız mı var?</h2>
-              <p className="mt-3 text-background/75 max-w-2xl">
-                Host kaynaklarını inceleyin veya destek ekibiyle iletişime geçerek hızlıca yayına alın.
-              </p>
+              <h2 className="text-3xl md:text-4xl font-black">{t.hostLandingCta2Title as string}</h2>
+              <p className="mt-3 text-background/75 max-w-2xl">{t.hostLandingCta2Desc as string}</p>
               <div className="mt-7 flex flex-wrap gap-3">
                 <Button
                   asChild
                   variant="outline"
                   className="rounded-xl border-background/70 bg-transparent text-background hover:bg-background hover:text-foreground font-semibold"
                 >
-                  <Link href="/host/resources">Kaynaklar</Link>
+                  <Link href="/host/resources">{t.hostLandingResourcesBtn as string}</Link>
                 </Button>
                 <Button
                   asChild
                   variant="outline"
                   className="rounded-xl border-background/70 bg-transparent text-background hover:bg-background hover:text-foreground font-semibold"
                 >
-                  <Link href="/host/support">Destek Al</Link>
+                  <Link href="/host/support">{t.hostLandingSupportBtn as string}</Link>
                 </Button>
               </div>
             </div>
             <div className="lg:col-span-5 relative min-h-65 lg:min-h-full">
               <Image
                 src="https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=1000&h=900&fit=crop&auto=format"
-                alt="Host support"
+                alt={t.hostLandingSupportImageAlt as string}
                 fill
                 className="object-cover opacity-85"
               />

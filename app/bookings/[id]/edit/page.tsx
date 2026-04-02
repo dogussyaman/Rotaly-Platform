@@ -13,6 +13,15 @@ import { useBookingEditData } from './_components/useBookingEditData';
 import { BookingEditForm } from './_components/BookingEditForm';
 import { CHECK_IN_SLOTS } from './_components/check-in-slots';
 import type { ExtrasState } from './_components/types';
+import { useLocale } from '@/lib/i18n/locale-context';
+import type { Locale } from '@/lib/i18n/translations';
+
+const NUMBER_LOCALES: Record<Locale, string> = {
+  tr: 'tr-TR',
+  en: 'en-US',
+  de: 'de-DE',
+  fr: 'fr-FR',
+};
 
 interface BookingEditPageProps {
   params: Promise<{ id: string }>;
@@ -28,6 +37,8 @@ const DEFAULT_EXTRAS: ExtrasState = {
 export default function BookingEditPage({ params }: BookingEditPageProps) {
   const { id } = use(params);
   const router = useRouter();
+  const { t, locale } = useLocale();
+  const numberLocale = NUMBER_LOCALES[locale];
   const { profile } = useAppSelector((s) => s.user);
   const { booking, loading, error, setError, initialForm } = useBookingEditData(id, profile?.id ?? null);
 
@@ -99,7 +110,7 @@ export default function BookingEditPage({ params }: BookingEditPageProps) {
     setSuccess(null);
 
     if (!checkInInput || !checkOutInput) {
-      setError('Giriş ve çıkış tarihleri zorunludur.');
+      setError(t.bookingEditErrDates as string);
       setSaving(false);
       return;
     }
@@ -107,27 +118,27 @@ export default function BookingEditPage({ params }: BookingEditPageProps) {
     const checkInDate = new Date(checkInInput);
     const checkOutDate = new Date(checkOutInput);
     if (Number.isNaN(checkInDate.getTime())) {
-      setError('Geçerli bir giriş tarihi girin.');
+      setError(t.bookingEditErrCheckIn as string);
       setSaving(false);
       return;
     }
     if (Number.isNaN(checkOutDate.getTime())) {
-      setError('Geçerli bir çıkış tarihi girin.');
+      setError(t.bookingEditErrCheckOut as string);
       setSaving(false);
       return;
     }
     if (checkOutDate <= checkInDate) {
-      setError('Çıkış tarihi giriş tarihinden sonra olmalıdır.');
+      setError(t.bookingEditErrOrder as string);
       setSaving(false);
       return;
     }
     if (!Number.isFinite(guestsInput) || guestsInput <= 0) {
-      setError('Geçerli bir misafir sayısı girin.');
+      setError(t.bookingEditErrGuests as string);
       setSaving(false);
       return;
     }
     if (!selectedSlot) {
-      setError('Lütfen giriş yapacağınız saat aralığını seçin.');
+      setError(t.bookingEditErrSlot as string);
       setSaving(false);
       return;
     }
@@ -144,12 +155,12 @@ export default function BookingEditPage({ params }: BookingEditPageProps) {
     });
 
     if (!ok) {
-      setError('Rezervasyon güncellenirken bir hata oluştu.');
+      setError(t.bookingEditErrUpdate as string);
       setSaving(false);
       return;
     }
 
-    setSuccess('Rezervasyonunuz güncellendi.');
+    setSuccess(t.bookingEditSuccess as string);
     setSaving(false);
     setTimeout(() => router.push('/profile?tab=bookings'), 1200);
   };
@@ -166,12 +177,8 @@ export default function BookingEditPage({ params }: BookingEditPageProps) {
               </Link>
             </Button>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-                Rezervasyonu Düzenle
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Tarihleri, misafir sayısını ve notlarınızı güncelleyebilirsiniz.
-              </p>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{t.bookingEditTitle as string}</h1>
+              <p className="text-sm text-muted-foreground">{t.bookingEditSubtitle as string}</p>
             </div>
           </div>
 
@@ -182,9 +189,7 @@ export default function BookingEditPage({ params }: BookingEditPageProps) {
           )}
 
           {!loading && !profile && (
-            <p className="text-center text-muted-foreground">
-              Rezervasyon görüntülemek için giriş yapmalısınız.
-            </p>
+            <p className="text-center text-muted-foreground">{t.bookingEditLoginRequired as string}</p>
           )}
 
           {!loading && profile && !booking && error && (
@@ -195,9 +200,9 @@ export default function BookingEditPage({ params }: BookingEditPageProps) {
             <>
               {recalcPrice !== null && recalcPrice !== booking.totalPrice && (
                 <div className="px-4 py-3 bg-amber-50 border border-amber-200 rounded-2xl text-sm text-amber-800">
-                  Seçtiğiniz tarih ve misafir sayısına göre yeni toplam:{' '}
-                  <strong>₺{recalcPrice.toLocaleString('tr-TR')}</strong>
-                  {' '}(eski: ₺{booking.totalPrice.toLocaleString('tr-TR')})
+                  {t.bookingEditPriceNote as string}{' '}
+                  <strong>₺{recalcPrice.toLocaleString(numberLocale)}</strong> ({t.bookingEditPriceOld as string} ₺
+                  {booking.totalPrice.toLocaleString(numberLocale)})
                 </div>
               )}
               <BookingEditForm

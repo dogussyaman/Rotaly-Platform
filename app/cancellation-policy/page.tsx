@@ -6,152 +6,143 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 export default function CancellationPage() {
-    const { t } = useLocale();
+  const { t } = useLocale();
 
-    return (
-        <ContentLayout
-            title={t.cancellationTitle as string}
-            subtitle="Rotaly üzerinden yapılan tüm rezervasyonlar için geçerli iptal ve iade koşullarımız aşağıda detaylandırılmıştır."
-        >
-            <div className="space-y-12">
-                {/* Intro */}
-                <section className="prose prose-slate max-w-none">
-                    <p className="text-muted-foreground leading-relaxed">
-                        Misafirlerimizin ve ev sahiplerimizin güvenini korumak en öncelikli görevimizdir. Rotaly'deki her ilan, rezervasyon sırasında belirtilen belirli bir iptal politikasına tabidir. Lütfen rezervasyonunuzu onaylamadan önce bu politikayı dikkatlice inceleyin.
-                    </p>
-                </section>
+  return (
+    <ContentLayout title={t.cancellationTitle as string} subtitle={t.cancellationPageSubtitle as string}>
+      <div className="space-y-12">
+        <section className="prose prose-slate max-w-none">
+          <p className="text-muted-foreground leading-relaxed">{t.cancellationIntro as string}</p>
+        </section>
 
-                {/* Policy Types */}
-                <section className="space-y-8">
-                    <h2 className="text-2xl font-bold border-b pb-4">İptal Politikası Türleri</h2>
+        <section className="space-y-8">
+          <h2 className="text-2xl font-bold border-b pb-4">{t.cancellationTypesTitle as string}</h2>
 
-                    <div className="grid gap-8">
-                        {/* Esnek */}
-                        <div className="bg-card border rounded-3xl p-8 shadow-sm">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xl font-bold">Esnek (Flexible)</h3>
-                                <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none px-3 py-1">En Çok Tercih Edilen</Badge>
-                            </div>
-                            <p className="text-muted-foreground text-sm mb-6">Misafir dostu bu politika, seyahat planları değişebilecek kişiler için idealdir.</p>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow className="hover:bg-transparent">
-                                        <TableHead className="w-45">Zamanlama</TableHead>
-                                        <TableHead>İade Oranı</TableHead>
-                                        <TableHead>Notlar</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    <TableRow>
-                                        <TableCell className="font-semibold text-emerald-600">Girişe 48 sa kala</TableCell>
-                                        <TableCell>%100 İade</TableCell>
-                                        <TableCell>Hizmet bedeli dahil tam iade.</TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell className="font-semibold text-amber-600">24 sa - 48 sa</TableCell>
-                                        <TableCell>%50 İade</TableCell>
-                                        <TableCell>İlk gece ücreti kesilir.</TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell className="font-semibold text-rose-600">24 sa'den az</TableCell>
-                                        <TableCell>İade Yok</TableCell>
-                                        <TableCell>Ödemenin tamamı ev sahibine aktarılır.</TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-                        </div>
-
-                        {/* Orta */}
-                        <div className="bg-card border rounded-3xl p-8 shadow-sm">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xl font-bold">Orta (Moderate)</h3>
-                                <Badge variant="secondary" className="px-3 py-1">Dengeli</Badge>
-                            </div>
-                            <p className="text-muted-foreground text-sm mb-6">Hem ev sahibini hem de misafiri koruyan dengeli bir yaklaşım.</p>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow className="hover:bg-transparent">
-                                        <TableHead className="w-45">Zamanlama</TableHead>
-                                        <TableHead>İade Oranı</TableHead>
-                                        <TableHead>Notlar</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    <TableRow>
-                                        <TableCell className="font-semibold text-emerald-600">5 gün öncesi</TableCell>
-                                        <TableCell>%100 İade</TableCell>
-                                        <TableCell>Tam iade yapılır.</TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell className="font-semibold text-amber-600">2-5 gün arası</TableCell>
-                                        <TableCell>%50 İade</TableCell>
-                                        <TableCell>Kalan günler için %50 iade.</TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell className="font-semibold text-rose-600">48 sa'den az</TableCell>
-                                        <TableCell>İade Yok</TableCell>
-                                        <TableCell>İade yapılmaz.</TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-                        </div>
-
-                        {/* Sıkı */}
-                        <div className="bg-card border rounded-3xl p-8 shadow-sm">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-xl font-bold">Sıkı (Strict)</h3>
-                                <Badge variant="destructive" className="bg-rose-50 text-rose-600 hover:bg-rose-50 border-rose-100 px-3 py-1">En Katı</Badge>
-                            </div>
-                            <p className="text-muted-foreground text-sm mb-6">Popüler mülkler ve tatil sezonları için tercih edilen politikadır.</p>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow className="hover:bg-transparent">
-                                        <TableHead className="w-45">Zamanlama</TableHead>
-                                        <TableHead>İade Oranı</TableHead>
-                                        <TableHead>Notlar</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    <TableRow>
-                                        <TableCell className="font-semibold text-emerald-600">30 gün öncesi</TableCell>
-                                        <TableCell>%100 İade</TableCell>
-                                        <TableCell>İşlem ücreti hariç tam iade.</TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell className="font-semibold text-amber-600">7-30 gün arası</TableCell>
-                                        <TableCell>%50 İade</TableCell>
-                                        <TableCell>Ücretin yarısı iade edilir.</TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell className="font-semibold text-rose-600">7 günden az</TableCell>
-                                        <TableCell>İade Yok</TableCell>
-                                        <TableCell>İade imkanı sunulmamaktadır.</TableCell>
-                                    </TableRow>
-                                </TableBody>
-                            </Table>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Extra Info */}
-                <section className="bg-foreground text-background rounded-3xl p-10 space-y-6">
-                    <h2 className="text-2xl font-bold text-secondary">Önemli Bildirimler</h2>
-                    <div className="grid md:grid-cols-2 gap-8 text-sm">
-                        <div className="space-y-3">
-                            <h4 className="font-bold text-white">Pandemi ve Mücbir Sebepler</h4>
-                            <p className="text-gray-300 leading-relaxed">
-                                Doğal afetler veya hükümet kararları gibi öngörülemeyen durumlarda Rotaly, ev sahibinin kendi politikasından bağımsız olarak misafire tam iade hakkı tanıyabilir.
-                            </p>
-                        </div>
-                        <div className="space-y-3">
-                            <h4 className="font-bold text-white">İade Süreci</h4>
-                            <p className="text-gray-300 leading-relaxed">
-                                Onaylanan iadeler, bankanıza bağlı olarak genellikle 5-10 iş günü içinde orijinal ödeme yönteminize yansır.
-                            </p>
-                        </div>
-                    </div>
-                </section>
+          <div className="grid gap-8">
+            <div className="bg-card border rounded-3xl p-8 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold">{t.cancellationFlexTitle as string}</h3>
+                <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-none px-3 py-1">
+                  {t.cancellationFlexBadge as string}
+                </Badge>
+              </div>
+              <p className="text-muted-foreground text-sm mb-6">{t.cancellationFlexDesc as string}</p>
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="w-45">{t.cancellationTableTiming as string}</TableHead>
+                    <TableHead>{t.cancellationTableRefund as string}</TableHead>
+                    <TableHead>{t.cancellationTableNotes as string}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-semibold text-emerald-600">{t.cancellationFlexR1T as string}</TableCell>
+                    <TableCell>{t.cancellationFlexR1R as string}</TableCell>
+                    <TableCell>{t.cancellationFlexR1N as string}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-semibold text-amber-600">{t.cancellationFlexR2T as string}</TableCell>
+                    <TableCell>{t.cancellationFlexR2R as string}</TableCell>
+                    <TableCell>{t.cancellationFlexR2N as string}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-semibold text-rose-600">{t.cancellationFlexR3T as string}</TableCell>
+                    <TableCell>{t.cancellationFlexR3R as string}</TableCell>
+                    <TableCell>{t.cancellationFlexR3N as string}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </div>
-        </ContentLayout>
-    );
+
+            <div className="bg-card border rounded-3xl p-8 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold">{t.cancellationModTitle as string}</h3>
+                <Badge variant="secondary" className="px-3 py-1">
+                  {t.cancellationModBadge as string}
+                </Badge>
+              </div>
+              <p className="text-muted-foreground text-sm mb-6">{t.cancellationModDesc as string}</p>
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="w-45">{t.cancellationTableTiming as string}</TableHead>
+                    <TableHead>{t.cancellationTableRefund as string}</TableHead>
+                    <TableHead>{t.cancellationTableNotes as string}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-semibold text-emerald-600">{t.cancellationModR1T as string}</TableCell>
+                    <TableCell>{t.cancellationModR1R as string}</TableCell>
+                    <TableCell>{t.cancellationModR1N as string}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-semibold text-amber-600">{t.cancellationModR2T as string}</TableCell>
+                    <TableCell>{t.cancellationModR2R as string}</TableCell>
+                    <TableCell>{t.cancellationModR2N as string}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-semibold text-rose-600">{t.cancellationModR3T as string}</TableCell>
+                    <TableCell>{t.cancellationModR3R as string}</TableCell>
+                    <TableCell>{t.cancellationModR3N as string}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+
+            <div className="bg-card border rounded-3xl p-8 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold">{t.cancellationStrictTitle as string}</h3>
+                <Badge variant="destructive" className="bg-rose-50 text-rose-600 hover:bg-rose-50 border-rose-100 px-3 py-1">
+                  {t.cancellationStrictBadge as string}
+                </Badge>
+              </div>
+              <p className="text-muted-foreground text-sm mb-6">{t.cancellationStrictDesc as string}</p>
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="w-45">{t.cancellationTableTiming as string}</TableHead>
+                    <TableHead>{t.cancellationTableRefund as string}</TableHead>
+                    <TableHead>{t.cancellationTableNotes as string}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-semibold text-emerald-600">{t.cancellationStrR1T as string}</TableCell>
+                    <TableCell>{t.cancellationStrR1R as string}</TableCell>
+                    <TableCell>{t.cancellationStrR1N as string}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-semibold text-amber-600">{t.cancellationStrR2T as string}</TableCell>
+                    <TableCell>{t.cancellationStrR2R as string}</TableCell>
+                    <TableCell>{t.cancellationStrR2N as string}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-semibold text-rose-600">{t.cancellationStrR3T as string}</TableCell>
+                    <TableCell>{t.cancellationStrR3R as string}</TableCell>
+                    <TableCell>{t.cancellationStrR3N as string}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-foreground text-background rounded-3xl p-10 space-y-6">
+          <h2 className="text-2xl font-bold text-secondary">{t.cancellationNoticeTitle as string}</h2>
+          <div className="grid md:grid-cols-2 gap-8 text-sm">
+            <div className="space-y-3">
+              <h4 className="font-bold text-white">{t.cancellationForceTitle as string}</h4>
+              <p className="text-gray-300 leading-relaxed">{t.cancellationForceBody as string}</p>
+            </div>
+            <div className="space-y-3">
+              <h4 className="font-bold text-white">{t.cancellationRefundTitle as string}</h4>
+              <p className="text-gray-300 leading-relaxed">{t.cancellationRefundBody as string}</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </ContentLayout>
+  );
 }

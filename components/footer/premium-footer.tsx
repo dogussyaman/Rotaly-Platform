@@ -8,6 +8,7 @@ import { useRef } from 'react';
 import { useInView } from 'framer-motion';
 import { FooterSkyEffects } from '@/components/footer/footer-sky-effects';
 import { FooterMobileSocialStrip } from '@/components/footer/footer-mobile-social-strip';
+import { LanguageSwitcher } from '@/components/layout/language-switcher';
 
 const SKY_GRADIENT = "bg-gradient-to-b from-sky-100 via-orange-100 to-orange-200"; 
 
@@ -18,29 +19,29 @@ export default function PremiumFooter() {
 
     const sections = [
         {
-            title: t.support as string || "Destek",
+            title: (t.support as string) || 'Destek',
             links: [
-                { label: 'Sıkça Sorulan Sorular', href: '/faq' },
-                { label: 'İletişim & Destek', href: '/contact' },
-                { label: 'İptal ve İade', href: '/cancellation-policy' },
-                { label: 'Güvenlik', href: '/safety' }
-            ]
+                { label: t.footerLinkFaq as string, href: '/faq' },
+                { label: t.footerLinkContact as string, href: '/contact' },
+                { label: t.footerLinkCancellation as string, href: '/cancellation-policy' },
+                { label: t.footerLinkSafety as string, href: '/safety' },
+            ],
         },
         {
-            title: t.community as string || "Topluluk",
+            title: (t.community as string) || 'Topluluk',
             links: [
-                { label: 'Rotaly.org', href: '/community' },
-                { label: 'Ayrımcılıkla Mücadele', href: '/anti-discrimination' },
-                { label: 'Arkadaşını Davet Et', href: '/invite' }
-            ]
+                { label: t.footerLinkCommunityOrg as string, href: '/community' },
+                { label: t.footerLinkAntiDiscrimination as string, href: '/anti-discrimination' },
+                { label: t.footerLinkInvite as string, href: '/invite' },
+            ],
         },
         {
-            title: t.hosting as string || "Ev Sahipliği",
+            title: (t.hosting as string) || 'Ev Sahipliği',
             links: [
-                { label: 'Evinizi Listeleyin', href: '/host' },
-                { label: 'Ev Sahipleri için Destek', href: '/host/support' },
-                { label: 'Kaynaklara Göz At', href: '/host/resources' }
-            ]
+                { label: t.footerLinkListYourPlace as string, href: '/host' },
+                { label: t.footerLinkHostSupport as string, href: '/host/support' },
+                { label: t.footerLinkHostResources as string, href: '/host/resources' },
+            ],
         },
     ];
 
@@ -76,7 +77,7 @@ export default function PremiumFooter() {
                             <span className="text-4xl font-black tracking-tighter text-slate-900 border-b-4 border-orange-500/10 pb-1">Rotaly</span>
                         </div>
                         <p className="text-slate-500 leading-relaxed text-base font-semibold max-w-xs">
-                            Dünyanın en benzersiz ve lüks tatil kiralama yerlerini keşfedin.
+                            {t.footerBrandTagline as string}
                         </p>
                         <div className="flex gap-4">
                             {socialIcons.map(({ Icon, label, href }) => (
@@ -117,7 +118,7 @@ export default function PremiumFooter() {
                     
                     {/* İletişim Kolonu */}
                     <div className="space-y-6">
-                        <h4 className="text-slate-900 font-black uppercase tracking-[0.3em] text-[11px] opacity-60">İletişim</h4>
+                        <h4 className="text-slate-900 font-black uppercase tracking-[0.3em] text-[11px] opacity-60">{t.footerContactHeading as string}</h4>
                         <div className="space-y-5">
                             <a href="mailto:hello@rotaly.com" className="flex items-center gap-4 text-slate-500 hover:text-orange-500 transition-all group">
                                 <div className="p-3 bg-white/60 backdrop-blur-md border border-slate-200/50 rounded-2xl group-hover:border-orange-200 group-hover:bg-orange-50 transition-all shadow-lg group-hover:shadow-orange-100">
@@ -141,25 +142,23 @@ export default function PremiumFooter() {
                 <div className="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row justify-between items-center gap-8">
                     <div className="flex flex-col md:flex-row items-center gap-6">
                         <p className="text-slate-600 text-[11px] font-black tracking-widest">
-                            &copy; {new Date().getFullYear()} ROTALY PLATFORM. TÜM HAKLAR SAKLIDIR.
+                            &copy; {new Date().getFullYear()} ROTALY PLATFORM. {t.footerCopyright as string}
                         </p>
                         <div className="hidden md:block w-px h-5 bg-slate-300/50" />
                         <div className="flex gap-6">
-                            <Link href="/privacy" className="text-[10px] font-black text-slate-400 hover:text-slate-900 transition-colors tracking-[0.2em]">GİZLİLİK</Link>
-                            <Link href="/terms" className="text-[10px] font-black text-slate-400 hover:text-slate-900 transition-colors tracking-[0.2em]">ŞARTLAR</Link>
-                            <Link href="/cookies" className="text-[10px] font-black text-slate-400 hover:text-slate-900 transition-colors tracking-[0.2em]">ÇEREZLER</Link>
+                            <Link href="/privacy-policy" className="text-[10px] font-black text-slate-400 hover:text-slate-900 transition-colors tracking-[0.2em]">{t.footerPrivacyShort as string}</Link>
+                            <Link href="/terms" className="text-[10px] font-black text-slate-400 hover:text-slate-900 transition-colors tracking-[0.2em]">{t.footerTermsShort as string}</Link>
+                            <Link href="/cookies" className="text-[10px] font-black text-slate-400 hover:text-slate-900 transition-colors tracking-[0.2em]">{t.footerCookiesShort as string}</Link>
                         </div>
                     </div>
                     
                     <div className="flex items-center gap-4 bg-slate-950/5 p-2 rounded-3xl border border-white/40 shadow-xl backdrop-blur-sm">
-                        <button className="flex items-center gap-2 px-5 py-2.5 text-xs font-black text-slate-700 hover:bg-white rounded-2xl transition-all shadow-sm hover:shadow-lg">
-                            <Globe size={16} className="text-orange-500" />
-                            TÜRKÇE (TR)
-                        </button>
+                        <LanguageSwitcher />
                         <div className="w-px h-5 bg-slate-300/50" />
-                        <button className="flex items-center gap-2 px-5 py-2.5 text-xs font-black text-slate-700 hover:bg-white rounded-2xl transition-all shadow-sm hover:shadow-lg">
+                        <span className="flex items-center gap-2 px-5 py-2.5 text-xs font-black text-slate-700" aria-hidden>
+                            <Globe size={16} className="text-orange-500" />
                             TRY (₺)
-                        </button>
+                        </span>
                     </div>
                 </div>
             </div>

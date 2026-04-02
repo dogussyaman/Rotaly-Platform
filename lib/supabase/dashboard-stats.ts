@@ -15,7 +15,7 @@ export type GuestStatRow = {
 };
 
 /** Admin genel bakış istatistikleri (backend). */
-export async function fetchAdminStats(): Promise<AdminStatRow[]> {
+export async function fetchAdminStats(numberLocale = 'tr-TR'): Promise<AdminStatRow[]> {
   const supabase = createClient();
 
   const [profilesRes, listingsRes, bookingsRes, reviewsRes] = await Promise.all([
@@ -39,10 +39,10 @@ export async function fetchAdminStats(): Promise<AdminStatRow[]> {
   }
 
   return [
-    { title: 'Toplam Kullanıcı', value: totalUsers.toLocaleString('tr-TR'), change: '—', helper: 'Kayıtlı' },
-    { title: 'Aktif İlan', value: activeListings.toLocaleString('tr-TR'), change: '—', helper: 'Yayında' },
-    { title: 'Açık Rezervasyon', value: openBookings.toLocaleString('tr-TR'), change: '—', helper: 'Bekleyen + onaylı' },
-    { title: 'Ortalama Puan', value: avgRating.toFixed(2), change: '—', helper: 'Tüm yorumlar' },
+    { title: '', value: totalUsers.toLocaleString(numberLocale), change: '—', helper: '' },
+    { title: '', value: activeListings.toLocaleString(numberLocale), change: '—', helper: '' },
+    { title: '', value: openBookings.toLocaleString(numberLocale), change: '—', helper: '' },
+    { title: '', value: avgRating.toFixed(2), change: '—', helper: '' },
   ];
 }
 

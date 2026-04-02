@@ -1,34 +1,41 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { SearchHeader } from '@/components/header/search-header';
 import { MessageCircle, Phone, Mail, HelpCircle } from 'lucide-react';
+import { useLocale } from '@/lib/i18n/locale-context';
 
 export default function HostSupportPage() {
+  const { t } = useLocale();
+
+  const phone = t.hostSupportPhoneValue as string;
+  const email = t.hostSupportEmailValue as string;
+
+  const cards = [
+    { icon: MessageCircle, title: t.hostSupportChatTitle, desc: t.hostSupportChatDesc, action: t.hostSupportChatAction, href: null as string | null },
+    { icon: Phone, title: t.hostSupportPhoneTitle, desc: t.hostSupportPhoneDesc, action: phone, href: `tel:${phone.replace(/\s/g, '')}` },
+    { icon: Mail, title: t.hostSupportEmailTitle, desc: t.hostSupportEmailDesc, action: email, href: `mailto:${email}` },
+    { icon: HelpCircle, title: t.hostSupportHelpTitle, desc: t.hostSupportHelpDesc, action: t.hostSupportHelpAction, href: '/faq' },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <SearchHeader />
       <main className="max-w-7xl mx-auto px-6 py-24">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-16"
         >
-          <h1 className="text-5xl font-black mb-6">Ev Sahibi Destek Merkezi</h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Size her adımda yardımcı olmak için buradayız. Sorularınız için bize dilediğiniz zaman ulaşabilirsiniz.
-          </p>
+          <h1 className="text-5xl font-black mb-6">{t.hostSupportTitle as string}</h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">{t.hostSupportSubtitle as string}</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {[
-            { icon: MessageCircle, title: "Canlı Sohbet", desc: "7/24 anında destek alın.", action: "Sohbeti Başlat" },
-            { icon: Phone, title: "Telefon", desc: "Acil durumlar için bizi arayın.", action: "0850 123 45 67" },
-            { icon: Mail, title: "E-posta", desc: "Detaylı sorularınız için yazın.", action: "host-support@rotaly.com" },
-            { icon: HelpCircle, title: "Yardım Rehberi", desc: "Sıkça sorulan sorulara göz atın.", action: "Rehbere Git" }
-          ].map((item, i) => (
-            <motion.div 
-              key={i}
+          {cards.map((item, i) => (
+            <motion.div
+              key={String(item.title)}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
@@ -37,9 +44,17 @@ export default function HostSupportPage() {
               <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6">
                 <item.icon className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-xl font-bold mb-2">{item.title}</h3>
-              <p className="text-muted-foreground text-sm mb-6">{item.desc}</p>
-              <button className="text-primary font-black hover:underline mt-auto">{item.action}</button>
+              <h3 className="text-xl font-bold mb-2">{item.title as string}</h3>
+              <p className="text-muted-foreground text-sm mb-6">{item.desc as string}</p>
+              {item.href ? (
+                <Link href={item.href} className="text-primary font-black hover:underline mt-auto">
+                  {item.action as string}
+                </Link>
+              ) : (
+                <button type="button" className="text-primary font-black hover:underline mt-auto">
+                  {item.action as string}
+                </button>
+              )}
             </motion.div>
           ))}
         </div>

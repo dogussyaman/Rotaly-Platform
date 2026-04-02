@@ -1,15 +1,19 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { SearchHeader } from '@/components/header/search-header';
 import { Globe, Heart, Sparkles } from 'lucide-react';
+import { useLocale } from '@/lib/i18n/locale-context';
 
 export default function CommunityPage() {
+  const { t } = useLocale();
+
   return (
     <div className="min-h-screen bg-background">
       <SearchHeader />
       <main className="max-w-7xl mx-auto px-6 py-24">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           className="relative bg-linear-to-br from-indigo-600 to-purple-700 rounded-[3rem] p-12 md:p-24 text-center text-white overflow-hidden mb-20"
@@ -17,35 +21,43 @@ export default function CommunityPage() {
           <div className="absolute inset-0 opacity-20 pointer-events-none">
             <Globe className="absolute -right-20 -top-20 w-96 h-96" />
           </div>
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-5xl md:text-7xl font-black mb-8 relative z-10"
           >
-            Rotaly Topluluğu
+            {t.communityHeroTitle as string}
           </motion.h1>
           <p className="text-xl md:text-2xl opacity-90 max-w-3xl mx-auto leading-relaxed relative z-10 font-medium">
-            Birlikte daha güçlü, daha kapsayıcı ve daha sürdürülebilir bir gelecek inşa ediyoruz. Topluluğumuzun kalbi burada atıyor.
+            {t.communityHeroSubtitle as string}
           </p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
           <div className="bg-card p-12 rounded-[2.5rem] border border-border flex flex-col items-center text-center">
             <Sparkles className="w-16 h-16 text-amber-500 mb-8" />
-            <h2 className="text-3xl font-black mb-6">Rotaly.org</h2>
-            <p className="text-muted-foreground mb-8 text-lg">
-              Kar amacı gütmeyen kuruluşlar için konaklama çözümleri sunduğumuz projemiz. Dünyayı daha yaşanabilir kılmak için sosyal sorumluluk projelerini destekliyoruz.
-            </p>
-            <button className="bg-foreground text-background font-bold px-10 py-4 rounded-2xl hover:bg-primary hover:text-white transition-all">Daha Fazla Bilgi</button>
+            <h2 className="text-3xl font-black mb-6">{t.communityCard1Title as string}</h2>
+            <p className="text-muted-foreground mb-8 text-lg">{t.communityCard1Desc as string}</p>
+            <a
+              href="https://rotaly.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-foreground text-background font-bold px-10 py-4 rounded-2xl hover:bg-primary hover:text-white transition-all"
+            >
+              {t.communityCard1Cta as string}
+            </a>
           </div>
 
           <div className="bg-card p-12 rounded-[2.5rem] border border-border flex flex-col items-center text-center">
             <Heart className="w-16 h-16 text-rose-500 mb-8" />
-            <h2 className="text-3xl font-black mb-6">Sosyal Etki</h2>
-            <p className="text-muted-foreground mb-8 text-lg">
-              Yerel topluluklara doğrudan destek sağlıyoruz. Rotaly üzerinden her rezervasyon, sürdürülebilir turizm projelerine katkıda bulunuyor.
-            </p>
-            <button className="bg-foreground text-background font-bold px-10 py-4 rounded-2xl hover:bg-primary hover:text-white transition-all">Raporu Oku</button>
+            <h2 className="text-3xl font-black mb-6">{t.communityCard2Title as string}</h2>
+            <p className="text-muted-foreground mb-8 text-lg">{t.communityCard2Desc as string}</p>
+            <Link
+              href="/contact"
+              className="bg-foreground text-background font-bold px-10 py-4 rounded-2xl hover:bg-primary hover:text-white transition-all"
+            >
+              {t.communityCard2Cta as string}
+            </Link>
           </div>
         </div>
       </main>
