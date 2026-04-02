@@ -9,6 +9,7 @@ import { useSearchStore } from '@/lib/store/search-store';
 import { useLocale } from '@/lib/i18n/locale-context';
 import { useSearchParams } from 'next/navigation';
 import { fetchListings, type ListingRow } from '@/lib/supabase/listings';
+import { filterListingsByBounds, type MapBounds } from '@/lib/map-bounds';
 import { SearchToolbar } from './_components/SearchToolbar';
 import { SearchResultsSection } from './_components/SearchResultsSection';
 
@@ -25,6 +26,7 @@ function SearchPageContent() {
   const [listings, setListings] = useState<ListingRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [wasFiltersOpen, setWasFiltersOpen] = useState(true);
+  const [mapBoundsFilter, setMapBoundsFilter] = useState<MapBounds | null>(null);
   const { t } = useLocale();
   const searchParams = useSearchParams();
   const { filters, setLocation, setGuests, setCheckIn, setCheckOut } = useSearchStore();
@@ -88,15 +90,32 @@ function SearchPageContent() {
     loadListings();
   }, [loadListings]);
 
+  useEffect(() => {
+    setMapBoundsFilter(null);
+  }, [listings]);
+
+  useEffect(() => {
+    if (!showMap) setMapBoundsFilter(null);
+  }, [showMap]);
+
+  const mapFilteredListings = useMemo(() => {
+    if (!showMap || !mapBoundsFilter) return listings;
+    return filterListingsByBounds(listings, mapBoundsFilter);
+  }, [listings, showMap, mapBoundsFilter]);
+
+  const handleMapBoundsChange = useCallback((bounds: MapBounds) => {
+    setMapBoundsFilter(bounds);
+  }, []);
+
   const sortedListings = useMemo(() => {
-    const sorted = [...listings];
+    const sorted = [...mapFilteredListings];
     switch (sortBy) {
       case 'price-asc': return sorted.sort((a, b) => a.pricePerNight - b.pricePerNight);
       case 'price-desc': return sorted.sort((a, b) => b.pricePerNight - a.pricePerNight);
       case 'rating': return sorted.sort((a, b) => b.rating - a.rating);
       default: return sorted;
     }
-  }, [listings, sortBy]);
+  }, [mapFilteredListings, sortBy]);
 
   const toggleMap = useCallback(() => {
     setShowMap((prev) => {
@@ -120,7 +139,11 @@ function SearchPageContent() {
       transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
       className="hidden lg:block h-[calc(100vh-220px)] sticky top-28 rounded-3xl border border-border overflow-hidden bg-card shadow-xl"
     >
-      <SearchMap listings={sortedListings} />
+      <SearchMap
+        listings={sortedListings}
+        fitListings={listings}
+        onBoundsChange={handleMapBoundsChange}
+      />
     </motion.div>
   );
 

@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { ListingCard } from '../listings/listing-card';
 import MarkerClusterGroup from 'react-leaflet-cluster';
+import type { MapBounds } from '@/lib/map-bounds';
 
 // Custom CSS to fix Leaflet path issues and style custom markers
 const mapStyles = `
@@ -105,36 +106,77 @@ interface Listing {
 }
 
 interface MapProps {
+    /** Haritada gösterilecek işaretler (görünür alan filtresi uygulanmış liste). */
     listings: Listing[];
+    /** Yeni arama sonuçlarında haritayı bu listeye göre ortalamak için (filtre değişiminde refit yok). */
+    fitListings: Listing[];
+    onBoundsChange?: (bounds: MapBounds) => void;
 }
 
-function MapContent({ listings }: MapProps) {
+const BOUNDS_DEBOUNCE_MS = 400;
+
+function MapBoundsSync({ onBoundsChange }: { onBoundsChange?: (bounds: MapBounds) => void }) {
+    const map = useMap();
+    const onBoundsChangeRef = useRef(onBoundsChange);
+    onBoundsChangeRef.current = onBoundsChange;
+
+    useEffect(() => {
+        if (!onBoundsChange) return;
+
+        let timer: ReturnType<typeof setTimeout> | null = null;
+        const emit = () => {
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(() => {
+                const b = map.getBounds();
+                onBoundsChangeRef.current?.({
+                    north: b.getNorth(),
+                    south: b.getSouth(),
+                    east: b.getEast(),
+                    west: b.getWest(),
+                });
+            }, BOUNDS_DEBOUNCE_MS);
+        };
+
+        map.on('moveend', emit);
+        map.on('zoomend', emit);
+
+        return () => {
+            if (timer) clearTimeout(timer);
+            map.off('moveend', emit);
+            map.off('zoomend', emit);
+        };
+    }, [map, onBoundsChange]);
+
+    return null;
+}
+
+function MapContent({ listings, fitListings, onBoundsChange }: MapProps) {
     const map = useMap();
 
     useEffect(() => {
-        if (listings.length > 0) {
+        const valid = fitListings.filter((l) => l.lat !== 0 || l.lng !== 0);
+        if (valid.length > 0) {
             const timer = setTimeout(() => {
-                const bounds = L.latLngBounds(listings.map(l => [l.lat, l.lng]));
-                if (listings.length === 1) {
-                    map.flyTo([listings[0].lat, listings[0].lng], 13, {
+                const bounds = L.latLngBounds(valid.map((l) => [l.lat, l.lng] as [number, number]));
+                if (valid.length === 1) {
+                    map.flyTo([valid[0].lat, valid[0].lng], 13, {
                         animate: true,
-                        duration: 1.5
+                        duration: 1.5,
                     });
                 } else {
                     map.fitBounds(bounds, {
                         padding: [70, 70],
                         maxZoom: 15,
                         animate: true,
-                        duration: 1.5
+                        duration: 1.5,
                     });
                 }
             }, 100);
             return () => clearTimeout(timer);
         } else {
-            // Default focus if no results (e.g. center of the world or a specific default)
             map.setView([20, 0], 2, { animate: true });
         }
-    }, [listings, map]);
+    }, [fitListings, map]);
 
     return (
         <>
@@ -166,11 +208,12 @@ function MapContent({ listings }: MapProps) {
                     );
                 })}
             </MarkerClusterGroup>
+            <MapBoundsSync onBoundsChange={onBoundsChange} />
         </>
     );
 }
 
-export default function SearchMap({ listings }: MapProps) {
+export default function SearchMap({ listings, fitListings, onBoundsChange }: MapProps) {
     const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
@@ -188,7 +231,11 @@ export default function SearchMap({ listings }: MapProps) {
                 scrollWheelZoom={true}
                 className="w-full h-full"
             >
-                <MapContent listings={listings} />
+                <MapContent
+                    listings={listings}
+                    fitListings={fitListings}
+                    onBoundsChange={onBoundsChange}
+                />
             </MapContainer>
         </div>
     );
