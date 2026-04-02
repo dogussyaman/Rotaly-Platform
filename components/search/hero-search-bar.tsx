@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Search, ChevronLeft, ChevronRight, Minus, Plus, X, Loader2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { toast } from 'sonner';
+import { showSearchValidationToast } from '@/components/search/search-validation-toast';
 import { useLocale } from '@/lib/i18n/locale-context';
 import { useAppDispatch, useAppSelector } from '@/lib/store/hooks';
 import { setSearch } from '@/lib/store/slices/search-slice';
@@ -270,17 +270,26 @@ export function HeroSearchBar() {
 
   const handleSearch = () => {
     if (!location || location.trim().length === 0) {
-      toast.error('Konum seçmeden arama yapamazsınız.');
+      showSearchValidationToast({
+        title: 'Konum seçmeden arama yapamazsınız.',
+        hint: 'Listeden bir destinasyon seçin veya konum yazın.',
+      });
       setActivePanel('location');
       return;
     }
     if (!dateRange.start) {
-      toast.error('Giriş tarihini seçin.');
+      showSearchValidationToast({
+        title: 'Giriş tarihini seçin.',
+        hint: 'Takvimden konaklamanızın başlangıç tarihini belirleyin.',
+      });
       setActivePanel('checkin');
       return;
     }
     if (!dateRange.end) {
-      toast.error('Çıkış tarihini seçin.');
+      showSearchValidationToast({
+        title: 'Çıkış tarihini seçin.',
+        hint: 'Çıkış tarihini seçerek aramanızı tamamlayın.',
+      });
       setActivePanel('checkout');
       return;
     }
