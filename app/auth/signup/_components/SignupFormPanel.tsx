@@ -198,24 +198,30 @@ export function SignupFormPanel({
               </div>
               <p className="text-[10px] text-muted-foreground px-1">{t.signupPasswordHint as string}</p>
             </div>
-            <div className="flex items-start space-x-3 pt-2 px-1">
+            <div className="flex gap-3 pt-2 px-1">
               <Checkbox
                 id="terms"
                 checked={agreeTerms}
                 onCheckedChange={(checked) => setAgreeTerms(checked as boolean)}
-                className="mt-1 rounded-sm border-muted-foreground/30 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
+                className="mt-0.5 shrink-0 rounded-sm border-muted-foreground/30 data-[state=checked]:bg-foreground data-[state=checked]:border-foreground"
               />
-              <Label htmlFor="terms" className="text-[11px] text-muted-foreground leading-relaxed cursor-pointer font-medium">
-                {t.signupTermsText as string}{' '}
-                <Link href="/terms" className="text-foreground hover:underline underline-offset-2">
-                  {t.loginTerms as string}
-                </Link>{' '}
-                {t.loginAnd as string}{' '}
-                <Link href="/privacy" className="text-foreground hover:underline underline-offset-2">
-                  {t.loginPrivacy as string}
-                </Link>
-                {' '}{t.loginAgreeSuffix as string}
-              </Label>
+              {/* Label UI bileşeni flex kullandığı için parça parça dikey diziliyordu; düz metin için native label */}
+              <label
+                htmlFor="terms"
+                className="min-w-0 flex-1 cursor-pointer text-left text-[11px] font-medium leading-snug text-muted-foreground sm:text-xs sm:leading-relaxed"
+              >
+                <span className="inline">
+                  {t.signupTermsText as string}{' '}
+                  <Link href="/terms" className="font-semibold text-foreground underline-offset-2 hover:underline">
+                    {t.loginTerms as string}
+                  </Link>{' '}
+                  {t.loginAnd as string}{' '}
+                  <Link href="/privacy" className="font-semibold text-foreground underline-offset-2 hover:underline">
+                    {t.loginPrivacy as string}
+                  </Link>{' '}
+                  {t.loginAgreeSuffix as string}
+                </span>
+              </label>
             </div>
             <motion.div whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }}>
               <Button
