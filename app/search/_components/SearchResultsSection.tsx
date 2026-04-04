@@ -7,6 +7,7 @@ import { FilterSidebar } from '@/components/search/filter-sidebar';
 import { ListingCard } from '@/components/listings/listing-card';
 import type { ListingRow } from '@/lib/supabase/listings';
 import type { SearchFilters } from '@/lib/store/search-store';
+import { cn } from '@/lib/utils';
 
 interface SearchResultsSectionProps {
   showFilters: boolean;
@@ -32,8 +33,29 @@ export function SearchResultsSection({
   emptyState,
 }: SearchResultsSectionProps) {
   return (
-    <div className="flex gap-6 items-start">
-      <div className="flex-1 flex gap-6 items-start">
+    <div className="flex w-full min-w-0 flex-col gap-6 lg:flex-row lg:items-start">
+      <div
+        className={cn(
+          'flex w-full min-w-0 flex-1 flex-col gap-6 lg:flex-row lg:items-start',
+          /* Mobilde harita üstte küçük; liste + filtreler altta (flex order) */
+          showMap && 'max-lg:order-2',
+        )}
+      >
+        <AnimatePresence mode="popLayout">
+          {showFilters && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+              className="w-full min-w-0 overflow-hidden lg:hidden"
+            >
+              <div className="w-full max-w-full rounded-2xl border border-border/60 bg-card/50 p-1">
+                <FilterSidebar />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <AnimatePresence mode="popLayout">
           {showFilters && (
             <motion.div
@@ -41,7 +63,7 @@ export function SearchResultsSection({
               animate={{ opacity: 1, width: 280, x: 0 }}
               exit={{ opacity: 0, width: 0, x: -20 }}
               transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-              className="overflow-hidden shrink-0"
+              className="hidden shrink-0 overflow-hidden lg:block"
             >
               <div className="w-[280px]">
                 <FilterSidebar />
@@ -54,7 +76,7 @@ export function SearchResultsSection({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4 }}
-          className="flex-1 min-w-0"
+          className="min-w-0 flex-1"
         >
           {loading ? (
             <div className="flex items-center justify-center py-24">
@@ -116,7 +138,9 @@ export function SearchResultsSection({
         </motion.div>
       </div>
       <AnimatePresence>
-        {showMap && mapNode}
+        {showMap && (
+          <div className="w-full shrink-0 max-lg:order-1 lg:order-2">{mapNode}</div>
+        )}
       </AnimatePresence>
     </div>
   );

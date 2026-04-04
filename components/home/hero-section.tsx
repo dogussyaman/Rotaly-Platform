@@ -34,7 +34,7 @@ export function HeroSection({ t }: HeroSectionProps) {
             <SearchHeader />
 
             {/* Hero text — centered in hero */}
-            <div className="flex-1 flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-20 sm:pt-24 pb-12 sm:pb-20 relative z-10">
+            <div className="flex-1 flex flex-col items-center justify-center text-center px-5 sm:px-6 pt-20 sm:pt-24 pb-10 sm:pb-20 relative z-10 max-w-full">
                 {/* Floating location card — sol */}
                 <motion.div
                     initial={{ opacity: 0, x: -40 }}
@@ -140,38 +140,38 @@ export function HeroSection({ t }: HeroSectionProps) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2, duration: 0.5 }}
-                    className="text-sm sm:text-base text-foreground/60 text-balance max-w-sm mb-6 px-1"
+                    className="text-sm sm:text-base text-foreground/60 text-balance max-w-sm mb-8 sm:mb-6 px-1"
                 >
                     {t.heroSubtitle as string}
                 </motion.p>
 
-                {/* Social proof */}
+                {/* Social proof — mobilde dikey, tek blokta ortalı */}
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4, duration: 0.5 }}
-                    className="flex items-center justify-center gap-2.5"
+                    className="flex w-full max-w-md flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row sm:gap-2.5"
                 >
-                    <div className="flex -space-x-2">
+                    <div className="flex shrink-0 justify-center -space-x-2">
                         {[
                             'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=48&h=48&fit=crop&crop=face',
                             'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=48&h=48&fit=crop&crop=face',
                             'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=48&h=48&fit=crop&crop=face',
                             'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=48&h=48&fit=crop&crop=face',
                         ].map((src, i) => (
-                            <div key={i} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden">
+                            <div key={i} className="w-8 h-8 rounded-full border-2 border-white overflow-hidden shadow-sm">
                                 <img src={src} alt="" className="w-full h-full object-cover" />
                             </div>
                         ))}
                     </div>
-                    <span className="text-sm font-medium text-foreground/60">
+                    <span className="text-center text-sm font-medium leading-snug text-foreground/60 sm:text-left">
                         500k+ {t.lovedBy as string}
                     </span>
                 </motion.div>
             </div>
 
             {/* ── Search bar — overlaps bottom of hero into content below ── */}
-            <div id="hero-search-bar" className="relative z-20 px-3 sm:px-6 pb-0">
+            <div id="hero-search-bar" className="relative z-20 mt-2 px-4 pb-0 sm:mt-0 sm:px-6">
                 <div className="max-w-7xl mx-auto translate-y-1/3">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}

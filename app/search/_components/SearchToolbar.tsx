@@ -43,37 +43,44 @@ export function SearchToolbar({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4, delay: 0.1 }}
-      className="mb-8 flex flex-wrap gap-4 items-center justify-between bg-card p-2 rounded-2xl border border-border/50"
+      className="mb-6 sm:mb-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between bg-card p-3 sm:p-2 rounded-2xl border border-border/50"
     >
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
         <Button
           variant={showFilters ? 'secondary' : 'outline'}
           size="sm"
-          className="gap-2 rounded-xl h-10 px-4 border-border/60 hover:bg-muted font-bold"
+          className="shrink-0 gap-2 rounded-xl h-10 px-3 sm:px-4 border-border/60 hover:bg-muted font-bold"
           onClick={() => setShowFilters(!showFilters)}
         >
           <Sliders className="w-4 h-4" />
           {t.filters as string}
         </Button>
-        <Badge variant="secondary" className="h-10 px-4 rounded-xl flex items-center gap-2 bg-muted/50 border-none text-foreground font-black">
-          <span className="opacity-60">{filtersLocation || (t.searchAllStays as string)}</span>
-          <span className="w-1 h-1 rounded-full bg-foreground/20" />
-          <span>{resultsCount} {t.searchResultsSuffix as string}</span>
+        <Badge
+          variant="secondary"
+          className="h-auto min-h-10 max-w-full min-w-0 flex-1 items-center gap-2 rounded-xl px-3 py-2 sm:h-10 sm:px-4 bg-muted/50 border-none text-foreground font-black sm:flex-initial"
+        >
+          <span className="truncate opacity-60">{filtersLocation || (t.searchAllStays as string)}</span>
+          <span className="w-1 h-1 shrink-0 rounded-full bg-foreground/20" />
+          <span className="shrink-0">{resultsCount} {t.searchResultsSuffix as string}</span>
         </Badge>
       </div>
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="min-w-0 flex flex-1 items-center gap-2 sm:flex-initial">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-10 px-4 rounded-xl border-border/60 font-bold gap-2">
-                <span className="text-muted-foreground font-medium">{t.searchSortLabel as string}:</span>
-                <span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-10 min-w-0 max-w-full flex-1 justify-between rounded-xl border-border/60 px-3 font-bold gap-2 sm:max-w-none sm:flex-initial sm:px-4"
+              >
+                <span className="hidden text-muted-foreground font-medium sm:inline">{t.searchSortLabel as string}:</span>
+                <span className="truncate">
                   {sortBy === 'relevant' && t.searchSortRelevant}
                   {sortBy === 'price-asc' && t.searchSortPriceAsc}
                   {sortBy === 'price-desc' && t.searchSortPriceDesc}
                   {sortBy === 'rating' && t.searchSortRating}
                 </span>
-                <ChevronDown className="w-4 h-4 opacity-50" />
+                <ChevronDown className="w-4 h-4 shrink-0 opacity-50" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 rounded-2xl p-1.5 shadow-xl border-border/60 backdrop-blur-xl">
@@ -116,7 +123,7 @@ export function SearchToolbar({
         <Button
           variant={showMap ? 'secondary' : 'outline'}
           size="sm"
-          className="h-10 px-4 rounded-xl border-border/60 font-bold gap-2 hidden sm:flex"
+          className="h-10 shrink-0 px-3 sm:px-4 rounded-xl border-border/60 font-bold gap-2"
           onClick={onToggleMap}
         >
           {showMap ? (t.searchShowList as string) : (t.searchShowMap as string)}

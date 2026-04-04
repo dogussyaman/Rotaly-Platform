@@ -10,6 +10,7 @@ import { useLocale } from '@/lib/i18n/locale-context';
 import { useSearchParams } from 'next/navigation';
 import { fetchListings, type ListingRow } from '@/lib/supabase/listings';
 import { filterListingsByBounds, type MapBounds } from '@/lib/map-bounds';
+import { cn } from '@/lib/utils';
 import { SearchToolbar } from './_components/SearchToolbar';
 import { SearchResultsSection } from './_components/SearchResultsSection';
 
@@ -133,11 +134,17 @@ function SearchPageContent() {
   const mapNode = (
     <motion.div
       layout
-      initial={{ opacity: 0, x: 20, width: 0 }}
-      animate={{ opacity: 1, x: 0, width: showFilters ? 420 : 600 }}
-      exit={{ opacity: 0, x: 20, width: 0 }}
-      transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-      className="hidden lg:block h-[calc(100vh-220px)] sticky top-28 rounded-3xl border border-border overflow-hidden bg-card shadow-xl"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 16 }}
+      transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+      className={cn(
+        'w-full shrink-0 overflow-hidden border border-border bg-card shadow-xl',
+        /* Mobil: küçük harita — liste aşağıda kalır, oteller görünür */
+        'max-lg:h-[min(38vh,300px)] max-lg:min-h-[200px] max-lg:max-h-[320px] max-lg:rounded-2xl',
+        'lg:rounded-3xl lg:sticky lg:top-28 lg:h-[calc(100vh-220px)]',
+        showFilters ? 'lg:w-[420px]' : 'lg:w-[min(600px,40vw)]',
+      )}
     >
       <SearchMap
         listings={sortedListings}
@@ -148,10 +155,10 @@ function SearchPageContent() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen overflow-x-hidden bg-background">
       <SearchHeader />
-      <div className="pt-24 pb-16 px-4">
-        <div className="max-w-[1600px] mx-auto space-y-6">
+      <div className="pt-20 pb-12 sm:pt-24 sm:pb-16 px-4 sm:px-6">
+        <div className="max-w-[1600px] mx-auto space-y-4 sm:space-y-6">
           <motion.div
             id="hero-search-bar"
             initial={{ opacity: 0, y: 10 }}

@@ -172,7 +172,12 @@ function UserMenu() {
 
 // ─── Main Header (Nav only) ──────────────────────────────────────────────────
 
-export function SearchHeader() {
+export function SearchHeader({
+  suppressCompactSearch = false,
+}: {
+  /** Örn. /search mobilde tam ekran harita — scroll ile gelen mini arama pill'ini kapatır */
+  suppressCompactSearch?: boolean;
+} = {}) {
   const { t } = useLocale();
   const pathname = usePathname();
   const dispatch = useAppDispatch();
@@ -200,6 +205,10 @@ export function SearchHeader() {
 
   const activeTab = activeTabIndex !== -1 ? activeTabIndex : 0;
 
+  /** Arama/listing vb. sayfalarda hero yok; şeffaf bar okunmaz ve mobilde “kopuk” görünür. */
+  const isSolidHeaderSurface =
+    isScrolled || pathname === '/search' || pathname.startsWith('/search');
+
   useEffect(() => {
     const target = document.getElementById('hero-search-bar');
     if (!target) return;
@@ -224,10 +233,10 @@ export function SearchHeader() {
       {/* ── Navbar ── */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled ? 'bg-[#f3f3f3] backdrop-blur-xl shadow-sm' : 'bg-transparent'
+          isSolidHeaderSurface ? 'bg-[#f3f3f3] backdrop-blur-xl shadow-sm' : 'bg-transparent'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-1.5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-1.5">
           <div className="min-h-14 h-auto py-1.5 sm:py-0 sm:h-14 flex items-center justify-between gap-2 sm:gap-4">
             <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 md:flex-initial">
               <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
@@ -350,9 +359,9 @@ export function SearchHeader() {
       </header>
 
       {/* ── Scroll-down compact search pill ── */}
-      <div className="fixed top-[68px] left-0 right-0 z-40 flex justify-center px-3 sm:px-6 pointer-events-none">
+      <div className="fixed top-[68px] left-0 right-0 z-40 flex justify-center px-4 sm:px-6 pointer-events-none">
   <AnimatePresence>
-    {isScrolled && !heroSearchVisible && (
+    {isScrolled && !heroSearchVisible && !suppressCompactSearch && (
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
