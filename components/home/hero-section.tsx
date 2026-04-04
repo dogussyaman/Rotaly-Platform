@@ -13,10 +13,9 @@ interface HeroSectionProps {
 export function HeroSection({ t }: HeroSectionProps) {
     return (
         <section
-            className="relative flex flex-col"
+            className="relative flex flex-col min-h-[460px] sm:min-h-[520px]"
             style={{
                 background: 'linear-gradient(175deg, #b8d4e8 0%, #cfe2f0 40%, #deeaf5 70%, #eef4f9 100%)',
-                minHeight: '520px',
             }}
         >
             {/* Background building photo */}
@@ -35,7 +34,7 @@ export function HeroSection({ t }: HeroSectionProps) {
             <SearchHeader />
 
             {/* Hero text — centered in hero */}
-            <div className="flex-1 flex flex-col items-center justify-center text-center px-6 pt-24 pb-20 relative z-10">
+            <div className="flex-1 flex flex-col items-center justify-center text-center px-4 sm:px-6 pt-20 sm:pt-24 pb-12 sm:pb-20 relative z-10">
                 {/* Floating location card — sol */}
                 <motion.div
                     initial={{ opacity: 0, x: -40 }}
@@ -132,7 +131,7 @@ export function HeroSection({ t }: HeroSectionProps) {
                     initial={{ opacity: 0, y: 24 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
-                    className="text-7xl sm:text-8xl lg:text-[6.5rem] font-bold text-foreground tracking-tighter leading-none text-balance mb-4"
+                    className="text-4xl sm:text-7xl lg:text-[6.5rem] font-bold text-foreground tracking-tighter leading-[1.05] sm:leading-none text-balance mb-4 px-1"
                 >
                     {t.heroTitle as string}
                 </motion.h1>
@@ -141,7 +140,7 @@ export function HeroSection({ t }: HeroSectionProps) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2, duration: 0.5 }}
-                    className="text-base text-foreground/60 text-balance max-w-sm mb-6"
+                    className="text-sm sm:text-base text-foreground/60 text-balance max-w-sm mb-6 px-1"
                 >
                     {t.heroSubtitle as string}
                 </motion.p>
@@ -172,7 +171,7 @@ export function HeroSection({ t }: HeroSectionProps) {
             </div>
 
             {/* ── Search bar — overlaps bottom of hero into content below ── */}
-            <div id="hero-search-bar" className="relative z-20 px-6 pb-0">
+            <div id="hero-search-bar" className="relative z-20 px-3 sm:px-6 pb-0">
                 <div className="max-w-7xl mx-auto translate-y-1/3">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}

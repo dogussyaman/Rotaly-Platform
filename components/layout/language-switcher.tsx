@@ -25,13 +25,13 @@ export function LanguageSwitcher() {
     <div className="relative" id="lang-switcher">
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-2 px-3 py-2 rounded-2xl border border-border/60 hover:bg-white/20 transition-all text-sm font-medium text-foreground backdrop-blur-md hover:border-foreground/20 active:scale-95 shadow-sm"
+        className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 rounded-2xl border border-border/60 hover:bg-white/20 transition-all text-sm font-medium text-foreground backdrop-blur-md hover:border-foreground/20 active:scale-95 shadow-sm"
         aria-label={t.navSelectLanguageAria as string}
       >
         <span className="transform group-hover:scale-110 transition-transform">
           <FlagIcon countryCode={locale} />
         </span>
-        <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
+        <span className="hidden min-[360px]:inline text-[10px] font-black uppercase tracking-widest opacity-60">
           {locale}
         </span>
       </button>

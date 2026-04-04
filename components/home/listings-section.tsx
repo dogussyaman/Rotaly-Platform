@@ -28,14 +28,14 @@ export function ListingsSection({ t }: ListingsSectionProps) {
   return (
     <section className="bg-background py-8 pb-20">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">{t.listingsTitle as string}</h2>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6">
+          <div className="min-w-0">
+            <h2 className="text-xl sm:text-2xl font-bold text-foreground">{t.listingsTitle as string}</h2>
             <p className="text-sm text-muted-foreground mt-1">{t.listingsSubtitle as string}</p>
           </div>
           <Link
             href="/search"
-            className="text-sm font-semibold text-foreground underline underline-offset-2 hover:text-muted-foreground transition-colors"
+            className="text-sm font-semibold text-foreground underline underline-offset-2 hover:text-muted-foreground transition-colors shrink-0 self-start sm:self-auto"
           >
             {t.viewAll as string}
           </Link>

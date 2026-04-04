@@ -105,16 +105,18 @@ export function AirlineRoutesSection() {
           <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-background to-transparent" />
           <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-background to-transparent" />
 
-          <div className="flex items-center justify-between border-t px-6 py-4 sm:px-8">
-            <div className="text-xs sm:text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">Nasıl çalışır?</span> SkyWings ile bilet aldıktan sonra
-              aynı destinasyonda Rotaly üzerinden konaklama rezervasyonu yap, uçuş + konaklama kombininde ekstra
-              avantajlardan yararlan.
+          <div className="flex flex-col gap-4 border-t px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6 sm:px-8 sm:py-4">
+            <div className="min-w-0 flex-1 text-sm text-muted-foreground">
+              <p className="text-balance leading-relaxed">
+                <span className="font-medium text-foreground">Nasıl çalışır?</span> SkyWings ile bilet aldıktan sonra
+                aynı destinasyonda Rotaly üzerinden konaklama rezervasyonu yap, uçuş + konaklama kombininde ekstra
+                avantajlardan yararlan.
+              </p>
             </div>
             <Button
               asChild
               size="sm"
-              className="rounded-full px-4 text-xs sm:text-sm"
+              className="w-full shrink-0 rounded-full px-4 text-sm sm:w-auto"
               variant="outline"
             >
               <Link href="/airline-partners">Uyumlu uçuş & konaklamaları gör</Link>

@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Star, ChevronDown, LogOut, Home } from 'lucide-react';
+import { Search, Star, ChevronDown, LogOut, Home, Menu } from 'lucide-react';
 import Link from 'next/link';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useLocale } from '@/lib/i18n/locale-context';
 import { LanguageSwitcher } from '@/components/layout/language-switcher';
 import { formatNumber } from '@/lib/i18n/format';
@@ -178,6 +179,7 @@ export function SearchHeader() {
   const { profile, initialized } = useAppSelector((s) => s.user);
   const [isScrolled, setIsScrolled] = useState(false);
   const [heroSearchVisible, setHeroSearchVisible] = useState(true);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     if (!initialized && !profile) {
@@ -225,10 +227,53 @@ export function SearchHeader() {
           isScrolled ? 'bg-[#f3f3f3] backdrop-blur-xl shadow-sm' : 'bg-transparent'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 py-1.5">
-          <div className="h-14 flex items-center justify-between gap-4">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 flex-shrink-0">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-1.5">
+          <div className="min-h-14 h-auto py-1.5 sm:py-0 sm:h-14 flex items-center justify-between gap-2 sm:gap-4">
+            <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 md:flex-initial">
+              <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
+                <SheetContent id="mobile-nav-sheet" side="left" className="w-[min(100%,20rem)] z-[100]">
+                  <SheetHeader className="text-left border-b border-border pb-4">
+                    <SheetTitle className="text-lg">Menü</SheetTitle>
+                  </SheetHeader>
+                  <nav className="flex flex-col gap-0.5 pt-4" aria-label="Mobil navigasyon">
+                    {tabs.map((tab, i) => (
+                      <Link
+                        key={tab.href}
+                        href={tab.href}
+                        onClick={() => setMobileNavOpen(false)}
+                        className={`rounded-xl px-4 py-3 text-base font-medium transition-colors ${
+                          activeTab === i
+                            ? 'bg-secondary text-foreground'
+                            : 'text-foreground/80 hover:bg-muted'
+                        }`}
+                      >
+                        {tab.label}
+                      </Link>
+                    ))}
+                    {(!profile || !profile.isHost) && (
+                      <Link
+                        href="/become-host"
+                        onClick={() => setMobileNavOpen(false)}
+                        className="mt-2 rounded-xl px-4 py-3 text-base font-bold bg-gradient-to-r from-orange-500 to-pink-600 text-white text-center"
+                      >
+                        Ev Sahibi Ol
+                      </Link>
+                    )}
+                  </nav>
+                </SheetContent>
+              </Sheet>
+              <button
+                type="button"
+                onClick={() => setMobileNavOpen(true)}
+                className="md:hidden inline-flex items-center justify-center rounded-full p-2 -ml-0.5 text-foreground hover:bg-black/8 shrink-0"
+                aria-expanded={mobileNavOpen}
+                aria-controls="mobile-nav-sheet"
+                aria-label="Menüyü aç"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              {/* Logo */}
+              <Link href="/" className="flex items-center gap-2 flex-shrink-0 min-w-0">
               <div className="w-9 h-9 rounded-full bg-orange-500 shadow-lg shadow-orange-500/30 flex items-center justify-center">
                 <span className="text-white font-black text-base leading-none">R</span>
               </div>
@@ -239,6 +284,7 @@ export function SearchHeader() {
                 <span className="mt-0.5 h-[3px] w-12 rounded-full bg-orange-200" />
               </div>
             </Link>
+            </div>
 
             {/* Segment tabs */}
             <nav
@@ -260,7 +306,7 @@ export function SearchHeader() {
               ))}
             </nav>
 
-            <div className="flex items-center gap-2 flex-shrink-0 min-w-[120px] justify-end">
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 min-w-0 justify-end">
               <LanguageSwitcher />
               {!initialized ? (
                 <div className="w-24 h-9 bg-black/5 animate-pulse rounded-full" />
@@ -292,7 +338,7 @@ export function SearchHeader() {
                   </Link>
                   <Link
                     href="/auth/signup"
-                    className="bg-foreground text-card text-sm font-semibold px-4 py-2 rounded-full hover:bg-foreground/85 transition-colors shadow-sm"
+                    className="bg-foreground text-card text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full hover:bg-foreground/85 transition-colors shadow-sm whitespace-nowrap"
                   >
                     {t.signup as string}
                   </Link>
@@ -304,7 +350,7 @@ export function SearchHeader() {
       </header>
 
       {/* ── Scroll-down compact search pill ── */}
-      <div className="fixed top-[68px] left-0 right-0 z-40 flex justify-center px-6 pointer-events-none">
+      <div className="fixed top-[68px] left-0 right-0 z-40 flex justify-center px-3 sm:px-6 pointer-events-none">
   <AnimatePresence>
     {isScrolled && !heroSearchVisible && (
       <motion.div
@@ -312,20 +358,25 @@ export function SearchHeader() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -8 }}
         transition={{ duration: 0.28, ease: 'easeInOut' }}
-        className="flex justify-center w-full max-w-7xl pointer-events-auto"
+        className="flex justify-center w-full max-w-7xl pointer-events-auto min-w-0"
       >
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="animated-border-beam flex items-center gap-2.5 backdrop-blur-xl rounded-b-full px-5 py-2.5 shadow-lg hover:shadow-xl transition-all text-sm font-medium text-foreground max-w-xl w-full justify-center"
+          className="animated-border-beam flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2.5 backdrop-blur-xl rounded-b-2xl sm:rounded-b-full px-4 sm:px-5 py-2.5 shadow-lg hover:shadow-xl transition-all text-sm font-medium text-foreground max-w-xl w-full justify-center min-w-0"
         >
-          <Search className="w-4 h-4 text-muted-foreground" />
-          <span>{t.locationPlaceholder as string}</span>
-          <span className="h-4 w-px bg-border mx-0.5" />
-          <span className="text-muted-foreground text-xs">
-            {t.checkin as string} – {t.checkout as string}
+          <span className="flex items-center justify-center gap-2 min-w-0 w-full sm:w-auto">
+            <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+            <span className="truncate">{t.locationPlaceholder as string}</span>
           </span>
-          <span className="h-4 w-px bg-border mx-0.5" />
-          <span className="text-muted-foreground text-xs">
+          <span className="hidden sm:block h-4 w-px bg-border shrink-0" />
+          <span className="text-muted-foreground text-xs text-center sm:text-left truncate max-w-full">
+            <span className="sm:hidden">{t.checkin as string} · {t.checkout as string} · {t.addGuests as string}</span>
+            <span className="hidden sm:inline">
+              {t.checkin as string} – {t.checkout as string}
+            </span>
+          </span>
+          <span className="hidden sm:inline h-4 w-px bg-border shrink-0" />
+          <span className="hidden sm:inline text-muted-foreground text-xs truncate">
             {t.addGuests as string}
           </span>
         </button>

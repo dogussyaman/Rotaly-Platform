@@ -61,7 +61,7 @@ function MiniCalendar({
   );
 
   return (
-    <div className="w-64">
+    <div className="w-full max-w-64 mx-auto">
       <div className="flex items-center justify-between mb-4">
         <button onClick={onPrev} className="p-1.5 rounded-full hover:bg-muted transition-colors">
           <ChevronLeft className="w-4 h-4 text-foreground" />
@@ -321,56 +321,62 @@ export function HeroSearchBar() {
   return (
     <div ref={wrapperRef} className="relative w-full max-w-4xl mx-auto">
       {/* ── Search bar card ── */}
-      <div className="bg-white rounded-2xl shadow-2xl border border-white/60 flex items-stretch overflow-visible">
+      <div className="bg-white rounded-2xl shadow-2xl border border-white/60 flex flex-col lg:flex-row lg:items-stretch overflow-visible">
 
         {/* Location */}
         <button
+          type="button"
           onClick={() => setActivePanel(activePanel === 'location' ? null : 'location')}
-          className={`flex-[2] px-6 py-5 text-left border-r border-gray-100 transition-colors rounded-l-2xl ${
+          className={`w-full lg:flex-[2] min-w-0 px-4 py-4 lg:px-6 lg:py-5 text-left border-b lg:border-b-0 lg:border-r border-gray-100 transition-colors rounded-t-2xl lg:rounded-l-2xl lg:rounded-tr-none touch-manipulation ${
             activePanel === 'location' ? 'bg-gray-50' : 'hover:bg-gray-50/70'
           }`}
         >
           <div className="text-xs font-bold text-foreground mb-1 tracking-wide">{t.location as string}</div>
-          <div className={`text-sm ${location ? 'text-foreground font-medium' : 'text-gray-400'}`}>
+          <div className={`text-sm truncate ${location ? 'text-foreground font-medium' : 'text-gray-400'}`}>
             {location || (t.locationPlaceholder as string)}
           </div>
         </button>
 
-        {/* Check in */}
-        <button
-          onClick={() => setActivePanel(activePanel === 'checkin' ? null : 'checkin')}
-          className={`flex-1 px-6 py-5 text-left border-r border-gray-100 transition-colors ${
-            activePanel === 'checkin' || activePanel === 'checkout' ? 'bg-gray-50' : 'hover:bg-gray-50/70'
-          }`}
-        >
-          <div className="text-xs font-bold text-foreground mb-1 tracking-wide">{t.checkin as string}</div>
-          <div className={`text-sm ${dateRange.start ? 'text-foreground font-medium' : 'text-gray-400'}`}>
-            {formatDate(dateRange.start) || (t.setDate as string)}
-          </div>
-        </button>
+        <div className="grid grid-cols-2 lg:contents min-w-0">
+          {/* Check in */}
+          <button
+            type="button"
+            onClick={() => setActivePanel(activePanel === 'checkin' ? null : 'checkin')}
+            className={`min-w-0 lg:flex-1 px-4 py-4 lg:px-6 lg:py-5 text-left border-r border-b lg:border-b-0 border-gray-100 transition-colors touch-manipulation ${
+              activePanel === 'checkin' || activePanel === 'checkout' ? 'bg-gray-50' : 'hover:bg-gray-50/70'
+            }`}
+          >
+            <div className="text-xs font-bold text-foreground mb-1 tracking-wide">{t.checkin as string}</div>
+            <div className={`text-sm truncate ${dateRange.start ? 'text-foreground font-medium' : 'text-gray-400'}`}>
+              {formatDate(dateRange.start) || (t.setDate as string)}
+            </div>
+          </button>
 
-        {/* Check out */}
-        <button
-          onClick={() => setActivePanel(activePanel === 'checkout' ? null : 'checkout')}
-          className={`flex-1 px-6 py-5 text-left border-r border-gray-100 transition-colors ${
-            activePanel === 'checkout' ? 'bg-gray-50' : 'hover:bg-gray-50/70'
-          }`}
-        >
-          <div className="text-xs font-bold text-foreground mb-1 tracking-wide">{t.checkout as string}</div>
-          <div className={`text-sm ${dateRange.end ? 'text-foreground font-medium' : 'text-gray-400'}`}>
-            {formatDate(dateRange.end) || (t.setDate as string)}
-          </div>
-        </button>
+          {/* Check out */}
+          <button
+            type="button"
+            onClick={() => setActivePanel(activePanel === 'checkout' ? null : 'checkout')}
+            className={`min-w-0 lg:flex-1 px-4 py-4 lg:px-6 lg:py-5 text-left border-b lg:border-b-0 lg:border-r border-gray-100 transition-colors touch-manipulation ${
+              activePanel === 'checkout' ? 'bg-gray-50' : 'hover:bg-gray-50/70'
+            }`}
+          >
+            <div className="text-xs font-bold text-foreground mb-1 tracking-wide">{t.checkout as string}</div>
+            <div className={`text-sm truncate ${dateRange.end ? 'text-foreground font-medium' : 'text-gray-400'}`}>
+              {formatDate(dateRange.end) || (t.setDate as string)}
+            </div>
+          </button>
+        </div>
 
         {/* Guests */}
         <button
+          type="button"
           onClick={() => setActivePanel(activePanel === 'guests' ? null : 'guests')}
-          className={`flex-1 px-6 py-5 text-left transition-colors ${
+          className={`w-full lg:flex-1 min-w-0 px-4 py-4 lg:px-6 lg:py-5 text-left border-b lg:border-b-0 lg:border-r border-gray-100 transition-colors touch-manipulation ${
             activePanel === 'guests' ? 'bg-gray-50' : 'hover:bg-gray-50/70'
           }`}
         >
           <div className="text-xs font-bold text-foreground mb-1 tracking-wide">{t.guests as string}</div>
-          <div className={`text-sm ${totalGuests > 1 || guests.infants > 0 ? 'text-foreground font-medium' : 'text-gray-400'}`}>
+          <div className={`text-sm truncate ${totalGuests > 1 || guests.infants > 0 ? 'text-foreground font-medium' : 'text-gray-400'}`}>
             {totalGuests > 1 || guests.infants > 0
               ? `${totalGuests} ${t.guests as string}${guests.infants > 0 ? `, ${guests.infants} ${t.infants as string}` : ''}`
               : (t.addGuests as string)}
@@ -378,13 +384,15 @@ export function HeroSearchBar() {
         </button>
 
         {/* Search button */}
-        <div className="flex items-center pr-3 pl-2">
+        <div className="flex items-center justify-center lg:justify-end px-4 pb-4 pt-2 lg:p-0 lg:pr-3 lg:pl-2 lg:pb-0 rounded-b-2xl lg:rounded-b-none lg:rounded-r-2xl">
           <button
+            type="button"
             onClick={handleSearch}
-            className="w-12 h-12 bg-foreground rounded-xl flex items-center justify-center hover:bg-foreground/85 transition-all active:scale-95 shadow-md"
+            className="w-full max-w-xs lg:max-w-none lg:w-12 h-12 bg-foreground rounded-xl flex items-center justify-center gap-2 hover:bg-foreground/85 transition-all active:scale-95 shadow-md touch-manipulation"
             aria-label={t.search as string}
           >
-            <Search className="w-5 h-5 text-white" />
+            <Search className="w-5 h-5 text-white shrink-0" />
+            <span className="lg:hidden text-sm font-semibold text-white">{t.search as string}</span>
           </button>
         </div>
       </div>
@@ -400,7 +408,7 @@ export function HeroSearchBar() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.98 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-[calc(100%+10px)] left-0 w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 z-50"
+            className="absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 w-[min(calc(100vw-2rem),24rem)] sm:w-96 max-w-[calc(100vw-1.5rem)] bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 z-50"
           >
             {/* Input */}
             <div className="relative mb-3">
@@ -478,9 +486,9 @@ export function HeroSearchBar() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.98 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 z-50"
+            className="absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 w-[min(calc(100vw-2rem),42rem)] max-w-[calc(100vw-1.5rem)] bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 sm:p-6 z-50"
           >
-            <div className="flex gap-8">
+            <div className="flex flex-row gap-8 items-stretch justify-center">
               <MiniCalendar
                 year={calYear} month={calMonth}
                 onPrev={prevMonth} onNext={nextMonth}
@@ -491,17 +499,19 @@ export function HeroSearchBar() {
                 months={months}
                 days={days}
               />
-              <div className="w-px bg-gray-100" />
-              <MiniCalendar
-                year={nextCalYear} month={nextCalMonth}
-                onPrev={prevMonth} onNext={nextMonth}
-                dateRange={dateRange}
-                onDateClick={handleDateClick}
-                hoverDate={hoverDate}
-                onHover={setHoverDate}
-                months={months}
-                days={days}
-              />
+              <div className="hidden lg:block w-px bg-gray-100 shrink-0 self-stretch" />
+              <div className="hidden lg:block">
+                <MiniCalendar
+                  year={nextCalYear} month={nextCalMonth}
+                  onPrev={prevMonth} onNext={nextMonth}
+                  dateRange={dateRange}
+                  onDateClick={handleDateClick}
+                  hoverDate={hoverDate}
+                  onHover={setHoverDate}
+                  months={months}
+                  days={days}
+                />
+              </div>
             </div>
             <div className="flex justify-between items-center mt-5 pt-4 border-t border-gray-100">
               <button
@@ -528,7 +538,7 @@ export function HeroSearchBar() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.98 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-[calc(100%+10px)] right-0 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 p-5 z-50"
+            className="absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 sm:translate-x-0 w-[min(calc(100vw-2rem),20rem)] sm:w-80 max-w-[calc(100vw-1.5rem)] bg-white rounded-2xl shadow-2xl border border-gray-100 p-5 z-50"
           >
             {[
               { key: 'adults', label: t.adults as string, desc: t.adultsDesc as string, min: 1 },
