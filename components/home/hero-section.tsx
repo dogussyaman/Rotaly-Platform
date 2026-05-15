@@ -2,8 +2,11 @@
 
 import { Suspense } from 'react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { Plane } from 'lucide-react';
 import { SearchHeader } from '@/components/header/search-header';
 import { HeroSearchBar } from '@/components/search/hero-search-bar';
+import { Button } from '@/components/ui/button';
 import { Badge } from '../ui/badge';
 
 interface HeroSectionProps {
@@ -144,6 +147,20 @@ export function HeroSection({ t }: HeroSectionProps) {
                 >
                     {t.heroSubtitle as string}
                 </motion.p>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3, duration: 0.5 }}
+                    className="mb-8 sm:mb-6 px-1"
+                >
+                    <Button asChild className="rounded-full bg-primary px-6 shadow-lg shadow-primary/25 transition-transform hover:scale-105 active:scale-95">
+                        <Link href="/airline-partners">
+                            <Plane className="mr-2 h-4 w-4" />
+                            Uçuşunu Bağdaştır
+                        </Link>
+                    </Button>
+                </motion.div>
 
                 {/* Social proof — mobilde dikey, tek blokta ortalı */}
                 <motion.div

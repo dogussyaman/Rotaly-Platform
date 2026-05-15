@@ -142,8 +142,93 @@ export function OffersSection({ t }: OffersSectionProps) {
             ))}
           </div>
         ) : (
-          <div className="py-10 text-center text-sm text-muted-foreground">
-            Şu anda aktif bir indirimli konaklama bulunmuyor.
+          <div className="space-y-12 py-6">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/5 via-primary/10 to-transparent px-6 py-12 sm:px-12 sm:py-16">
+              <div className="relative z-10 mx-auto max-w-2xl text-center">
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <span className="text-3xl">✨</span>
+                </div>
+                <h3 className="mb-4 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                  Büyük Fırsatlar Çok Yakında!
+                </h3>
+                <p className="mb-8 text-sm text-muted-foreground sm:text-base">
+                  Şu an için aktif bir sezon indirimi bulunmuyor ancak yeni kampanyalarımız yolda. 
+                  Sıradaki seyahatinizi planlamak için popüler destinasyonlardaki öne çıkan evleri inceleyebilirsiniz.
+                </p>
+              </div>
+              <div className="pointer-events-none absolute -left-10 -top-10 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-10 -right-10 h-64 w-64 rounded-full bg-emerald-500/5 blur-3xl" />
+            </div>
+
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xl font-semibold tracking-tight">İlham Alın: Popüler Destinasyonlar</h4>
+                <Link href="/search" className="text-sm font-medium text-primary hover:underline">
+                  Tümünü Gör →
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-5 gap-y-8">
+                {[
+                  {
+                    id: 'mock-1',
+                    title: 'Lüks Deniz Manzaralı Villa',
+                    location: 'Bodrum, Muğla',
+                    pricePerNight: 4500,
+                    rating: 4.96,
+                    totalReviews: 124,
+                    images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800'],
+                  },
+                  {
+                    id: 'mock-2',
+                    title: 'Tarihi Taş Ev Şehir Merkezinde',
+                    location: 'Alaçatı, İzmir',
+                    pricePerNight: 2800,
+                    rating: 4.85,
+                    totalReviews: 89,
+                    images: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=800'],
+                  },
+                  {
+                    id: 'mock-3',
+                    title: 'Doğa İle İç İçe Ahşap Bungalov',
+                    location: 'Sapanca, Sakarya',
+                    pricePerNight: 3200,
+                    rating: 4.92,
+                    totalReviews: 210,
+                    images: ['https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&q=80&w=800'],
+                  },
+                  {
+                    id: 'mock-4',
+                    title: 'Panoramik Boğaz Manzaralı Daire',
+                    location: 'Beşiktaş, İstanbul',
+                    pricePerNight: 5500,
+                    rating: 4.98,
+                    totalReviews: 340,
+                    images: ['https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&q=80&w=800'],
+                  }
+                ].map((item, i) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.04, duration: 0.35 }}
+                  >
+                    <Link href={`/search?location=${encodeURIComponent(item.location)}`}>
+                      <ListingCard
+                        id={item.id}
+                        title={item.title}
+                        location={item.location}
+                        pricePerNight={item.pricePerNight}
+                        rating={item.rating}
+                        totalReviews={item.totalReviews}
+                        images={item.images}
+                        guestFavoriteLabel={t.guestFavorite as string}
+                        isFavorite={i % 2 === 0}
+                      />
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
       </div>

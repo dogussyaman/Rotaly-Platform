@@ -252,7 +252,7 @@ export function SearchHeader({
                         onClick={() => setMobileNavOpen(false)}
                         className={`rounded-xl px-4 py-3 text-base font-medium transition-colors ${
                           activeTab === i
-                            ? 'bg-secondary text-foreground'
+                            ? 'bg-slate-100 text-slate-900 shadow-sm dark:bg-slate-800/90 dark:text-slate-100'
                             : 'text-foreground/80 hover:bg-muted'
                         }`}
                       >
@@ -295,19 +295,19 @@ export function SearchHeader({
             </Link>
             </div>
 
-            {/* Segment tabs */}
+            {/* Segment tabs — seçili: nötr gri (şeftali secondary yok) */}
             <nav
-              className="hidden md:flex items-center gap-0.5 bg-black/8 backdrop-blur-sm rounded-full p-1"
+              className="hidden md:flex items-center gap-0.5 rounded-full border border-white/15 bg-slate-500/18 p-1 shadow-[inset_0_1px_2px_rgba(15,23,42,0.05)] backdrop-blur-md dark:border-white/10 dark:bg-slate-950/30"
               aria-label="Ana navigasyon"
             >
               {tabs.map((tab, i) => (
                 <Link
                   key={tab.label}
                   href={tab.href}
-                  className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  className={`px-5 py-1.5 rounded-full text-sm font-medium transition-all duration-200 ${
                     activeTab === i
-                      ? 'bg-secondary text-foreground shadow-sm'
-                      : 'text-foreground/70 hover:text-foreground hover:bg-white/30'
+                      ? 'bg-slate-100/95 text-slate-800 shadow-sm ring-1 ring-slate-900/5 dark:bg-slate-800/85 dark:text-slate-100 dark:ring-white/10'
+                      : 'text-slate-600/95 hover:bg-white/15 hover:text-slate-900 dark:text-slate-300/90 dark:hover:bg-white/10 dark:hover:text-slate-100'
                   }`}
                 >
                   {tab.label}

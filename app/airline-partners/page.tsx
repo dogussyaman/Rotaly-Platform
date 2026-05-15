@@ -2,10 +2,12 @@
 
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plane, Percent, Sparkles, TicketPercent, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Plane, Percent, Sparkles, TicketPercent, ArrowRight, ShieldCheck, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { SearchHeader } from '@/components/header/search-header';
 import { useLocale } from '@/lib/i18n/locale-context';
+import { ListingCard } from '@/components/listings/listing-card';
 
 type RouteOption = {
   id: string;
@@ -23,6 +25,10 @@ type StayOption = {
   city: string;
   distance: string;
   perk: string;
+  pricePerNight: number;
+  rating: number;
+  totalReviews: number;
+  images: string[];
 };
 
 export default function AirlinePartnersPage() {
@@ -68,6 +74,10 @@ export default function AirlinePartnersPage() {
         city: t.airlineStay1City as string,
         distance: t.airlineStay1Dist as string,
         perk: t.airlineStay1Perk as string,
+        pricePerNight: 4500,
+        rating: 4.96,
+        totalReviews: 124,
+        images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800'],
       },
       {
         id: 'stay-2',
@@ -75,6 +85,10 @@ export default function AirlinePartnersPage() {
         city: t.airlineStay2City as string,
         distance: t.airlineStay2Dist as string,
         perk: t.airlineStay2Perk as string,
+        pricePerNight: 2800,
+        rating: 4.85,
+        totalReviews: 89,
+        images: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=800'],
       },
       {
         id: 'stay-3',
@@ -82,6 +96,10 @@ export default function AirlinePartnersPage() {
         city: t.airlineStay3City as string,
         distance: t.airlineStay3Dist as string,
         perk: t.airlineStay3Perk as string,
+        pricePerNight: 3200,
+        rating: 4.92,
+        totalReviews: 210,
+        images: ['https://images.unsplash.com/photo-1587061949409-02df41d5e562?auto=format&fit=crop&q=80&w=800'],
       },
     ];
   }, [t]);
@@ -155,6 +173,23 @@ export default function AirlinePartnersPage() {
           </div>
         </div>
 
+        {/* PNR MATCH FORM */}
+        <div className="rounded-3xl border bg-card/90 p-5 shadow-sm sm:p-6 lg:p-8">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-1">
+              <h2 className="text-lg font-bold sm:text-xl">Uçuşunu Bağdaştır</h2>
+              <p className="text-sm text-muted-foreground">PNR veya Bilet Numaranızı girerek size özel konaklama indirimlerini hemen görün.</p>
+            </div>
+            <div className="flex w-full max-w-sm items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input placeholder="Örn: WX8Y2Z" className="rounded-full pl-9" />
+              </div>
+              <Button className="rounded-full px-6">Sorgula</Button>
+            </div>
+          </div>
+        </div>
+
         <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
           <div className="space-y-4 rounded-3xl border bg-card/80 p-5 shadow-sm">
             <div className="flex items-center justify-between gap-3">
@@ -221,22 +256,25 @@ export default function AirlinePartnersPage() {
               <span className="text-[11px] text-muted-foreground">{t.airlineStaysNote as string}</span>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               {stays.map((stay) => (
-                <div
-                  key={stay.id}
-                  className="flex items-start justify-between gap-3 rounded-2xl border bg-background/60 px-3 py-3 text-xs"
-                >
-                  <div className="space-y-1">
-                    <p className="font-semibold text-foreground">{stay.title}</p>
-                    <p className="text-[11px] text-muted-foreground">
-                      {stay.city} • {stay.distance}
-                    </p>
-                    <p className="text-[11px] text-emerald-700 dark:text-emerald-400">{stay.perk}</p>
+                <div key={stay.id} className="relative rounded-2xl border bg-background/60 p-2 sm:p-3">
+                  <ListingCard
+                    id={stay.id}
+                    title={stay.title}
+                    location={`${stay.city} • ${stay.distance}`}
+                    pricePerNight={stay.pricePerNight}
+                    rating={stay.rating}
+                    totalReviews={stay.totalReviews}
+                    images={stay.images}
+                    discountLabel={stay.perk}
+                    layout="list"
+                  />
+                  <div className="mt-3 flex justify-end sm:absolute sm:bottom-4 sm:right-4 sm:mt-0 z-10">
+                    <Button size="sm" className="rounded-full shadow-sm text-[11px] sm:text-xs">
+                      {t.airlineStayCta as string}
+                    </Button>
                   </div>
-                  <Button size="sm" variant="outline" className="rounded-full px-3 text-[11px]">
-                    {t.airlineStayCta as string}
-                  </Button>
                 </div>
               ))}
             </div>
