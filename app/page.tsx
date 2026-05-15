@@ -9,6 +9,7 @@ import { ListingsSection } from '@/components/home/listings-section';
 import { AirlineRoutesSection } from '@/components/home/airline-routes-section';
 import { HostCtaSection } from '@/components/home/host-cta-section';
 import { LoyaltyPromoSection } from '@/components/home/loyalty-promo';
+import { WeeklyDealTicket } from '@/components/home/weekly-deal-ticket';
 
 const OffersSection = lazy(() =>
   import('@/components/home/offers-section').then((mod) => ({ default: mod.OffersSection })),
@@ -18,6 +19,7 @@ export default function Home() {
   const { t } = useLocale();
   const [activeCategory, setActiveCategory] = useState('beachfront');
   const catScrollRef = useRef<HTMLDivElement | null>(null);
+  const offersSectionRef = useRef<HTMLElement | null>(null);
 
   return (
     <div
@@ -33,9 +35,11 @@ export default function Home() {
         catScrollRef={catScrollRef}
       />
 
-      <Suspense fallback={<OffersSectionSkeleton t={t} />}>
-        <OffersSection t={t} />
-      </Suspense>
+      <div ref={offersSectionRef as React.RefObject<HTMLDivElement>}>
+        <Suspense fallback={<OffersSectionSkeleton t={t} />}>
+          <OffersSection t={t} />
+        </Suspense>
+      </div>
 
       <LoyaltyPromoSection />
 
@@ -44,6 +48,10 @@ export default function Home() {
       <AirlineRoutesSection />
 
       <HostCtaSection t={t} />
+
+      {/* Scroll-triggered ticket widget */}
+      <WeeklyDealTicket targetRef={offersSectionRef} />
     </div>
   );
 }
+

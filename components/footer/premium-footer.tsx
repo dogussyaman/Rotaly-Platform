@@ -153,7 +153,7 @@ export default function PremiumFooter() {
                     </div>
                     
                     <div className="flex items-center gap-4 bg-slate-950/5 p-2 rounded-3xl border border-white/40 shadow-xl backdrop-blur-sm">
-                        <LanguageSwitcher />
+                        <LanguageSwitcher direction="up" />
                         <div className="w-px h-5 bg-slate-300/50" />
                         <span className="flex items-center gap-2 px-5 py-2.5 text-xs font-black text-slate-700" aria-hidden>
                             <Globe size={16} className="text-orange-500" />
