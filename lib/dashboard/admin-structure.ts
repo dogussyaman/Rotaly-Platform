@@ -13,6 +13,8 @@ export type DashboardIconKey =
   | 'loyalty'
   | 'coupons'
   | 'tours'
+  | 'myTours'
+  | 'tourGuides'
   | 'reports'
   | 'systemLogs'
   | 'earnings';
@@ -32,6 +34,8 @@ export type DashboardModuleKey =
   | 'loyalty'
   | 'coupons'
   | 'tours'
+  | 'myTours'
+  | 'tourGuides'
   | 'reports'
   | 'systemLogs'
   | 'earnings';
@@ -57,6 +61,7 @@ export const ADMIN_MODULES: DashboardModuleDefinition[] = [
   { key: 'hosts', title: 'Ev Sahipleri', url: '/dashboard/hosts', iconKey: 'hosts', placement: 'main', capabilities: ['read', 'review'] },
   { key: 'messages', title: 'Mesajlar', url: '/dashboard/messages', iconKey: 'messages', placement: 'main', capabilities: ['read', 'review'] },
   { key: 'coupons', title: 'Kuponlar', url: '/dashboard/coupons', iconKey: 'coupons', placement: 'main', capabilities: ['read', 'update'] },
+  { key: 'tours', title: 'Turlar', url: '/dashboard/tours', iconKey: 'tours', placement: 'main', capabilities: ['read'] },
   { key: 'reports', title: 'Raporlar', url: '/dashboard/reports', iconKey: 'reports', placement: 'documents', capabilities: ['read'] },
   { key: 'systemLogs', title: 'Sistem Kayıtları', url: '/dashboard/reports', iconKey: 'systemLogs', placement: 'documents', capabilities: ['read'] },
 ];
@@ -70,8 +75,17 @@ export const HOST_MODULES: DashboardModuleDefinition[] = [
   { key: 'messages', title: 'Mesajlar', url: '/dashboard/messages', iconKey: 'messages', placement: 'main', capabilities: ['read', 'review'] },
   { key: 'loyalty', title: 'Sadakat', url: '/dashboard/loyalty', iconKey: 'loyalty', placement: 'main', capabilities: ['read'] },
   { key: 'coupons', title: 'Kuponlar', url: '/dashboard/coupons', iconKey: 'coupons', placement: 'main', capabilities: ['read', 'update'] },
-  { key: 'tours', title: 'Turlar', url: '/dashboard/tours', iconKey: 'tours', placement: 'main', capabilities: ['read', 'update'] },
+  { key: 'myTours', title: 'Turlarım', url: '/dashboard/my-tours', iconKey: 'tours', placement: 'main', capabilities: ['read', 'update', 'delete'] },
+  { key: 'tourGuides', title: 'Tur Rehberleri', url: '/dashboard/tour-guides', iconKey: 'tours', placement: 'main', capabilities: ['read', 'update', 'delete'] },
   { key: 'earnings', title: 'Gelirler', url: '/dashboard/earnings', iconKey: 'earnings', placement: 'main', capabilities: ['read'] },
   { key: 'reports', title: 'Rezervasyon Raporları', url: '/dashboard/reports', iconKey: 'bookings', placement: 'documents', capabilities: ['read'] },
   { key: 'systemLogs', title: 'Vergi Belgeleri', url: '/dashboard/reports', iconKey: 'reports', placement: 'documents', capabilities: ['read'] },
+];
+
+/** Tur şirketi (Tip D): sadece tur_operator rolü, host değil */
+export const TOUR_OPERATOR_MODULES: DashboardModuleDefinition[] = [
+  { key: 'overview', title: 'Genel Bakış', url: '/dashboard', iconKey: 'overview', placement: 'main', capabilities: ['read'] },
+  { key: 'myTours', title: 'Turlarım', url: '/dashboard/my-tours', iconKey: 'tours', placement: 'main', capabilities: ['read', 'update', 'delete'] },
+  { key: 'tourGuides', title: 'Tur Rehberleri', url: '/dashboard/tour-guides', iconKey: 'tours', placement: 'main', capabilities: ['read', 'update', 'delete'] },
+  { key: 'bookings', title: 'Tur Rezervasyonları', url: '/dashboard/tours', iconKey: 'bookings', placement: 'main', capabilities: ['read', 'update'] },
 ];

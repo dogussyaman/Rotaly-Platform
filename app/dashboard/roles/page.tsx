@@ -25,7 +25,7 @@ const ROLES: AdminManageableRole[] = ['admin', 'host', 'tour_operator'];
 function roleLabel(role: AdminManageableRole): string {
   if (role === 'admin') return 'Admin';
   if (role === 'host') return 'Ev Sahibi';
-  return 'Tur Operatörü';
+  return 'Tur şirketi (Tip D)';
 }
 
 export default function RolesPage() {

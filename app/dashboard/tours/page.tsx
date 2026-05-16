@@ -8,6 +8,7 @@ import { ContentCard, Section, StatusBadge } from '@/components/dashboard/dashbo
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatCurrency } from '@/lib/format';
 import { createClient } from '@/lib/supabase/client';
+import { resolveTourOperatorForUser } from '@/lib/supabase/tours-admin';
 import { useAppSelector } from '@/lib/store/hooks';
 
 type TourRow = { id: string; title: string; city: string | null; duration_minutes: number | null; base_price: number; rating: number | null };
@@ -30,8 +31,9 @@ export default function ToursPage() {
       const supabase = createClient();
       const isAdmin = !!profile.isAdmin;
       const isTourOperator = !!profile.isTourOperator;
+      const isHost = !!profile.isHost;
 
-      if (!isAdmin && !isTourOperator) {
+      if (!isAdmin && !isTourOperator && !isHost) {
         setCanView(false);
         setOperators([]);
         setTours([]);
@@ -56,13 +58,12 @@ export default function ToursPage() {
         return;
       }
 
-      const { data: operator } = await supabase
-        .from('tour_operators')
-        .select('id, company_name, phone, website')
-        .eq('user_id', profile.id)
-        .maybeSingle();
+      const resolved = await resolveTourOperatorForUser(profile.id, {
+        isHost: profile.isHost,
+        isTourOperator: profile.isTourOperator,
+      });
 
-      if (!operator) {
+      if (!resolved) {
         setOperators([]);
         setTours([]);
         setSchedules([]);
@@ -71,7 +72,13 @@ export default function ToursPage() {
         return;
       }
 
-      const operatorId = operator.id as string;
+      const operatorId = resolved.id;
+      const operator: OperatorRow = {
+        id: resolved.id,
+        company_name: resolved.companyName,
+        phone: resolved.phone,
+        website: resolved.website,
+      };
 
       const [tRes, sRes, bRes] = await Promise.all([
         supabase
@@ -92,14 +99,14 @@ export default function ToursPage() {
           .limit(50),
       ]);
 
-      setOperators([operator as OperatorRow]);
+      setOperators([operator]);
       setTours((tRes.data ?? []) as TourRow[]);
       setSchedules((sRes.data ?? []) as ScheduleRow[]);
       setBookings((bRes.data ?? []) as BookingRow[]);
       setLoading(false);
     }
     void load();
-  }, [profile?.id, profile?.isAdmin, profile?.isTourOperator]);
+  }, [profile?.id, profile?.isAdmin, profile?.isTourOperator, profile?.isHost]);
 
   if (loading) {
     return (

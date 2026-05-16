@@ -16,6 +16,7 @@ import {
   ClipboardCheck,
   MessageCircleMore,
   CalendarCheck2,
+  MapPin,
 } from 'lucide-react';
 import { DashboardOverviewSkeleton } from '@/components/dashboard/dashboard-skeletons';
 
@@ -204,6 +205,11 @@ export function DashboardOverview() {
               description: t.dashboardLinkMessagesDesc as string,
               href: '/dashboard/messages',
             },
+            {
+              title: (t.dashboardLinkMyTours as string) ?? 'Turlarım',
+              description: (t.dashboardLinkMyToursDesc as string) ?? 'Grup ve bireysel turlar',
+              href: '/dashboard/my-tours',
+            },
           ],
     [role, t],
   );
@@ -254,6 +260,11 @@ export function DashboardOverview() {
               description: t.dashboardTodoHost4Desc as string,
               href: '/dashboard/messages',
             },
+            {
+              title: (t.dashboardTodoHostToursTitle as string) ?? 'Turları aç',
+              description: (t.dashboardTodoHostToursDesc as string) ?? 'Opsiyonel tur satışını etkinleştirin',
+              href: '/dashboard/my-tours',
+            },
           ],
     [role, t],
   );
@@ -283,7 +294,7 @@ export function DashboardOverview() {
               <Clock3 className="h-4 w-4 text-primary" />
             </div>
 
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               <Link
                 href="/dashboard/bookings?status=pending"
                 className="flex items-center justify-between rounded-lg border border-border/70 bg-muted/40 px-3 py-2.5 transition-colors hover:bg-accent/60"
@@ -330,6 +341,19 @@ export function DashboardOverview() {
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-primary" />
                   <span className="text-sm font-medium text-foreground">{t.dashboardQuickCalendar as string}</span>
+                </div>
+                <ArrowRight className="h-4 w-4 text-primary" />
+              </Link>
+
+              <Link
+                href="/dashboard/my-tours"
+                className="flex items-center justify-between rounded-lg border border-border/70 bg-muted/40 px-3 py-2.5 transition-colors hover:bg-accent/60"
+              >
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">
+                    {(t.dashboardQuickMyTours as string) ?? 'Turlarım'}
+                  </span>
                 </div>
                 <ArrowRight className="h-4 w-4 text-primary" />
               </Link>
@@ -414,25 +438,23 @@ export function DashboardOverview() {
         </div>
 
         <div className="space-y-4">
-          <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-linear-to-br from-primary to-primary/80 p-5 text-primary-foreground shadow-[0_6px_18px_-6px_rgba(13,148,136,0.25)] sm:p-6">
+          <div className="rounded-xl border border-border/70 bg-card/90 p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] sm:p-6">
             <div className="relative z-10">
-              <h3 className="text-sm font-semibold">{t.dashboardQuickActionsTitle as string}</h3>
-              <p className="mt-0.5 text-xs text-primary-foreground/70">{t.dashboardQuickActionsSubtitle as string}</p>
+              <h3 className="text-sm font-semibold text-foreground">{t.dashboardQuickActionsTitle as string}</h3>
+              <p className="mt-0.5 text-xs text-muted-foreground">{t.dashboardQuickActionsSubtitle as string}</p>
               <div className="mt-4 space-y-2">
                 {links.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="flex items-center justify-between rounded-lg bg-primary-foreground/10 px-3 py-2.5 transition-colors hover:bg-primary-foreground/15"
+                    className="flex items-center justify-between rounded-lg border border-border/70 bg-muted/40 px-3 py-2.5 transition-colors hover:bg-accent/60"
                   >
-                    <span className="text-sm font-medium">{link.title}</span>
-                    <ArrowRight className="h-4 w-4 opacity-80" />
+                    <span className="text-sm font-medium text-foreground">{link.title}</span>
+                    <ArrowRight className="h-4 w-4 text-primary" />
                   </Link>
                 ))}
               </div>
             </div>
-            <div className="absolute -right-12 -top-12 h-24 w-24 rounded-full bg-primary-foreground/10 blur-2xl" />
-            <div className="absolute -bottom-12 -left-12 h-32 w-32 rounded-full bg-primary-foreground/10 blur-2xl" />
           </div>
 
           <div className="rounded-xl border border-border/70 bg-card/90 p-5 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)] sm:p-6">

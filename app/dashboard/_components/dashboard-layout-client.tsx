@@ -21,9 +21,19 @@ const ADMIN_ONLY_PREFIXES = [
   '/dashboard/documents',
 ];
 
-function getHeaderTitle(pathname: string, role: 'admin' | 'host') {
+const HOST_ONLY_PREFIXES = [
+  '/dashboard/listings',
+  '/dashboard/availability',
+  '/dashboard/reviews',
+  '/dashboard/loyalty',
+  '/dashboard/coupons',
+  '/dashboard/earnings',
+];
+
+function getHeaderTitle(pathname: string, role: 'admin' | 'host' | 'tour_operator') {
   if (pathname === '/dashboard') {
     if (role === 'admin') return { title: 'Yönetici Paneli', subtitle: 'Platform operasyonlarının merkezi yönetimi.' };
+    if (role === 'tour_operator') return { title: 'Tur Operatör Paneli', subtitle: 'Turlarınızı ve rehberlerinizi yönetin.' };
     return { title: 'Ev Sahibi Paneli', subtitle: 'İlanlarınızı ve rezervasyonlarınızı yönetin.' };
   }
 
@@ -49,7 +59,9 @@ function getHeaderTitle(pathname: string, role: 'admin' | 'host') {
     '/dashboard/messages': { title: 'Mesajlar', subtitle: 'Konuşmalar ve okunmamışlar.' },
     '/dashboard/loyalty': { title: 'Sadakat', subtitle: 'Puan bakiyeleri ve hareketleri.' },
     '/dashboard/coupons': { title: 'Kuponlar', subtitle: 'Kampanyalar ve kullanım geçmişi.' },
-    '/dashboard/tours': { title: 'Turlar', subtitle: 'Tur seansları ve rezervasyonlar.' },
+    '/dashboard/tours': { title: 'Tur Rezervasyonları', subtitle: 'Tur seansları ve rezervasyonlar.' },
+    '/dashboard/my-tours': { title: 'Turlarım', subtitle: 'Turlarınızı ekleyin, düzenleyin ve yönetin.' },
+    '/dashboard/tour-guides': { title: 'Tur Rehberleri', subtitle: 'Rehber ekleyin ve turlara atayın.' },
     '/dashboard/reports': { title: 'Raporlar', subtitle: 'Operasyon, finans ve risk raporları.' },
     '/dashboard/earnings': { title: 'Gelirler', subtitle: 'Ev sahibi gelir ve vergi özetleri.' },
     '/dashboard/profile': { title: 'Profil', subtitle: 'Hesap bilgileriniz.' },
@@ -66,6 +78,14 @@ function getHeaderTitle(pathname: string, role: 'admin' | 'host') {
 
   if (pathname.startsWith('/dashboard/listings/')) {
     return { title: 'İlan Detayı', subtitle: 'İlan bilgileri, güncelleme ve uygunluk.' };
+  }
+
+  if (pathname === '/dashboard/my-tours/new') {
+    return { title: 'Yeni Tur', subtitle: 'Grup veya bireysel tur oluşturun.' };
+  }
+
+  if (pathname.startsWith('/dashboard/my-tours/') && pathname.endsWith('/edit')) {
+    return { title: 'Tur Düzenle', subtitle: 'Tur bilgileri, rehber ve seanslar.' };
   }
 
   return { title: 'Dashboard', subtitle: 'Panel görünümü' };
@@ -91,7 +111,7 @@ export default function DashboardLayoutClient({ children }: { children: ReactNod
 
   useEffect(() => {
     if (!initialized || loading || !profile) return;
-    const isGuest = !profile.isAdmin && !profile.isHost;
+    const isGuest = !profile.isAdmin && !profile.isHost && !profile.isTourOperator;
     if (isGuest) {
       router.replace('/profile');
     }
@@ -101,6 +121,14 @@ export default function DashboardLayoutClient({ children }: { children: ReactNod
     if (!initialized || loading || !profile) return;
     if (!profile.isAdmin && ADMIN_ONLY_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
       router.replace('/dashboard');
+    }
+  }, [initialized, loading, profile, pathname, router]);
+
+  useEffect(() => {
+    if (!initialized || loading || !profile) return;
+    const tourOperatorOnly = profile.isTourOperator && !profile.isHost && !profile.isAdmin;
+    if (tourOperatorOnly && HOST_ONLY_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
+      router.replace('/dashboard/my-tours');
     }
   }, [initialized, loading, profile, pathname, router]);
 
@@ -114,12 +142,13 @@ export default function DashboardLayoutClient({ children }: { children: ReactNod
 
   if (!profile) return null;
 
-  const isGuest = !profile.isAdmin && !profile.isHost;
+  const isGuest = !profile.isAdmin && !profile.isHost && !profile.isTourOperator;
   if (isGuest) {
     return null;
   }
 
-  const role: 'admin' | 'host' | 'guest' = profile.isAdmin ? 'admin' : 'host';
+  const role: 'admin' | 'host' | 'tour_operator' =
+    profile.isAdmin ? 'admin' : profile.isTourOperator && !profile.isHost ? 'tour_operator' : 'host';
   const header = getHeaderTitle(pathname, role);
 
   return (

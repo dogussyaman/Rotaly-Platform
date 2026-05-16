@@ -136,6 +136,34 @@ export async function setUserRoleActiveByAdmin(
     }
   }
 
+  if (role === 'tour_operator' && active) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('full_name, email, phone')
+      .eq('id', userId)
+      .maybeSingle();
+
+    const { data: existing } = await supabase
+      .from('tour_operators')
+      .select('id')
+      .eq('user_id', userId)
+      .is('host_id', null)
+      .maybeSingle();
+
+    if (!existing) {
+      const { error: operatorError } = await supabase.from('tour_operators').insert({
+        user_id: userId,
+        operator_type: 'company',
+        company_name: profile?.full_name ?? profile?.email ?? 'Tur Şirketi',
+        phone: profile?.phone ?? null,
+      });
+      if (operatorError) {
+        console.error('setUserRoleActiveByAdmin tour_operator insert error:', operatorError.message);
+        return false;
+      }
+    }
+  }
+
   return true;
 }
 

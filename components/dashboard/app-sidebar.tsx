@@ -43,6 +43,7 @@ import { NavUser } from "./nav-user"
 import {
   ADMIN_MODULES,
   HOST_MODULES,
+  TOUR_OPERATOR_MODULES,
   type DashboardIconKey,
   type DashboardModuleDefinition,
 } from "@/lib/dashboard/admin-structure"
@@ -107,6 +108,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { profile } = useAppSelector((s) => s.user)
 
   const isAdmin = !!profile?.isAdmin
+  const isHost = !!profile?.isHost
+  const isTourOperatorOnly = !!profile?.isTourOperator && !isHost && !isAdmin
   const [adminBadges, setAdminBadges] = React.useState<AdminSidebarBadgeMap>({})
 
   React.useEffect(() => {
@@ -131,12 +134,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }
   }, [isAdmin])
 
-  const modules = isAdmin ? ADMIN_MODULES : HOST_MODULES
+  const modules = isAdmin
+    ? ADMIN_MODULES
+    : isTourOperatorOnly
+      ? TOUR_OPERATOR_MODULES
+      : HOST_MODULES
+
   const sidebarData = {
     navMain: buildMainNavItems(modules, isAdmin ? adminBadges : undefined),
     documents: buildDocumentItems(modules),
   }
-  const roleLabel = isAdmin ? "Yönetici" : "Ev Sahibi"
+  const roleLabel = isAdmin ? "Yönetici" : isTourOperatorOnly ? "Tur Şirketi" : "Ev Sahibi"
   const sidebarBg = "bg-sidebar"
 
   return (
