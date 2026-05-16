@@ -1,6 +1,8 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useLocale } from '@/lib/i18n/locale-context';
+import { fetchTours } from '@/lib/supabase/tours';
 import { SearchHeader } from '@/components/header/search-header';
 import { Button } from '@/components/ui/button';
 import { MOCK_TOURS_BASE } from './_components/constants';
@@ -49,6 +51,40 @@ export default function ToursPage() {
     duration: durations[base.durationIndex] ?? '',
     badge: badges[base.badgeIndex] ?? '',
   }));
+
+  const [tours, setTours] = useState<LocalizedTour[]>(mockTours);
+
+  useEffect(() => {
+    fetchTours({ limit: 6 }).then((data) => {
+      if (!data || data.length === 0) return;
+
+      const mappedTours = data.map((tour, index) => {
+        const duration = tour.durationMinutes
+          ? tour.durationMinutes >= 60
+            ? `${Math.round(tour.durationMinutes / 60)} saat`
+            : `${tour.durationMinutes} dk`
+          : '';
+
+        return {
+          id: tour.id,
+          price: tour.basePrice,
+          rating: tour.rating,
+          reviews: tour.totalReviews,
+          maxGuests: tour.maxParticipants ?? 1,
+          image: tour.previewImage ?? mockTours[index % mockTours.length].image,
+          gradient: 'from-amber-500 to-orange-500',
+          title: tour.title,
+          location: [tour.city, tour.country].filter(Boolean).join(', '),
+          duration,
+          badge: tour.category?.name ?? 'Tur',
+        };
+      });
+
+      if (mappedTours.length > 0) {
+        setTours(mappedTours);
+      }
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-background font-sans">
