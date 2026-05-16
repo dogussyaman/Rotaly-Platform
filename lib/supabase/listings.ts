@@ -376,6 +376,54 @@ export interface UpdateListingInput {
   isActive?: boolean;
 }
 
+export async function createListing(
+  hostId: string,
+  input: UpdateListingInput,
+): Promise<string | null> {
+  const supabase = createClient();
+  const payload: Record<string, unknown> = {
+    host_id: hostId,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    is_active: input.isActive !== false, // Default to true unless explicitly false
+  };
+
+  if (input.title !== undefined) payload.title = input.title;
+  if (input.description !== undefined) payload.description = input.description;
+  if (input.propertyType !== undefined) payload.property_type = input.propertyType;
+  if (input.address !== undefined) payload.address = input.address;
+  if (input.city !== undefined) payload.city = input.city;
+  if (input.country !== undefined) payload.country = input.country;
+  if (input.latitude !== undefined) payload.latitude = input.latitude;
+  if (input.longitude !== undefined) payload.longitude = input.longitude;
+  if (input.pricePerNight !== undefined) payload.price_per_night = input.pricePerNight;
+  if (input.cleaningFee !== undefined) payload.cleaning_fee = input.cleaningFee;
+  if (input.serviceFee !== undefined) payload.service_fee = input.serviceFee;
+  if (input.baseGuests !== undefined) payload.base_guests = input.baseGuests;
+  if (input.extraGuestFee !== undefined) payload.extra_guest_fee = input.extraGuestFee;
+  if (input.discountPercent !== undefined) payload.discount_percent = input.discountPercent;
+  if (input.maxGuests !== undefined) payload.max_guests = input.maxGuests;
+  if (input.bedrooms !== undefined) payload.bedrooms = input.bedrooms;
+  if (input.beds !== undefined) payload.beds = input.beds;
+  if (input.bathrooms !== undefined) payload.bathrooms = input.bathrooms;
+  if (input.checkInTime !== undefined) payload.check_in_time = input.checkInTime;
+  if (input.checkOutTime !== undefined) payload.check_out_time = input.checkOutTime;
+  if (input.instantBooking !== undefined) payload.instant_booking = input.instantBooking;
+
+  const { data, error } = await supabase
+    .from('listings')
+    .insert([payload])
+    .select('id');
+
+  if (error) {
+    console.error('createListing error:', error.message);
+    return null;
+  }
+
+  if (!data || data.length === 0) return null;
+  return data[0].id;
+}
+
 export async function updateListing(
   listingId: string,
   input: UpdateListingInput,
