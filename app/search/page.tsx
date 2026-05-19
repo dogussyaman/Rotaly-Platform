@@ -30,11 +30,7 @@ function SearchPageContent() {
   const [mapBoundsFilter, setMapBoundsFilter] = useState<MapBounds | null>(null);
   const { t } = useLocale();
   const searchParams = useSearchParams();
-  const { filters, setLocation, setGuests, setCheckIn, setCheckOut } = useSearchStore();
-  const canSearch =
-    filters.location.trim().length > 0 &&
-    !!filters.checkIn &&
-    !!filters.checkOut;
+  const { filters, setLocation, setGuests, setCheckIn, setCheckOut, setPropertyType } = useSearchStore();
 
   useEffect(() => {
     const loc = searchParams.get('location');
@@ -44,6 +40,7 @@ function SearchPageContent() {
     const gst = searchParams.get('guests');
     const cin = searchParams.get('checkin');
     const cout = searchParams.get('checkout');
+    const cat = searchParams.get('category');
     if (loc) setLocation(loc);
 
     const adults = adultsParam ? Number.parseInt(adultsParam, 10) : NaN;
@@ -64,14 +61,25 @@ function SearchPageContent() {
 
     if (cin) setCheckIn(new Date(cin));
     if (cout) setCheckOut(new Date(cout));
-  }, [searchParams, setLocation, setGuests, setCheckIn, setCheckOut]);
+
+    if (cat) {
+      const categoryMapping: Record<string, string[]> = {
+        beachfront: ['Bungalow', 'Villa', 'Boat'],
+        lakefront: ['Cabin', 'Cottage'],
+        tropical: ['Bungalow', 'Villa'],
+        castles: ['Castle'],
+        farmhouse: ['Cottage'],
+        city: ['Apartment', 'Hotel'],
+        mountain: ['Cabin'],
+      };
+      const mappedTypes = categoryMapping[cat.toLowerCase()];
+      if (mappedTypes) {
+        setPropertyType(mappedTypes);
+      }
+    }
+  }, [searchParams, setLocation, setGuests, setCheckIn, setCheckOut, setPropertyType]);
 
   const loadListings = useCallback(async () => {
-    if (!canSearch) {
-      setListings([]);
-      setLoading(false);
-      return;
-    }
     setLoading(true);
     const data = await fetchListings({
       location: filters.location,
@@ -85,7 +93,7 @@ function SearchPageContent() {
     });
     setListings(data);
     setLoading(false);
-  }, [canSearch, filters]);
+  }, [filters]);
 
   useEffect(() => {
     loadListings();
@@ -191,14 +199,6 @@ function SearchPageContent() {
             t={t}
             mapNode={mapNode}
             filters={filters}
-            emptyState={
-              !canSearch
-                ? {
-                    title: 'Arama yapmak için önce konum ve tarih seçin',
-                    subtitle: 'Yukarıdaki arama çubuğundan destinasyon, giriş ve çıkış tarihi girin.',
-                  }
-                : undefined
-            }
           />
         </div>
       </div>

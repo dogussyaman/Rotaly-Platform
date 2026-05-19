@@ -139,7 +139,12 @@ export function SearchResultsSection({
       </div>
       <AnimatePresence>
         {showMap && (
-          <div className="w-full shrink-0 max-lg:order-1 lg:order-2">{mapNode}</div>
+          <div className={cn(
+            "w-full shrink-0 max-lg:order-1 lg:order-2",
+            showFilters ? 'lg:w-[420px]' : 'lg:w-[min(600px,40vw)]'
+          )}>
+            {mapNode}
+          </div>
         )}
       </AnimatePresence>
     </div>

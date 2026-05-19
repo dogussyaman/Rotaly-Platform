@@ -2,6 +2,7 @@
 
 import type { JSX } from 'react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 const CategoryIcon = ({ id }: { id: string }) => {
     const icons: Record<string, JSX.Element> = {
@@ -94,6 +95,7 @@ export function CategoriesSection({
     setActiveCategory,
     catScrollRef,
 }: CategoriesSectionProps) {
+    const router = useRouter();
     const categoryLabels: Record<string, string> = {
         beachfront: t.beachfront as string,
         lakefront: t.lakefront as string,
@@ -130,7 +132,10 @@ export function CategoriesSection({
                                     key={id}
                                     whileHover={{ y: -2 }}
                                     whileTap={{ scale: 0.97 }}
-                                    onClick={() => setActiveCategory(id)}
+                                    onClick={() => {
+                                        setActiveCategory(id);
+                                        router.push(`/search?category=${id}`);
+                                    }}
                                     className={`flex-shrink-0 w-44 p-4 rounded-2xl border text-left transition-all duration-200 ${
                                         isActive
                                             ? 'border-foreground bg-card shadow-md'
