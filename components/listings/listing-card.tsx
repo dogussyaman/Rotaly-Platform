@@ -23,6 +23,7 @@ interface ListingCardProps {
   isFavorite?: boolean;
   guestFavoriteLabel?: string;
   layout?: 'grid' | 'list';
+  hideBorder?: boolean;
 }
 
 export function ListingCard({
@@ -40,6 +41,7 @@ export function ListingCard({
   isFavorite = false,
   guestFavoriteLabel = 'Misafirlerin Favorisi',
   layout = 'grid',
+  hideBorder = false,
 }: ListingCardProps) {
   const [wishlisted, setWishlisted] = useState(isFavorite);
   const [imgIndex, setImgIndex] = useState(0);
@@ -68,15 +70,14 @@ export function ListingCard({
 
   return (
     <div
-      className={`group cursor-pointer ${isList ? 'flex flex-col md:flex-row gap-4' : ''}`}
+      className={`group cursor-pointer transition-shadow ${isList ? 'flex flex-col md:flex-row gap-4 rounded-3xl bg-card p-4 shadow-sm hover:shadow-md' : 'overflow-hidden rounded-3xl bg-card shadow-sm hover:shadow-lg'} ${hideBorder ? 'border-none bg-transparent shadow-none hover:shadow-none' : isList ? 'border border-border/70' : 'border border-border/60'}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       {/* ── Image Carousel ── */}
       <div
-        className={`relative rounded-2xl overflow-hidden bg-muted ${
-          isList ? 'w-full md:w-64 h-56 md:h-44 flex-shrink-0 mb-3 md:mb-0' : 'aspect-[4/3] mb-3'
-        }`}
+        className={`relative rounded-2xl overflow-hidden bg-muted ${isList ? 'w-full md:w-64 h-56 md:h-44 flex-shrink-0 mb-3 md:mb-0' : 'aspect-[4/3] mb-3'
+          }`}
       >
         {images.map((src, i) => (
           <motion.div
@@ -125,9 +126,8 @@ export function ListingCard({
             {images.map((_, i) => (
               <div
                 key={i}
-                className={`rounded-full transition-all duration-200 ${
-                  i === imgIndex ? 'w-2 h-2 bg-card' : 'w-1.5 h-1.5 bg-card/60'
-                }`}
+                className={`rounded-full transition-all duration-200 ${i === imgIndex ? 'w-2 h-2 bg-card' : 'w-1.5 h-1.5 bg-card/60'
+                  }`}
               />
             ))}
           </div>
@@ -140,9 +140,8 @@ export function ListingCard({
           aria-label="İstek listesine ekle"
         >
           <Heart
-            className={`w-5 h-5 drop-shadow transition-colors ${
-              wishlisted ? 'fill-rose-500 text-rose-500' : 'text-card fill-foreground/25'
-            }`}
+            className={`w-5 h-5 drop-shadow transition-colors ${wishlisted ? 'fill-rose-500 text-rose-500' : 'text-card fill-foreground/25'
+              }`}
           />
         </button>
 
@@ -165,9 +164,9 @@ export function ListingCard({
       </div>
 
       {/* ── Info ── */}
-      <div className={isList ? 'flex-1 min-w-0' : ''}>
-        <div className="flex items-start justify-between gap-2 mb-0.5">
-          <h3 className="font-semibold text-sm text-foreground leading-snug flex-1 line-clamp-1">
+      <div className={isList ? 'flex-1 min-w-0' : 'space-y-3 p-4'}>
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-semibold text-base text-foreground leading-snug flex-1 line-clamp-1">
             {location}
           </h3>
           {rating > 0 && (
@@ -186,10 +185,10 @@ export function ListingCard({
         <p className="text-sm text-muted-foreground line-clamp-1">{title}</p>
 
         {dateRange ? (
-          <p className="text-sm text-muted-foreground mt-0.5">{dateRange}</p>
+          <p className="text-sm text-muted-foreground mt-1">{dateRange}</p>
         ) : null}
 
-        <div className="mt-1.5 flex items-baseline gap-1">
+        <div className="mt-4 flex items-baseline gap-1">
           <span className="text-sm font-semibold text-foreground underline decoration-foreground/25 underline-offset-2">
             ₺{pricePerNight.toLocaleString('tr-TR')}
           </span>

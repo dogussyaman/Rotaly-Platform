@@ -71,7 +71,8 @@ const mapStyles = `
   }
   .leaflet-popup-content {
     margin: 0 !important;
-    width: 280px !important;
+    width: 320px !important;
+    padding: 0 !important;
   }
   .leaflet-popup-tip-container {
     display: none;
@@ -200,8 +201,8 @@ function MapContent({ listings, fitListings, onBoundsChange }: MapProps) {
                             icon={customIcon}
                         >
                             <Popup closeButton={false}>
-                                <div className="w-[300px]">
-                                    <ListingCard {...listing} layout="grid" />
+                                <div className="w-[320px] p-3">
+                                    <ListingCard {...listing} layout="grid" hideBorder />
                                 </div>
                             </Popup>
                         </Marker>
