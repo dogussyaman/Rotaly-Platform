@@ -30,7 +30,7 @@ function SearchPageContent() {
   const [mapBoundsFilter, setMapBoundsFilter] = useState<MapBounds | null>(null);
   const { t } = useLocale();
   const searchParams = useSearchParams();
-  const { filters, setLocation, setGuests, setCheckIn, setCheckOut, setPropertyType } = useSearchStore();
+  const { filters, setLocation, setGuests, setCheckIn, setCheckOut, setPropertyType, resetFilterOptions } = useSearchStore();
 
   useEffect(() => {
     const loc = searchParams.get('location');
@@ -139,6 +139,16 @@ function SearchPageContent() {
     });
   }, [showFilters, wasFiltersOpen]);
 
+  const hasActiveFilters = useMemo(
+    () =>
+      filters.priceMin !== 0 ||
+      filters.priceMax !== 10000 ||
+      filters.propertyType.length > 0 ||
+      filters.amenities.length > 0 ||
+      filters.discountOnly,
+    [filters],
+  );
+
   const mapNode = (
     <motion.div
       layout
@@ -188,6 +198,8 @@ function SearchPageContent() {
             setViewMode={setViewMode}
             showMap={showMap}
             onToggleMap={toggleMap}
+            hasActiveFilters={hasActiveFilters}
+            onResetFilters={resetFilterOptions}
             t={t}
           />
           <SearchResultsSection

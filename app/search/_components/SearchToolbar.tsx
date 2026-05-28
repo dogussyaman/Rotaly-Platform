@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { LayoutGrid, LayoutList, Sliders, ChevronDown, Check } from 'lucide-react';
+import { LayoutGrid, LayoutList, Sliders, ChevronDown, Check, X } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +22,8 @@ interface SearchToolbarProps {
   setViewMode: (v: 'grid' | 'list') => void;
   showMap: boolean;
   onToggleMap: () => void;
+  hasActiveFilters: boolean;
+  onResetFilters: () => void;
   t: Record<string, unknown>;
 }
 
@@ -36,6 +38,8 @@ export function SearchToolbar({
   setViewMode,
   showMap,
   onToggleMap,
+  hasActiveFilters,
+  onResetFilters,
   t,
 }: SearchToolbarProps) {
   return (
@@ -120,6 +124,17 @@ export function SearchToolbar({
             <LayoutList className="w-4 h-4" />
           </Button>
         </div>
+        {hasActiveFilters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-10 shrink-0 rounded-xl border-border/60 px-3 sm:px-4 font-bold gap-2"
+            onClick={onResetFilters}
+          >
+            <X className="w-4 h-4" />
+            {t.filterClearAll as string}
+          </Button>
+        )}
         <Button
           variant={showMap ? 'secondary' : 'outline'}
           size="sm"

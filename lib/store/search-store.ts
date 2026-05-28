@@ -29,6 +29,7 @@ interface SearchStore {
   setAmenities: (amenities: string[]) => void;
   setDiscountOnly: (value: boolean) => void;
   resetFilters: () => void;
+  resetFilterOptions: () => void;
 }
 
 const initialFilters: SearchFilters = {
@@ -85,4 +86,15 @@ export const useSearchStore = create<SearchStore>((set) => ({
     set({
       filters: initialFilters,
     }),
+  resetFilterOptions: () =>
+    set((state) => ({
+      filters: {
+        ...state.filters,
+        priceMin: initialFilters.priceMin,
+        priceMax: initialFilters.priceMax,
+        propertyType: initialFilters.propertyType,
+        amenities: initialFilters.amenities,
+        discountOnly: initialFilters.discountOnly,
+      },
+    })),
 }));

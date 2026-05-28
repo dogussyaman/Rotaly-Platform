@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
@@ -41,6 +42,7 @@ export function FilterSidebar() {
     setPropertyType,
     setAmenities,
     setDiscountOnly,
+    resetFilterOptions,
   } = useSearchStore();
   const { t } = useLocale();
 
@@ -102,37 +104,67 @@ export function FilterSidebar() {
             transition={{ duration: 0.3 }}
             className="space-y-4"
           >
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">
-                {t.filterMinPrice as string}
-              </Label>
-              <Input
-                type="number"
-                value={filters.priceMin}
-                onChange={(e) =>
-                  setPriceRange(Number(e.target.value), filters.priceMax)
-                }
-                placeholder="0"
-                className="bg-background border-border"
-              />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">
+                  {t.filterMinPrice as string}
+                </Label>
+                <Input
+                  type="number"
+                  value={filters.priceMin}
+                  min={0}
+                  max={filters.priceMax}
+                  onChange={(e) =>
+                    setPriceRange(Number(e.target.value), filters.priceMax)
+                  }
+                  placeholder="0"
+                  className="bg-background border-border"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">
+                  {t.filterMaxPrice as string}
+                </Label>
+                <Input
+                  type="number"
+                  value={filters.priceMax}
+                  min={filters.priceMin}
+                  max={10000}
+                  onChange={(e) =>
+                    setPriceRange(filters.priceMin, Number(e.target.value))
+                  }
+                  placeholder="10000"
+                  className="bg-background border-border"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">
-                {t.filterMaxPrice as string}
-              </Label>
-              <Input
-                type="number"
-                value={filters.priceMax}
-                onChange={(e) =>
-                  setPriceRange(filters.priceMin, Number(e.target.value))
+            <Slider
+              min={0}
+              max={10000}
+              step={50}
+              value={[
+                Math.min(filters.priceMin, filters.priceMax),
+                Math.max(filters.priceMin, filters.priceMax),
+              ]}
+              onValueChange={(value) => {
+                if (Array.isArray(value) && value.length === 2) {
+                  setPriceRange(value[0], value[1]);
                 }
-                placeholder="10000"
-                className="bg-background border-border"
-              />
+              }}
+              className="h-10"
+            />
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <span>
+                {t.filterMinPrice as string}: ${filters.priceMin}
+              </span>
+              <span>
+                {t.filterMaxPrice as string}: ${filters.priceMax}
+              </span>
             </div>
-            <div className="text-sm text-muted-foreground">
-              ${filters.priceMin} - ${filters.priceMax}{' '}
-              {t.filterPerNightSuffix as string}
+            <div className="rounded-2xl border border-border/70 bg-muted px-3 py-2 text-sm text-foreground">
+              {filters.priceMin === 0 && filters.priceMax === 10000
+                ? t.filterPerNightSuffix
+                : `$${filters.priceMin} - $${filters.priceMax} ${t.filterPerNightSuffix as string}`}
             </div>
           </motion.div>
         )}
@@ -269,12 +301,7 @@ export function FilterSidebar() {
       <Button
         variant="outline"
         className="w-full border-border"
-        onClick={() => {
-          setPriceRange(0, 10000);
-          setPropertyType([]);
-          setAmenities([]);
-          setDiscountOnly(false);
-        }}
+        onClick={() => resetFilterOptions()}
       >
         {t.filterClearAll as string}
       </Button>
